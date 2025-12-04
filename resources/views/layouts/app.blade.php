@@ -16,6 +16,8 @@
             href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css"
         />
 
+        @stack('styles')
+
         <style>
             :root {
                 --container-width: 1024px;
@@ -246,6 +248,8 @@
                 }
             })();
         </script>
+
+        @stack('scripts')
     </body>
 </html>
 
