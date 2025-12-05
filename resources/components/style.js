@@ -65,12 +65,16 @@ function addToCart(name, price) {
     
     const category = menuItem ? menuItem.getAttribute('data-category') : 'all';
     
-    // Get image source
+    // Get image source (extract relative path from full URL)
     let imageSrc = '';
     if (menuItem) {
         const img = menuItem.querySelector('.menu-item-image');
         if (img) {
-            imageSrc = img.src;
+            const fullSrc = img.src;
+            // Extract relative path from full URL
+            // e.g., "http://localhost/assets/img/file.png" -> "assets/img/file.png"
+            const url = new URL(fullSrc);
+            imageSrc = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
         }
     }
     
@@ -135,6 +139,13 @@ function openOrderPanel() {
         bottomOrderBar.style.display = 'none';
     }
     
+    // Prevent body scroll when panel is open
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    
     orderPanel.classList.add('active');
     orderPanelOverlay.classList.add('active');
     menuSection.classList.add('panel-open');
@@ -153,6 +164,16 @@ function closeOrderPanel() {
     orderPanelOverlay.classList.remove('active');
     menuSection.classList.remove('panel-open');
     menuGrid.classList.remove('panel-open');
+    
+    // Restore body scroll
+    const scrollY = document.body.style.top;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
     
     // Show bottom order bar again if there are items in cart
     if (bottomOrderBar && cart.length > 0) {
@@ -196,7 +217,10 @@ function updateOrderPanel() {
             if (menuItem) {
                 const img = menuItem.querySelector('.menu-item-image');
                 if (img) {
-                    imageSrc = img.src;
+                    const fullSrc = img.src;
+                    // Extract relative path from full URL
+                    const url = new URL(fullSrc);
+                    imageSrc = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
                     // Update cart item with image for future use
                     item.image = imageSrc;
                 }
@@ -368,15 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Order panel category filter
-    document.querySelectorAll('.order-category-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.order-category-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const category = this.getAttribute('data-order-category');
-            filterOrderItems(category);
-        });
-    });
+    // Order panel category filter (removed - categories no longer shown)
 
     // Payment option buttons
     document.querySelectorAll('.payment-btn').forEach(btn => {
@@ -395,21 +411,126 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
+            // Show checkout modal
+            const checkoutModal = document.getElementById('checkoutModal');
+            if (checkoutModal) {
+                checkoutModal.classList.add('active');
+                // Prevent body scroll
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+
+    // Checkout form submission
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (cart.length === 0) {
+                alert('Keranjang masih kosong');
+                return;
+            }
+
+            const customerName = document.getElementById('customerName').value.trim();
+            const tableNumber = document.getElementById('tableNumber').value.trim();
+            const room = document.getElementById('room').value.trim();
+
+            if (!customerName || !tableNumber || !room) {
+                alert('Mohon lengkapi semua field');
+                return;
+            }
+
             const selectedPayment = document.querySelector('.payment-btn.active')?.getAttribute('data-payment') || 'cash';
-            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
-            // Format order message
-            let orderMessage = 'Tambahan dari Class Billiard Eatery\n\n';
-            cart.forEach(item => {
-                orderMessage += `${item.quantity}x ${item.name} - Rp${(item.price * item.quantity).toLocaleString('id-ID')}\n`;
-            });
-            orderMessage += `\nTotal: Rp${totalPrice.toLocaleString('id-ID')}\n`;
-            orderMessage += `Metode Pembayaran: ${selectedPayment.toUpperCase()}`;
-            
-            // Send to WhatsApp (you can customize the phone number)
-            const phoneNumber = '6281234567890'; // Replace with actual WhatsApp number
-            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(orderMessage)}`;
-            window.open(whatsappUrl, '_blank');
+            // Prepare order data
+            const orderData = {
+                customer_name: customerName,
+                table_number: tableNumber,
+                room: room,
+                payment_method: selectedPayment,
+                items: cart.map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image || ''
+                }))
+            };
+
+            // Submit order
+            try {
+                const response = await fetch('/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Clear cart
+                    cart = [];
+                    updateOrderBar();
+                    updateOrderPanel();
+                    
+                    // Close modal and order panel
+                    const checkoutModal = document.getElementById('checkoutModal');
+                    if (checkoutModal) {
+                        checkoutModal.classList.remove('active');
+                    }
+                    closeOrderPanel();
+                    
+                    // Restore body scroll
+                    document.body.style.overflow = '';
+                    
+                    // Reset form
+                    checkoutForm.reset();
+                    
+                    // Show success message
+                    showNotification('Pesanan berhasil dibuat!');
+                } else {
+                    alert('Gagal membuat pesanan. Silakan coba lagi.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan. Silakan coba lagi.');
+            }
+        });
+    }
+
+    // Close modal buttons
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelCheckoutBtn = document.getElementById('cancelCheckoutBtn');
+    const checkoutModal = document.getElementById('checkoutModal');
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            if (checkoutModal) {
+                checkoutModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+
+    if (cancelCheckoutBtn) {
+        cancelCheckoutBtn.addEventListener('click', function() {
+            if (checkoutModal) {
+                checkoutModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+
+    // Close modal when clicking outside
+    if (checkoutModal) {
+        checkoutModal.addEventListener('click', function(e) {
+            if (e.target === checkoutModal) {
+                checkoutModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
         });
     }
 });

@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>@yield('title', 'Billiard Class')</title>
 
         {{-- Google Font Poppins (mirip Next.js layout) --}}
@@ -216,10 +217,7 @@
 
                     <ul class="menu" id="navbar-menu">
                         <li><a href="{{ route('home') }}">Beranda</a></li>
-                        <li><a href="{{ route('menu') }}">Menu</a></li>
-                        <li><a href="{{ route('event') }}">Event</a></li>
-                        <li><a href="{{ route('layanan') }}">Reservasi</a></li>
-                        <li><a href="{{ route('kontak') }}">Kontak</a></li>
+                        <li><a href="{{ route('menu') }}">Orders</a></li>
                         
                     </ul>
 
