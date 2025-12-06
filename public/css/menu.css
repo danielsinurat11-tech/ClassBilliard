@@ -1,3 +1,8 @@
+:root {
+    --container-width: 1024px;
+}
+
+
 .menu-container {
     display: flex;
     gap: 1.5rem;

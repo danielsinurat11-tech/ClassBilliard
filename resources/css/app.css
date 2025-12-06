@@ -10,3 +10,32 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Custom styles for complex elements */
+.menu--active {
+    @apply opacity-100 visible translate-x-0;
+}
+
+.hero-diagonal-lines::before,
+.hero-diagonal-lines::after {
+    content: '';
+    @apply absolute w-[150%] h-3 bg-[#fa9a08] rotate-[25deg];
+}
+
+.hero-diagonal-lines::before {
+    @apply top-[20%] -left-[20%];
+}
+
+.hero-diagonal-lines::after {
+    @apply top-[50%] -left-[20%];
+}
+
+/* Dapur page styles */
+.filter-tab-btn.active {
+    @apply bg-[#fa9a08] text-white;
+}
+
+.filter-input-group:not(.hidden),
+#reportsSummary:not(.hidden) {
+    @apply flex;
+}

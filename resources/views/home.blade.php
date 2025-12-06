@@ -3,38 +3,32 @@
 @section('title', 'Beranda - Billiard Class')
 
 @section('content')
-    <section>
-        {{-- Title --}}
-        <div class="hero-title">
-            <h1>Selamat Datang di Billiard Class</h1>
-        </div>
-{{-- Title --}}
-        
-{{-- Hero Image and pargraf --}}
-        <div class="hero-layout">
-            <div class="hero-image-wrapper">
-                <img src="{{ asset('assets/logo.png') }}" alt="Logo Billiard Class">
-            </div>
+    {{-- Hero Section --}}
+    @include('components.hero-section')
 
-            <div class="hero-copy">
-                <p>
-                    Tempat terbaik untuk bermain billiard dengan suasana nyaman, fasilitas lengkap, dan harga
-                    bersahabat. Rasakan pengalaman bermain yang seru bersama teman, komunitas, ataupun keluarga.
-                </p>
-            </div>
-        </div>
+    {{-- Tentang Kami Section --}}
+    @include('components.tentang-kami')
 
-        {{-- Hero Image and pargraf --}}
+    {{-- About Founder Section --}}
+    @include('components.about-founder')
 
-        {{-- Fasilitas --}}
-        <div class="section-fasilitas">
-            <div class="fasilitas">
-                <h1>Fasilitas</h1>
-                <p>Ruangan Reguler | Ruangan Vip | Free WiFi | Cafe and Eatry | Toilet</p>
-            </div>
-        </div>
-        {{-- Fasilitas --}}
-    </section>
+    {{-- Keunggulan & Fasilitas Section --}}
+    @include('components.keunggulan-fasilitas')
+
+    {{-- Portfolio & Achievement Section --}}
+    @include('components.portfolio-achievement')
+
+    {{-- Tim Kami Section --}}
+    @include('components.tim-kami')
+
+    {{-- Testimoni Pelanggan Section --}}
+    @include('components.testimoni-pelanggan')
+
+    {{-- Event Section --}}
+    @include('components.event')
+
+    {{-- Footer Section --}}
+    @include('components.footer')
 @endsection
 
 
