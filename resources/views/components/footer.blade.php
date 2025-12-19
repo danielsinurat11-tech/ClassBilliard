@@ -1,26 +1,40 @@
 {{-- Footer Section --}}
+@php
+    $footer = \App\Models\Footer::where('is_active', true)->first();
+@endphp
+@if($footer)
 <footer class="bg-[#1a1a1a] border-t border-[#fa9a08]/20">
     <div class="max-w-7xl mx-auto px-4 py-12">
         <div class="grid md:grid-cols-4 gap-8 mb-8">
             {{-- About --}}
             <div>
                 <h3 class="text-xl font-bold text-white mb-4">Tentang Kami</h3>
+                @if($footer->about_text)
                 <p class="text-gray-400 text-sm leading-relaxed mb-4">
-                    Class Billiard adalah tempat terbaik untuk bermain billiard dengan fasilitas lengkap dan pelayanan terbaik.
+                    {{ $footer->about_text }}
                 </p>
+                @endif
                 <div class="flex gap-3">
-                    <a href="#" class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[#fa9a08] hover:bg-[#fa9a08] hover:text-white transition-all">
+                    @if($footer->facebook_url)
+                    <a href="{{ $footer->facebook_url }}" target="_blank" class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[#fa9a08] hover:bg-[#fa9a08] hover:text-white transition-all">
                         <i class="ri-facebook-fill"></i>
                     </a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[#fa9a08] hover:bg-[#fa9a08] hover:text-white transition-all">
+                    @endif
+                    @if($footer->instagram_url)
+                    <a href="{{ $footer->instagram_url }}" target="_blank" class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[#fa9a08] hover:bg-[#fa9a08] hover:text-white transition-all">
                         <i class="ri-instagram-fill"></i>
                     </a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[#fa9a08] hover:bg-[#fa9a08] hover:text-white transition-all">
+                    @endif
+                    @if($footer->twitter_url)
+                    <a href="{{ $footer->twitter_url }}" target="_blank" class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[#fa9a08] hover:bg-[#fa9a08] hover:text-white transition-all">
                         <i class="ri-twitter-x-fill"></i>
                     </a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[#fa9a08] hover:bg-[#fa9a08] hover:text-white transition-all">
+                    @endif
+                    @if($footer->youtube_url)
+                    <a href="{{ $footer->youtube_url }}" target="_blank" class="w-10 h-10 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[#fa9a08] hover:bg-[#fa9a08] hover:text-white transition-all">
                         <i class="ri-youtube-fill"></i>
                     </a>
+                    @endif
                 </div>
             </div>
 
@@ -40,22 +54,26 @@
             <div>
                 <h3 class="text-xl font-bold text-white mb-4">Kontak</h3>
                 <ul class="space-y-3">
+                    @if($footer->address)
                     <li class="flex items-start gap-3">
                         <i class="ri-map-pin-fill text-[#fa9a08] mt-1"></i>
                         <span class="text-gray-400 text-sm">
-                            Jl. Alpukat, Madurejo, Kec. Arut Sel.,<br>
-                            Kabupaten Kotawaringin Barat,<br>
-                            Kalimantan Tengah 74117
+                            {!! nl2br(e($footer->address)) !!}
                         </span>
                     </li>
+                    @endif
+                    @if($footer->phone)
                     <li class="flex items-center gap-3">
                         <i class="ri-phone-fill text-[#fa9a08]"></i>
-                        <a href="tel:+6281234567890" class="text-gray-400 hover:text-[#fa9a08] transition-colors text-sm">+62 812 3456 7890</a>
+                        <a href="tel:{{ $footer->phone }}" class="text-gray-400 hover:text-[#fa9a08] transition-colors text-sm">{{ $footer->phone }}</a>
                     </li>
+                    @endif
+                    @if($footer->email)
                     <li class="flex items-center gap-3">
                         <i class="ri-mail-fill text-[#fa9a08]"></i>
-                        <a href="mailto:info@classbilliard.com" class="text-gray-400 hover:text-[#fa9a08] transition-colors text-sm">info@classbilliard.com</a>
+                        <a href="mailto:{{ $footer->email }}" class="text-gray-400 hover:text-[#fa9a08] transition-colors text-sm">{{ $footer->email }}</a>
                     </li>
+                    @endif
                 </ul>
             </div>
 
@@ -65,19 +83,21 @@
                 <ul class="space-y-2 text-sm">
                     <li class="flex justify-between text-gray-400">
                         <span>Senin - Jumat</span>
-                        <span class="text-[#fa9a08]">10:00 - 22:00</span>
+                        <span class="text-[#fa9a08]">{{ $footer->monday_friday_hours ?? '10:00 - 22:00' }}</span>
                     </li>
                     <li class="flex justify-between text-gray-400">
                         <span>Sabtu - Minggu</span>
-                        <span class="text-[#fa9a08]">09:00 - 23:00</span>
+                        <span class="text-[#fa9a08]">{{ $footer->saturday_sunday_hours ?? '09:00 - 23:00' }}</span>
                     </li>
                 </ul>
+                @if($footer->google_maps_url)
                 <div class="mt-6">
-                    <a href="https://maps.app.goo.gl/s6s6nLvYNbmADmPm6" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-[#fa9a08] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#e19e2b] transition-colors">
+                    <a href="{{ $footer->google_maps_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-[#fa9a08] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#e19e2b] transition-colors">
                         <i class="ri-map-pin-fill"></i>
                         Lihat di Google Maps
                     </a>
                 </div>
+                @endif
             </div>
         </div>
 
@@ -89,5 +109,7 @@
         </div>
     </div>
 </footer>
+@endif
 {{-- Footer Section --}}
+
 

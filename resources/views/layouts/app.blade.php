@@ -21,7 +21,7 @@
         @stack('styles')
     </head>
     <body class="font-['Poppins',system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] bg-black text-white">
-        <header class="fixed top-0 left-0 right-0 w-full z-50 py-6 bg-black">
+        <header class="fixed top-0 left-0 right-0 w-full z-50 py-6 bg-[#1A1A1A]">
             <div class="max-w-[1024px] mx-auto px-4">
                 <div class="flex items-center justify-between">
                     <div class="logo">
@@ -41,7 +41,7 @@
             </div>
         </header>
 
-        <main class="pt-24">
+        <main class="pt-0 bg-black">
             @yield('content')
         </main>
 
