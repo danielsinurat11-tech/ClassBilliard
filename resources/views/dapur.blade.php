@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 
 @section('title', 'Dapur - Billiard Class')
 
@@ -91,4 +91,134 @@
     <script src="{{ asset('js/dapur.js') }}"></script>
     @endpush
 @endsection
+ --}}
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Grid Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        .receipt-font { font-family: 'Courier Prime', monospace; }
+        .logo-font { font-family: 'Bebas Neue', cursive; }
+        
+        .kitchen-bg {
+            background-color: #1a1a1a;
+            background-image: url("https://www.transparenttextures.com/patterns/dark-wood.png");
+        }
+
+        /* Animasi Pop-up */
+        @keyframes popup-bounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-popup { animation: popup-bounce 0.3s ease-out forwards; }
+
+        /* Kertas Nota */
+        .thermal-paper { 
+            background: #fdfcf0; 
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.6); 
+            transition: all 0.3s ease;
+        }
+        .jagged-bottom { 
+            clip-path: polygon(0% 0%, 100% 0%, 100% 96%, 98% 100%, 96% 96%, 94% 100%, 92% 96%, 90% 100%, 88% 96%, 86% 100%, 84% 96%, 82% 100%, 80% 96%, 78% 100%, 76% 96%, 74% 100%, 72% 96%, 70% 100%, 68% 96%, 66% 100%, 64% 96%, 62% 100%, 60% 96%, 58% 100%, 56% 96%, 54% 100%, 52% 96%, 50% 100%, 48% 96%, 46% 100%, 44% 96%, 42% 100%, 40% 96%, 38% 100%, 36% 96%, 34% 100%, 32% 96%, 30% 100%, 28% 96%, 26% 100%, 24% 96%, 22% 100%, 20% 96%, 18% 100%, 16% 96%, 14% 100%, 12% 96%, 10% 100%, 8% 96%, 6% 100%, 4% 96%, 2% 100%, 0% 96%); 
+        }
+    </style>
+</head>
+<body class="kitchen-bg min-h-screen flex flex-col">
+
+    <div id="order-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/95">
+        <div class="bg-yellow-400 p-1 w-[90%] max-w-lg animate-popup">
+            <div class="bg-black text-yellow-400 p-4 flex justify-between items-center">
+                <h2 class="logo-font text-4xl">NEW ORDER!</h2>
+                <span id="modal-time" class="font-mono font-bold">--:--</span>
+            </div>
+            <div class="p-8 bg-white text-black">
+                <h3 id="modal-table" class="text-6xl font-black italic mb-6">TABLE --</h3>
+                <div class="border-y-4 border-black border-double py-6">
+                    <ul id="modal-items" class="receipt-font text-3xl space-y-3"></ul>
+                </div>
+                <button onclick="acceptOrder()" class="mt-8 w-full bg-green-600 text-white text-4xl font-black py-8 border-b-8 border-green-800 active:border-b-0 active:translate-y-2 transition-all">
+                    TERIMA & MASAK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <header class="p-6 bg-zinc-900 border-b-4 border-zinc-800 flex justify-between items-center sticky top-0 z-50">
+        <h1 class="logo-font text-4xl text-white tracking-widest italic">FAT PANDA <span class="text-red-600">KITCHEN</span></h1>
+        <button onclick="simulateIncomingOrder()" class="bg-red-600 text-white px-8 py-3 rounded font-black hover:bg-red-700 animate-pulse">
+            SIMULASI ORDER MASUK
+        </button>
+    </header>
+
+    <div class="w-full h-6 bg-zinc-800 shadow-inner border-b border-black"></div>
+
+    <main id="order-grid" class="p-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12">
+        </main>
+
+    <script>
+        let currentOrder = null;
+
+        function simulateIncomingOrder() {
+            currentOrder = {
+                id: Math.floor(Math.random() * 9000) + 1000,
+                table: "TABLE " + (Math.floor(Math.random() * 15) + 1),
+                items: [
+                    { qty: 1, name: "AYAM BAKAR MADU" },
+                    { qty: 2, name: "ES TEH MANIS" }
+                ],
+                time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            document.getElementById('modal-table').innerText = currentOrder.table;
+            document.getElementById('modal-time').innerText = currentOrder.time;
+            document.getElementById('modal-items').innerHTML = currentOrder.items.map(i => 
+                `<li><b>${i.qty}x</b> ${i.name}</li>`
+            ).join('');
+
+            document.getElementById('order-modal').classList.remove('hidden');
+        }
+
+        function acceptOrder() {
+            document.getElementById('order-modal').classList.add('hidden');
+            
+            const grid = document.getElementById('order-grid');
+            const newCard = document.createElement('div');
+            
+            // Random sedikit rotasi agar terlihat alami menempel
+            const randomRotate = (Math.random() * 3 - 1.5).toFixed(1);
+
+            newCard.className = `relative thermal-paper jagged-bottom p-6 pt-12 transform rotate-[${randomRotate}deg]`;
+            newCard.style.transform = `rotate(${randomRotate}deg)`;
+            
+            newCard.innerHTML = `
+                <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-14 h-16 bg-zinc-800 rounded shadow-xl flex justify-center pt-2">
+                    <div class="w-10 h-1.5 bg-zinc-600 rounded"></div>
+                </div>
+                
+                <div class="border-b-2 border-black border-dashed pb-3 mb-4">
+                    <div class="flex justify-between font-bold text-[10px] text-gray-500">
+                        <span>#${currentOrder.id}</span>
+                        <span>${currentOrder.time}</span>
+                    </div>
+                    <h2 class="text-3xl font-black text-black leading-tight uppercase font-sans italic">${currentOrder.table}</h2>
+                </div>
+                
+                <ul class="receipt-font text-gray-900 space-y-3 mb-10 text-xl">
+                    ${currentOrder.items.map(i => `<li><b>${i.qty}x</b> ${i.name}</li>`).join('')}
+                </ul>
+                
+                <button onclick="this.parentElement.remove()" class="w-full py-4 bg-black text-white font-black hover:bg-red-600 transition-colors uppercase">
+                    SELESAI
+                </button>
+            `;
+
+            grid.appendChild(newCard); // Gunakan appendChild agar pesanan baru nambah di belakang, atau prepend jika ingin di depan
+        }
+    </script>
+</body>
+</html>
