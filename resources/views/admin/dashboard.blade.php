@@ -3,9 +3,8 @@
 @section('title', 'Admin Dashboard - Billiard Class')
 
 @section('content')
-<div class="min-h-screen bg-black py-12">
+<div class="min-h-screen py-12">
     <div class="max-w-7xl mx-auto px-4">
-        <h1 class="text-4xl font-bold text-white mb-8">Admin Dashboard</h1>
         
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <a href="{{ route('admin.hero') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
@@ -78,13 +77,6 @@
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">Footer</h3>
                 <p class="text-gray-400 text-sm">Edit informasi footer</p>
-            </a>
-        </div>
-
-        <div class="mt-8">
-            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-[#fa9a08] hover:text-amber-400 transition-colors">
-                <i class="ri-arrow-left-line"></i>
-                <span>Kembali ke Home</span>
             </a>
         </div>
     </div>

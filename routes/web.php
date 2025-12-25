@@ -46,7 +46,7 @@ Route::middleware(['auth', 'role:kitchen'])->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
     // Dashboard & Reports
-    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     Route::get('/reports', [OrderController::class, 'reports'])->name('reports');
     Route::get('/reports/export', [OrderController::class, 'exportExcel'])->name('reports.export');
 
@@ -94,5 +94,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
         Route::get('/footer', 'footerIndex')->name('footer');
         Route::post('/footer', 'footerUpdate')->name('footer.update');
+
+        Route::get('/profile',  'edit')->name('profile.edit');
+        Route::put('/profile/update', 'update')->name('profile.update');
+        Route::put('/profile/password', 'updatePassword')->name('profile.password');
     });
 });
