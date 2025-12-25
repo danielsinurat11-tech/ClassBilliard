@@ -50,12 +50,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/reports', [OrderController::class, 'reports'])->name('reports');
     Route::get('/reports/export', [OrderController::class, 'exportExcel'])->name('reports.export');
 
-    // FITUR UTAMA: Manajemen User (Admin buat Admin/Kitchen)
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-
     // Manajemen Konten Landing Page (Hero, Tentang Kami, dll)
     Route::controller(AdminController::class)->group(function () {
         Route::get('/hero', 'heroIndex')->name('hero');
@@ -98,5 +92,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::get('/profile',  'edit')->name('profile.edit');
         Route::put('/profile/update', 'update')->name('profile.update');
         Route::put('/profile/password', 'updatePassword')->name('profile.password');
+    });
+    
+    Route::controller(UserController::class)->group(function () {
+        Route::get('/manage-users', 'index')->name('manage-users.index');
+        Route::get('/manage-users/create', 'create')->name('manage-users.create');
+        Route::post('/manage-users', 'store')->name('manage-users.store');
+
+        Route::get('/manage-users/{user}/edit', 'edit')->name('manage-users.edit');
+        Route::put('/manage-users/{user}', 'update')->name('manage-users.update');
+
+        Route::delete('/manage-users/{user}', 'destroy')->name('manage-users.destroy');
     });
 });

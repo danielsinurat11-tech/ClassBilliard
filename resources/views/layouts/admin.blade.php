@@ -175,6 +175,12 @@
                     @endforeach
                 </div>
             </div>
+
+            <a href="{{ route('admin.manage-users.index') }}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.manage-users.*')) active-link @endif">
+                <i class="ri-dashboard-2-line text-xl shrink-0"></i>
+                <span class="sidebar-text font-medium">Manajemen User</span>
+            </a>
         </nav>
 
         <div class="p-4 border-t border-white/5 space-y-2">
@@ -212,9 +218,11 @@
                     <div class="text-left hidden sm:block">
                         <p
                             class="text-sm font-bold leading-none text-white group-hover:text-[var(--accent)] transition-colors">
-                            {{ Auth::user()->name }}</p>
+                            {{ Auth::user()->name }}
+                        </p>
                         <p class="text-[10px] text-gray-500 font-medium uppercase tracking-tighter mt-1">
-                            {{ Auth::user()->role }}</p>
+                            {{ Auth::user()->role }}
+                        </p>
                     </div>
                     <i class="ri-arrow-down-s-line text-gray-500 transition-transform duration-300"
                         :class="open ? 'rotate-180' : ''"></i>
