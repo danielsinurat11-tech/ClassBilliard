@@ -6,10 +6,10 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>@yield('title', 'Billiard Class')</title>
 
-        {{-- Google Font Poppins (mirip Next.js layout) --}}
+        {{-- Typography: Plus Jakarta Sans (selaras dengan admin dashboard) --}}
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
         {{-- Remix Icon untuk icon menu --}}
         <link
@@ -23,7 +23,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('styles')
     </head>
-    <body class="font-['Poppins',system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] bg-black text-white">
+    <body class="font-['Plus_Jakarta_Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] antialiased bg-black text-white">
         @if(!request()->routeIs('dapur'))
         <header class="fixed top-0 left-0 right-0 w-full z-50 py-4 md:py-6 bg-[#1A1A1A] border-b border-white/5">
             <div class="max-w-[1024px] mx-auto px-4 md:px-6">

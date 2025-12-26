@@ -63,7 +63,7 @@
     
     /* CLASS Text - Large, White, Gothic */
     .hero-class-title {
-        font-family: 'Rumonds', serif;
+        font-family: 'Rumonds', serif !important;
         font-size: 380px;
         font-weight: normal;
         color: white;
@@ -78,7 +78,7 @@
     
     /* BILLIARD Text - Disesuaikan dengan banner merah di background */
     .hero-billiard-text {
-        font-family: 'Hina Mincho', serif;
+        font-family: 'Hina Mincho', serif !important;
         font-size: 50px;
         font-weight: bold;
         color: white;
@@ -88,6 +88,10 @@
         left: clamp(20rem, 36vw, 36rem);
         top: 75%;
         transform: translateY(-50%);
+    }
+    
+    .hero-class-text {
+        font-family: 'Rumonds', serif !important;
     }
     
     /* Right Overlay for White Logo */

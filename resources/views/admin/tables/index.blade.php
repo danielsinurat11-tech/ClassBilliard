@@ -14,9 +14,9 @@
         </div>
 
         <a href="{{ route('admin.tables.create') }}"
-            class="flex items-center gap-2 bg-[var(--accent)] hover:bg-[#e19e2b] text-black px-6 py-3 rounded-2xl font-bold transition-all transform hover:scale-105 shadow-[0_10px_20px_rgba(250,154,8,0.2)]">
-            <i class="ri-add-circle-fill text-xl"></i>
-            Tambah Meja Baru
+            class="flex items-center gap-2 bg-[#fa9a08] hover:bg-[#e19e2b] text-black px-6 py-3 rounded-2xl font-bold transition-all transform hover:scale-105 shadow-[0_10px_20px_rgba(250,154,8,0.2)]">
+            <i class="ri-add-circle-fill text-xl text-black"></i>
+            <span class="text-black">Tambah Meja Baru</span>
         </a>
     </div>
 

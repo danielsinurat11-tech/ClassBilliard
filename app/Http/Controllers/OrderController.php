@@ -1157,8 +1157,12 @@ class OrderController extends Controller
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
 
-        // Hanya tampilkan rekapitulasi dari shift user yang login
-        $reports = Report::where('shift_id', $user->shift_id)
+        // Tampilkan rekapitulasi dari shift user yang login ATAU rekap lama yang shift_id-nya NULL
+        // (untuk backward compatibility dengan rekap yang dibuat sebelum sistem shift)
+        $reports = Report::where(function($query) use ($user) {
+                $query->where('shift_id', $user->shift_id)
+                      ->orWhereNull('shift_id'); // Tampilkan juga rekap lama yang belum punya shift_id
+            })
             ->orderBy('report_date', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(20);

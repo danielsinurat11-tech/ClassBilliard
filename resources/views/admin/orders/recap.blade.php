@@ -24,6 +24,59 @@
         border-radius: 0.75rem;
         padding: 1rem;
     }
+
+    /* Pagination Styling */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .pagination > * {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pagination a,
+    .pagination span {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        min-width: 2.5rem;
+        text-align: center;
+    }
+
+    .pagination a {
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        color: #a78bfa;
+        text-decoration: none;
+    }
+
+    .pagination a:hover {
+        background: rgba(139, 92, 246, 0.3);
+        border-color: rgba(139, 92, 246, 0.5);
+        color: #c4b5fd;
+        transform: translateY(-1px);
+    }
+
+    .pagination span {
+        background: rgba(139, 92, 246, 0.5);
+        border: 1px solid rgba(139, 92, 246, 0.7);
+        color: white;
+        font-weight: 600;
+    }
+
+    .pagination .disabled span {
+        background: rgba(107, 114, 128, 0.2);
+        border-color: rgba(107, 114, 128, 0.3);
+        color: rgba(156, 163, 175, 0.5);
+        cursor: not-allowed;
+    }
 </style>
 @endpush
 
@@ -53,7 +106,7 @@
                     <label class="block text-sm font-medium text-gray-400 mb-2">Tanggal Mulai</label>
                     <input type="date" id="start_date" name="start_date" required
                         class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-600 transition-all"
-                        value="{{ date('Y-m-d', strtotime('-7 days')) }}">
+                        value="{{ date('Y-m-d') }}">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-400 mb-2">Tanggal Akhir</label>
@@ -62,6 +115,20 @@
                         value="{{ date('Y-m-d') }}">
                 </div>
             </div>
+            
+            {{-- Quick Date Buttons --}}
+            <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="setToday()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 hover:text-purple-300 rounded-lg text-sm font-medium transition-all border border-purple-600/30">
+                    <i class="ri-calendar-line"></i> Hari Ini
+                </button>
+                <button type="button" onclick="setThisMonth()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 hover:text-purple-300 rounded-lg text-sm font-medium transition-all border border-purple-600/30">
+                    <i class="ri-calendar-2-line"></i> Bulan Ini
+                </button>
+                <button type="button" onclick="setLast7Days()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 hover:text-purple-300 rounded-lg text-sm font-medium transition-all border border-purple-600/30">
+                    <i class="ri-calendar-check-line"></i> 7 Hari Terakhir
+                </button>
+            </div>
+            
             <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
                 <i class="ri-file-list-3-line"></i>
                 Buat Rekapitulasi
@@ -71,10 +138,17 @@
 
     {{-- Daftar Rekapitulasi --}}
     <div class="space-y-4">
-        <h2 class="text-xl font-bold text-white flex items-center gap-2">
-            <i class="ri-history-line text-purple-400"></i>
-            Histori Rekapitulasi
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="ri-history-line text-purple-400"></i>
+                Histori Rekapitulasi
+            </h2>
+            @if(!$reports->isEmpty())
+            <div class="text-sm text-gray-400">
+                Menampilkan {{ $reports->firstItem() ?? 0 }}-{{ $reports->lastItem() ?? 0 }} dari {{ $reports->total() }} rekap
+            </div>
+            @endif
+        </div>
 
         @if($reports->isEmpty())
         <div class="recap-card text-center py-12">
@@ -147,9 +221,13 @@
         @endforeach
 
         {{-- Pagination --}}
-        <div class="mt-6">
-            {{ $reports->links() }}
+        @if($reports->hasPages())
+        <div class="mt-8 flex justify-center">
+            <div class="bg-[#1A1A1A] border border-white/10 rounded-xl p-4">
+                {{ $reports->links() }}
+            </div>
         </div>
+        @endif
         @endif
     </div>
 </div>
@@ -244,6 +322,34 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Quick date functions
+    function setToday() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('start_date').value = today;
+        document.getElementById('end_date').value = today;
+    }
+
+    function setThisMonth() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+        document.getElementById('start_date').value = firstDay;
+        document.getElementById('end_date').value = lastDay;
+    }
+
+    function setLast7Days() {
+        const today = new Date();
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(today.getDate() - 6); // -6 karena hari ini juga dihitung
+        document.getElementById('start_date').value = sevenDaysAgo.toISOString().split('T')[0];
+        document.getElementById('end_date').value = today.toISOString().split('T')[0];
+    }
+
+    // Set default to today on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        setToday();
+    });
+
     // Handle form rekapitulasi
     document.getElementById('recapForm').addEventListener('submit', async function(e) {
         e.preventDefault();

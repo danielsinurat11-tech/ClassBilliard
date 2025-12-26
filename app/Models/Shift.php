@@ -113,8 +113,8 @@ class Shift extends Model
         $currentMinute = $now->minute;
         $currentTimeInMinutes = ($currentHour * 60) + $currentMinute;
 
-        // Shift 1: 10:00 - 17:00
-        // Shift 2: 17:00 - 00:00 (next day)
+        // Shift 1: 10:00 - 18:00
+        // Shift 2: 18:00 - 00:00 (next day)
         
         $shift1 = self::where('name', 'Shift 1')->where('is_active', true)->first();
         $shift2 = self::where('name', 'Shift 2')->where('is_active', true)->first();
@@ -132,12 +132,12 @@ class Shift extends Model
             $shift2StartMinutes = ($shift2Start->hour * 60) + $shift2Start->minute;
             $shift2EndMinutes = ($shift2End->hour * 60) + $shift2End->minute;
 
-            // Check if current time is in Shift 1 (10:00 - 17:00)
+            // Check if current time is in Shift 1 (10:00 - 18:00)
             if ($currentTimeInMinutes >= $shift1StartMinutes && $currentTimeInMinutes < $shift1EndMinutes) {
                 return $shift1;
             }
             
-            // Check if current time is in Shift 2 (17:00 - 00:00)
+            // Check if current time is in Shift 2 (18:00 - 00:00)
             // Shift 2 spans midnight, so check if time >= 17:00 or < 00:00
             if ($currentTimeInMinutes >= $shift2StartMinutes || $currentTimeInMinutes < $shift2EndMinutes) {
                 return $shift2;
