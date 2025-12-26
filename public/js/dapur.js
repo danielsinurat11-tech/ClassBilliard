@@ -207,9 +207,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    displayReports(data.orders);
-                    displaySummary(data.total_orders, data.total_revenue);
+                    // Tidak menggunakan displayReports lagi, menggunakan tabel saja
+                    // Fungsi ini di-handle oleh kode di blade.php yang menggunakan tabel
+                    // Hanya update filter type untuk export excel
                     currentFilterType = type;
+                    
+                    // Hide reportsContent yang mungkin menampilkan gambar
+                    if (reportsContent) {
+                        reportsContent.innerHTML = '';
+                        reportsContent.style.display = 'none';
+                    }
                 } else {
                     alert('Gagal memuat laporan. Silakan coba lagi.');
                 }
@@ -220,50 +227,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Display reports
+    // Display reports - DISABLED, menggunakan tabel saja tanpa gambar
     function displayReports(orders) {
-        if (orders.length === 0) {
+        // Fungsi ini tidak digunakan lagi, semua laporan menggunakan tabel
+        // Tetap ada untuk kompatibilitas dengan kode lama
+        if (reportsContent) {
             reportsContent.innerHTML = '<div class="empty-state"><p>Tidak ada data laporan untuk periode ini</p></div>';
-            reportsSummary.style.display = 'none';
-            return;
         }
-
-        let html = '<div class="reports-grid">';
-        orders.forEach(order => {
-            const orderDate = new Date(order.created_at).toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            const items = order.order_items.map(item => `${item.quantity}x ${item.menu_name}`).join(', ');
-
-            html += `
-                <div class="report-card">
-                    <div class="order-images">
-                        ${order.order_items.slice(0, 5).map(item => 
-                            `<img src="${item.image ? (item.image.startsWith('http') ? item.image : '/' + item.image) : '/assets/img/default.png'}" 
-                                  alt="${item.menu_name}" 
-                                  class="order-item-image-small"
-                                  onerror="this.src='/assets/img/default.png'">`
-                        ).join('')}
-                    </div>
-                    <div class="order-details">
-                        <p><strong>Tanggal:</strong> ${orderDate}</p>
-                        <p><strong>Nama Pemesan:</strong> ${order.customer_name}</p>
-                        <p><strong>Pesanan:</strong> ${items}</p>
-                        <p><strong>Nomor Meja:</strong> ${order.table_number}</p>
-                        <p><strong>Ruangan:</strong> ${order.room}</p>
-                        <p><strong>Total Harga:</strong> Rp${parseInt(order.total_price).toLocaleString('id-ID')}</p>
-                        <p><strong>Metode Pembayaran:</strong> ${order.payment_method.toUpperCase()}</p>
-                    </div>
-                </div>
-            `;
-        });
-        html += '</div>';
-        reportsContent.innerHTML = html;
+        if (reportsSummary) {
+            reportsSummary.style.display = 'none';
+        }
     }
 
     // Display summary

@@ -1,10 +1,161 @@
-{{-- @extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Dapur - Billiard Class')
 
+@push('styles')
+<style>
+    .sidebar {
+        width: 280px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        overflow-y: hidden;
+    }
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+    .main-content {
+        margin-left: 280px;
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100vh;
+        overflow-y: auto;
+    }
+    .main-content.expanded {
+        margin-left: 0;
+    }
+    .sidebar-menu-item {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    .sidebar-menu-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        transform: translateX(4px);
+    }
+    .sidebar-menu-item.active {
+        background: linear-gradient(90deg, rgba(250, 154, 8, 0.15) 0%, rgba(250, 154, 8, 0.05) 100%);
+        border-left: 4px solid #fa9a08;
+        color: #fa9a08;
+        font-weight: 600;
+    }
+    .sidebar-menu-item.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, #fa9a08 0%, #ffb84d 100%);
+        border-radius: 0 4px 4px 0;
+    }
+    .sidebar-menu-item i {
+        transition: transform 0.2s ease;
+    }
+    .sidebar-menu-item:hover i {
+        transform: scale(1.1);
+    }
+    .sidebar-menu-item.active i {
+        color: #fa9a08;
+    }
+    @media (max-width: 1024px) {
+        .sidebar {
+            position: fixed;
+            z-index: 50;
+            height: 100vh;
+            overflow-y: hidden;
+        }
+        .main-content {
+            margin-left: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-overlay {
+            display: none;
+        }
+        .sidebar-overlay.show {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 40;
+            backdrop-filter: blur(4px);
+        }
+    }
+</style>
+@endpush
+
 @section('content')
-    <div class="py-8 min-h-screen max-md:py-4">
-        <div class="w-full" id="ordersSection">
+    <div class="flex min-h-screen bg-black">
+        {{-- Sidebar --}}
+        <aside id="sidebar" class="sidebar fixed lg:static top-0 left-0 h-screen bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] border-r border-white/10 z-50 flex flex-col">
+            {{-- Sidebar Header --}}
+            <div class="p-6 border-b border-white/10 bg-gradient-to-r from-[#1a1a1a] to-[#252525]">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-[#fa9a08] to-[#ffb84d] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                            <i class="ri-restaurant-line text-white text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-white">Dashboard Dapur</h2>
+                    </div>
+                    <button id="sidebar-toggle" class="lg:hidden text-gray-400 hover:text-white transition-colors">
+                        <i class="ri-close-line text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <p class="text-gray-400 text-sm">Selamat datang, <span class="text-white font-medium">{{ Auth::user()->name ?? 'User' }}</span></p>
+                </div>
+            </div>
+
+            {{-- Sidebar Menu --}}
+            <nav class="flex-1 p-4 space-y-2 overflow-hidden">
+                <a href="#" id="menu-orders" class="sidebar-menu-item active flex items-center gap-4 px-4 py-3.5 rounded-xl text-white cursor-pointer group">
+                    <div class="w-10 h-10 flex items-center justify-center">
+                        <i class="ri-shopping-cart-2-line text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-base">Orderan</span>
+                </a>
+                <a href="#" id="menu-reports" class="sidebar-menu-item flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:text-white cursor-pointer group">
+                    <div class="w-10 h-10 flex items-center justify-center">
+                        <i class="ri-file-chart-2-line text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-base">Laporan</span>
+                </a>
+            </nav>
+
+            {{-- Sidebar Footer --}}
+            <div class="p-4 border-t border-white/10 bg-[#0f0f0f]">
+                <form action="{{ route('logout') }}" method="POST" class="w-full">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-red-500/20 hover:shadow-red-500/30 hover:scale-[1.02] active:scale-[0.98]">
+                        <i class="ri-logout-box-r-line text-lg"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        {{-- Sidebar Overlay untuk Mobile --}}
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+        {{-- Main Content --}}
+        <div class="main-content flex-1 w-full">
+            {{-- Mobile Header dengan Toggle --}}
+            <div class="lg:hidden bg-[#1a1a1a] p-4 border-b border-white/10 flex items-center justify-between">
+                <button id="mobile-sidebar-toggle" class="text-white">
+                    <i class="ri-menu-line text-2xl"></i>
+                </button>
+                <h2 class="text-lg font-bold text-white">Dashboard Dapur</h2>
+                <div class="w-8"></div>
+            </div>
+
+            <div class="p-6 max-md:p-4">
+                <div class="w-full" id="ordersSection">
             @if($orders->count() > 0)
                 <div class="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
                     @foreach($orders as $order)
@@ -79,146 +230,475 @@
                 <button class="export-excel-btn py-3 px-6 bg-emerald-500 text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 h-fit hover:bg-emerald-600" id="exportExcelBtn">Export Excel</button>
             </div>
 
-            <div class="min-h-[200px]" id="reportsContent">
+            <div class="min-h-[200px] hidden" id="reportsContent">
                 <div class="text-center py-16 px-8 text-gray-400 text-lg">
                     <p>Pilih filter dan klik "Tampilkan" untuk melihat laporan</p>
                 </div>
+            </div>
+
+            {{-- Tabel Laporan Realtime --}}
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden hidden mb-6" id="reportsTableContainer">
+                <div class="w-full overflow-hidden">
+                    <table id="reportsTable" class="w-full border-collapse" style="border: 1px solid #d1d5db; table-layout: fixed;">
+                        <thead>
+                            <tr>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 5%;">No</th>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 12%;">Waktu Pesan</th>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 12%;">Waktu Selesai</th>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 12%;">Nama Pemesan</th>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 18%;">Pesanan</th>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 8%;">No Meja</th>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 8%;">Ruangan</th>
+                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 10%;">Metode</th>
+                                <th class="px-2 py-2 text-right text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 15%;">Total Harga</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsTableBody" class="bg-white">
+                            <!-- Data akan diisi via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
             </div>
         </div>
     </div>
 
     @push('scripts')
     <script src="{{ asset('js/dapur.js') }}"></script>
+    <script>
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const mainContent = document.querySelector('.main-content');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            sidebarOverlay.classList.toggle('show');
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+        }
+
+        // Menu Navigation
+        const menuOrders = document.getElementById('menu-orders');
+        const menuReports = document.getElementById('menu-reports');
+        const ordersSection = document.getElementById('ordersSection');
+        const reportsSection = document.getElementById('reportsSection');
+
+        function switchSection(section) {
+            // Update menu active state
+            menuOrders.classList.remove('active');
+            menuReports.classList.remove('active');
+            
+            if (section === 'orders') {
+                menuOrders.classList.add('active');
+                ordersSection.classList.remove('hidden');
+                reportsSection.classList.add('hidden');
+            } else {
+                menuReports.classList.add('active');
+                ordersSection.classList.add('hidden');
+                reportsSection.classList.remove('hidden');
+            }
+
+            // Close sidebar on mobile after selection
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                sidebarOverlay.classList.remove('show');
+            }
+        }
+
+        menuOrders.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSection('orders');
+        });
+
+        menuReports.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchSection('reports');
+        });
+
+        // Realtime Reports Table
+        let reportsData = [];
+        let currentFilterType = 'daily';
+        let currentFilterDate = new Date().toISOString().split('T')[0];
+        let currentFilterMonth = new Date().toISOString().slice(0, 7);
+        let currentFilterYear = new Date().getFullYear();
+
+        // Format currency
+        function formatCurrency(amount) {
+            return 'Rp' + new Intl.NumberFormat('id-ID').format(amount);
+        }
+
+        // Format payment method
+        function formatPaymentMethod(method) {
+            const methods = {
+                'cash': 'Tunai',
+                'qris': 'QRIS',
+                'transfer': 'Transfer'
+            };
+            return methods[method] || method;
+        }
+
+        // Add order to reports table
+        function addOrderToReportsTable(order) {
+            // Check if order matches current filter
+            const orderDate = new Date(order.created_at);
+            let shouldAdd = false;
+
+            if (currentFilterType === 'daily') {
+                const filterDate = new Date(currentFilterDate);
+                shouldAdd = orderDate.toDateString() === filterDate.toDateString();
+            } else if (currentFilterType === 'monthly') {
+                const filterMonth = new Date(currentFilterMonth + '-01');
+                shouldAdd = orderDate.getFullYear() === filterMonth.getFullYear() && 
+                           orderDate.getMonth() === filterMonth.getMonth();
+            } else if (currentFilterType === 'yearly') {
+                shouldAdd = orderDate.getFullYear() === parseInt(currentFilterYear);
+            }
+
+            if (shouldAdd) {
+                reportsData.unshift(order); // Add to beginning
+                renderReportsTable();
+                updateReportsSummary();
+            }
+        }
+
+        // Render reports table
+        function renderReportsTable() {
+            const tbody = document.getElementById('reportsTableBody');
+            const container = document.getElementById('reportsTableContainer');
+            
+            if (!tbody || !container) return;
+
+            if (reportsData.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            tbody.innerHTML = '';
+
+            reportsData.forEach((order, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                const orderItemsText = order.order_items.map(item => 
+                    `${item.quantity}x ${item.menu_name}`
+                ).join(', ');
+
+                // Format tanggal untuk tampilan lebih ringkas
+                const formatDate = (dateString) => {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).replace(',', '');
+                };
+
+                row.innerHTML = `
+                    <td class="px-2 py-2 text-sm text-gray-900 border border-gray-300 text-center" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${index + 1}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${formatDate(order.created_at)}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${formatDate(order.updated_at)}</td>
+                    <td class="px-2 py-2 text-sm text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${order.customer_name}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; word-break: break-word; overflow: hidden;">${orderItemsText}</td>
+                    <td class="px-2 py-2 text-sm text-gray-900 border border-gray-300 text-center" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${order.table_number}</td>
+                    <td class="px-2 py-2 text-sm text-gray-900 border border-gray-300 text-center" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${order.room}</td>
+                    <td class="px-2 py-2 text-xs text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${formatPaymentMethod(order.payment_method)}</td>
+                    <td class="px-2 py-2 text-sm text-gray-900 font-semibold text-right border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${formatCurrency(order.total_price)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update reports summary
+        function updateReportsSummary() {
+            const totalOrders = reportsData.length;
+            const totalRevenue = reportsData.reduce((sum, order) => sum + parseFloat(order.total_price), 0);
+            
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
+            
+            const summary = document.getElementById('reportsSummary');
+            if (summary) {
+                summary.classList.remove('hidden');
+                summary.classList.add('flex');
+            }
+        }
+
+        // Load reports
+        async function loadReports(type, date, month, year) {
+            currentFilterType = type;
+            currentFilterDate = date;
+            currentFilterMonth = month;
+            currentFilterYear = year;
+
+            try {
+                const params = new URLSearchParams({ type, date, month, year });
+                const response = await fetch(`/reports?${params}`);
+                const data = await response.json();
+
+                reportsData = data.orders || [];
+                
+                // Hide reportsContent (yang mungkin menampilkan gambar)
+                const reportsContent = document.getElementById('reportsContent');
+                if (reportsContent) {
+                    reportsContent.innerHTML = '';
+                    reportsContent.classList.add('hidden');
+                }
+                
+                // Show table instead
+                renderReportsTable();
+                updateReportsSummary();
+            } catch (error) {
+                console.error('Error loading reports:', error);
+            }
+        }
+
+        // Handle complete order - update reports table
+        document.addEventListener('click', async (e) => {
+            if (e.target.closest('button[data-order-id]')) {
+                const button = e.target.closest('button[data-order-id]');
+                const orderId = button.getAttribute('data-order-id');
+                
+                if (!confirm('Apakah pesanan ini sudah selesai?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/orders/${orderId}/complete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        // Remove order from orders section
+                        const orderCard = button.closest('[data-order-id]');
+                        if (orderCard) {
+                            orderCard.style.transition = 'opacity 0.3s, transform 0.3s';
+                            orderCard.style.opacity = '0';
+                            orderCard.style.transform = 'translateX(-20px)';
+                            setTimeout(() => {
+                                orderCard.remove();
+                                
+                                // Check if no more orders
+                                const ordersSection = document.getElementById('ordersSection');
+                                const orderCards = ordersSection.querySelectorAll('[data-order-id]');
+                                if (orderCards.length === 0) {
+                                    ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-400 text-lg"><p>Belum ada pesanan</p></div>';
+                                }
+                            }, 300);
+                        }
+
+                        // Add to reports table if in reports section
+                        if (result.order && !reportsSection.classList.contains('hidden')) {
+                            addOrderToReportsTable(result.order);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error completing order:', error);
+                    alert('Terjadi kesalahan saat menyelesaikan pesanan');
+                }
+            }
+        });
+
+        // Handle filter buttons
+        document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab-btn').forEach(b => {
+                    b.classList.remove('active:bg-[#fa9a08]', 'active:text-white');
+                    b.classList.add('bg-[#2a2a2a]');
+                });
+                this.classList.add('active:bg-[#fa9a08]', 'active:text-white');
+                this.classList.remove('bg-[#2a2a2a]');
+
+                const type = this.getAttribute('data-filter-type');
+                document.querySelectorAll('.filter-input-group').forEach(group => {
+                    group.classList.add('hidden');
+                });
+
+                if (type === 'daily') {
+                    document.getElementById('dailyFilter').classList.remove('hidden');
+                } else if (type === 'monthly') {
+                    document.getElementById('monthlyFilter').classList.remove('hidden');
+                } else if (type === 'yearly') {
+                    document.getElementById('yearlyFilter').classList.remove('hidden');
+                }
+            });
+        });
+
+        // Handle load reports buttons
+        document.querySelectorAll('.load-reports-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                let date = currentFilterDate;
+                let month = currentFilterMonth;
+                let year = currentFilterYear;
+
+                if (type === 'daily') {
+                    date = document.getElementById('dailyDate').value;
+                } else if (type === 'monthly') {
+                    month = document.getElementById('monthlyDate').value;
+                } else if (type === 'yearly') {
+                    year = document.getElementById('yearlyDate').value;
+                }
+
+                loadReports(type, date, month, year);
+            });
+        });
+
+        // Handle export Excel dengan popup email
+        document.getElementById('exportExcelBtn')?.addEventListener('click', async function() {
+            // Tampilkan popup untuk input email
+            const { value: email } = await Swal.fire({
+                title: 'Kirim Laporan ke Email',
+                html: `
+                    <div style="text-align: left;">
+                        <label style="display: block; margin-bottom: 8px; color: #fff; font-weight: 500;">Masukkan Email Tujuan:</label>
+                        <input 
+                            id="swal-email-input" 
+                            type="email" 
+                            placeholder="contoh@email.com" 
+                            style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; font-size: 14px;"
+                            autofocus
+                        >
+                        <p style="margin-top: 12px; color: #999; font-size: 12px;">File Excel akan dikirim sebagai attachment ke email yang Anda masukkan.</p>
+                    </div>
+                `,
+                background: '#161616',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonText: 'Kirim Email',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#fa9a08',
+                cancelButtonColor: '#666',
+                customClass: {
+                    popup: 'swal2-popup-custom',
+                    title: 'swal2-title-custom',
+                    confirmButton: 'swal2-confirm-custom',
+                    cancelButton: 'swal2-confirm-custom'
+                },
+                didOpen: () => {
+                    const input = document.getElementById('swal-email-input');
+                    input?.focus();
+                },
+                preConfirm: () => {
+                    const email = document.getElementById('swal-email-input')?.value;
+                    if (!email) {
+                        Swal.showValidationMessage('Email tidak boleh kosong');
+                        return false;
+                    }
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        Swal.showValidationMessage('Format email tidak valid');
+                        return false;
+                    }
+                    return email;
+                }
+            });
+
+            if (email) {
+                // Tampilkan loading
+                Swal.fire({
+                    title: 'Mengirim Email...',
+                    html: '<p style="color: #999; font-size: 14px;">Sedang mengirim laporan Excel ke ' + email + '</p>',
+                    background: '#161616',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                try {
+                    // Kirim request ke endpoint
+                    const response = await fetch('/reports/send-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            type: currentFilterType,
+                            date: currentFilterDate,
+                            month: currentFilterMonth,
+                            year: currentFilterYear
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        let tipsHtml = '';
+                        if (result.tips && result.tips.length > 0) {
+                            tipsHtml = '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);"><p style="color: #999; font-size: 12px; margin-bottom: 8px;"><strong>Tips:</strong></p><ul style="color: #999; font-size: 11px; text-align: left; padding-left: 20px;">';
+                            result.tips.forEach(tip => {
+                                tipsHtml += '<li style="margin-bottom: 5px;">' + tip + '</li>';
+                            });
+                            tipsHtml += '</ul></div>';
+                        }
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: '<span class="text-white font-bold">EMAIL TERKIRIM</span>',
+                            html: '<p class="text-gray-400 text-sm">' + result.message + '</p>' + tipsHtml,
+                            background: '#161616',
+                            confirmButtonColor: '#fa9a08',
+                            customClass: {
+                                popup: 'swal2-popup-custom',
+                                title: 'swal2-title-custom',
+                                confirmButton: 'swal2-confirm-custom'
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '<span class="text-white font-bold">GAGAL MENGIRIM</span>',
+                            html: '<p class="text-red-400 text-sm">' + (result.message || 'Terjadi kesalahan saat mengirim email') + '</p>',
+                            background: '#161616',
+                            confirmButtonColor: '#ef4444',
+                            customClass: {
+                                popup: 'swal2-popup-custom',
+                                title: 'swal2-title-custom',
+                                confirmButton: 'swal2-confirm-custom'
+                            }
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '<span class="text-white font-bold">ERROR</span>',
+                        html: '<p class="text-red-400 text-sm">Terjadi kesalahan: ' + error.message + '</p>',
+                        background: '#161616',
+                        confirmButtonColor: '#ef4444',
+                        customClass: {
+                            popup: 'swal2-popup-custom',
+                            title: 'swal2-title-custom',
+                            confirmButton: 'swal2-confirm-custom'
+                        }
+                    });
+                }
+            }
+        });
+    </script>
     @endpush
 @endsection
- --}}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kitchen Grid Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&family=Bebas+Neue&display=swap" rel="stylesheet">
-    <style>
-        .receipt-font { font-family: 'Courier Prime', monospace; }
-        .logo-font { font-family: 'Bebas Neue', cursive; }
-        
-        .kitchen-bg {
-            background-color: #1a1a1a;
-            background-image: url("https://www.transparenttextures.com/patterns/dark-wood.png");
-        }
-
-        /* Animasi Pop-up */
-        @keyframes popup-bounce {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .animate-popup { animation: popup-bounce 0.3s ease-out forwards; }
-
-        /* Kertas Nota */
-        .thermal-paper { 
-            background: #fdfcf0; 
-            box-shadow: 10px 10px 20px rgba(0,0,0,0.6); 
-            transition: all 0.3s ease;
-        }
-        .jagged-bottom { 
-            clip-path: polygon(0% 0%, 100% 0%, 100% 96%, 98% 100%, 96% 96%, 94% 100%, 92% 96%, 90% 100%, 88% 96%, 86% 100%, 84% 96%, 82% 100%, 80% 96%, 78% 100%, 76% 96%, 74% 100%, 72% 96%, 70% 100%, 68% 96%, 66% 100%, 64% 96%, 62% 100%, 60% 96%, 58% 100%, 56% 96%, 54% 100%, 52% 96%, 50% 100%, 48% 96%, 46% 100%, 44% 96%, 42% 100%, 40% 96%, 38% 100%, 36% 96%, 34% 100%, 32% 96%, 30% 100%, 28% 96%, 26% 100%, 24% 96%, 22% 100%, 20% 96%, 18% 100%, 16% 96%, 14% 100%, 12% 96%, 10% 100%, 8% 96%, 6% 100%, 4% 96%, 2% 100%, 0% 96%); 
-        }
-    </style>
-</head>
-<body class="kitchen-bg min-h-screen flex flex-col">
-
-    <div id="order-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/95">
-        <div class="bg-yellow-400 p-1 w-[90%] max-w-lg animate-popup">
-            <div class="bg-black text-yellow-400 p-4 flex justify-between items-center">
-                <h2 class="logo-font text-4xl">NEW ORDER!</h2>
-                <span id="modal-time" class="font-mono font-bold">--:--</span>
-            </div>
-            <div class="p-8 bg-white text-black">
-                <h3 id="modal-table" class="text-6xl font-black italic mb-6">TABLE --</h3>
-                <div class="border-y-4 border-black border-double py-6">
-                    <ul id="modal-items" class="receipt-font text-3xl space-y-3"></ul>
-                </div>
-                <button onclick="acceptOrder()" class="mt-8 w-full bg-green-600 text-white text-4xl font-black py-8 border-b-8 border-green-800 active:border-b-0 active:translate-y-2 transition-all">
-                    TERIMA & MASAK
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <header class="p-6 bg-zinc-900 border-b-4 border-zinc-800 flex justify-between items-center sticky top-0 z-50">
-        <h1 class="logo-font text-4xl text-white tracking-widest italic">FAT PANDA <span class="text-red-600">KITCHEN</span></h1>
-        <button onclick="simulateIncomingOrder()" class="bg-red-600 text-white px-8 py-3 rounded font-black hover:bg-red-700 animate-pulse">
-            SIMULASI ORDER MASUK
-        </button>
-    </header>
-
-    <div class="w-full h-6 bg-zinc-800 shadow-inner border-b border-black"></div>
-
-    <main id="order-grid" class="p-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12">
-        </main>
-
-    <script>
-        let currentOrder = null;
-
-        function simulateIncomingOrder() {
-            currentOrder = {
-                id: Math.floor(Math.random() * 9000) + 1000,
-                table: "TABLE " + (Math.floor(Math.random() * 15) + 1),
-                items: [
-                    { qty: 1, name: "AYAM BAKAR MADU" },
-                    { qty: 2, name: "ES TEH MANIS" }
-                ],
-                time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-            };
-
-            document.getElementById('modal-table').innerText = currentOrder.table;
-            document.getElementById('modal-time').innerText = currentOrder.time;
-            document.getElementById('modal-items').innerHTML = currentOrder.items.map(i => 
-                `<li><b>${i.qty}x</b> ${i.name}</li>`
-            ).join('');
-
-            document.getElementById('order-modal').classList.remove('hidden');
-        }
-
-        function acceptOrder() {
-            document.getElementById('order-modal').classList.add('hidden');
-            
-            const grid = document.getElementById('order-grid');
-            const newCard = document.createElement('div');
-            
-            // Random sedikit rotasi agar terlihat alami menempel
-            const randomRotate = (Math.random() * 3 - 1.5).toFixed(1);
-
-            newCard.className = `relative thermal-paper jagged-bottom p-6 pt-12 transform rotate-[${randomRotate}deg]`;
-            newCard.style.transform = `rotate(${randomRotate}deg)`;
-            
-            newCard.innerHTML = `
-                <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-14 h-16 bg-zinc-800 rounded shadow-xl flex justify-center pt-2">
-                    <div class="w-10 h-1.5 bg-zinc-600 rounded"></div>
-                </div>
-                
-                <div class="border-b-2 border-black border-dashed pb-3 mb-4">
-                    <div class="flex justify-between font-bold text-[10px] text-gray-500">
-                        <span>#${currentOrder.id}</span>
-                        <span>${currentOrder.time}</span>
-                    </div>
-                    <h2 class="text-3xl font-black text-black leading-tight uppercase font-sans italic">${currentOrder.table}</h2>
-                </div>
-                
-                <ul class="receipt-font text-gray-900 space-y-3 mb-10 text-xl">
-                    ${currentOrder.items.map(i => `<li><b>${i.qty}x</b> ${i.name}</li>`).join('')}
-                </ul>
-                
-                <button onclick="this.parentElement.remove()" class="w-full py-4 bg-black text-white font-black hover:bg-red-600 transition-colors uppercase">
-                    SELESAI
-                </button>
-            `;
-
-            grid.appendChild(newCard); // Gunakan appendChild agar pesanan baru nambah di belakang, atau prepend jika ingin di depan
-        }
-    </script>
-</body>
-</html>

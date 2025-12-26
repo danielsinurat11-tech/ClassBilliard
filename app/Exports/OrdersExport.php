@@ -8,12 +8,16 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Carbon\Carbon;
 
-class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle
+class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithColumnWidths
 {
     protected $type;
     protected $date;
@@ -69,6 +73,14 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
         $items = $order->orderItems->pluck('menu_name')->implode(', ');
         $totalItems = $order->orderItems->sum('quantity');
 
+        // Format payment method
+        $paymentMethods = [
+            'cash' => 'Tunai',
+            'qris' => 'QRIS',
+            'transfer' => 'Transfer'
+        ];
+        $paymentMethod = $paymentMethods[strtolower($order->payment_method)] ?? strtoupper($order->payment_method);
+
         return [
             $no,
             Carbon::parse($order->created_at)->format('d/m/Y H:i'),
@@ -78,25 +90,89 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             $items,
             $totalItems,
             'Rp' . number_format($order->total_price, 0, ',', '.'),
-            strtoupper($order->payment_method),
+            $paymentMethod,
             'Selesai'
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        return [
-            1 => [
-                'font' => ['bold' => true, 'size' => 12],
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'FFA500']
-                ],
-                'alignment' => [
-                    'horizontal' => Alignment::HORIZONTAL_CENTER,
-                    'vertical' => Alignment::VERTICAL_CENTER
+        // Style untuk header (row 1)
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'size' => 11,
+                'color' => ['rgb' => 'FFFFFF']
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'FA9A08']
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
+            ]
+        ];
+
+        // Style untuk data rows
+        $dataStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => 'CCCCCC']
                 ]
             ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true
+            ]
+        ];
+
+        // Apply header style
+        $sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
+
+        // Apply data style to all data rows
+        $highestRow = $sheet->getHighestRow();
+        if ($highestRow > 1) {
+            $sheet->getStyle('A2:J' . $highestRow)->applyFromArray($dataStyle);
+        }
+
+        // Set alignment for specific columns
+        $sheet->getStyle('A:A')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // No
+        $sheet->getStyle('B:B')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Waktu Pesan
+        $sheet->getStyle('D:D')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Nomor Meja
+        $sheet->getStyle('E:E')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Ruangan
+        $sheet->getStyle('G:G')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Jumlah Item
+        $sheet->getStyle('H:H')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT); // Total Harga
+        $sheet->getStyle('I:I')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Metode Pembayaran
+        $sheet->getStyle('J:J')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Status
+
+        // Set row height for header
+        $sheet->getRowDimension(1)->setRowHeight(30);
+
+        return [];
+    }
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 8,   // No
+            'B' => 18,  // Waktu Pesan
+            'C' => 20,  // Nama Pemesan
+            'D' => 12,  // Nomor Meja
+            'E' => 12,  // Ruangan
+            'F' => 30,  // Pesanan
+            'G' => 12,  // Jumlah Item
+            'H' => 15,  // Total Harga
+            'I' => 18,  // Metode Pembayaran
+            'J' => 12,  // Status
         ];
     }
 

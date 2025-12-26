@@ -47,13 +47,24 @@ class FortifyServiceProvider extends ServiceProvider
                 {
                     $role = auth()->user()->role;
                     if ($role === 'admin') {
-                        return redirect()->intended('/admin/dashboard');
+                        return redirect()->intended('/admin');
                     } elseif ($role === 'kitchen') {
-                        return redirect()->intended('/kitchen/dashboard');
+                        return redirect()->intended('/dapur');
                     }
 
                     // Jika tidak ada role yang cocok (opsional)
                     return redirect('/');
+                }
+            }
+        );
+
+        // 3. Custom Logout Response (Redirect ke halaman login)
+        $this->app->instance(
+            \Laravel\Fortify\Contracts\LogoutResponse::class,
+            new class implements \Laravel\Fortify\Contracts\LogoutResponse {
+                public function toResponse($request)
+                {
+                    return redirect('/login')->with('success', 'Anda telah berhasil logout.');
                 }
             }
         );

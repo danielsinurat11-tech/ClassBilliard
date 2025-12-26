@@ -12,9 +12,8 @@ use App\Models\TestimoniPelanggan;
 use App\Models\Event;
 use App\Models\Footer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
@@ -33,14 +32,14 @@ class AdminController extends Controller
     public function heroUpdate(Request $request)
     {
         $hero = HeroSection::firstOrNew();
-
+        
         if ($request->hasFile('logo_image')) {
             if ($hero->logo_image) {
                 Storage::disk('public')->delete($hero->logo_image);
             }
             $hero->logo_image = $request->file('logo_image')->store('hero', 'public');
         }
-
+        
         $hero->title = $request->title ?? 'CLASS';
         $hero->subtitle = $request->subtitle ?? 'BILLIARD';
         $hero->is_active = $request->has('is_active');
@@ -158,14 +157,14 @@ class AdminController extends Controller
     public function aboutFounderUpdate(Request $request)
     {
         $aboutFounder = AboutFounder::firstOrNew();
-
+        
         if ($request->hasFile('photo')) {
             if ($aboutFounder->photo) {
                 Storage::disk('public')->delete($aboutFounder->photo);
             }
             $aboutFounder->photo = $request->file('photo')->store('founder', 'public');
         }
-
+        
         $aboutFounder->fill($request->only(['title', 'subtitle', 'name', 'description', 'facebook_url', 'instagram_url', 'linkedin_url']));
         $aboutFounder->is_active = $request->has('is_active');
         $aboutFounder->save();
@@ -213,11 +212,11 @@ class AdminController extends Controller
     public function portfolioAchievementStore(Request $request)
     {
         $data = $request->only(['title', 'subtitle', 'type', 'icon', 'number', 'label', 'order', 'is_active']);
-
+        
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('portfolio', 'public');
         }
-
+        
         PortfolioAchievement::create($data);
         return redirect()->route('admin.portfolio-achievement')->with('success', 'Item added successfully');
     }
@@ -225,14 +224,14 @@ class AdminController extends Controller
     public function portfolioAchievementUpdate(Request $request, $id)
     {
         $item = PortfolioAchievement::findOrFail($id);
-
+        
         if ($request->hasFile('image')) {
             if ($item->image) {
                 Storage::disk('public')->delete($item->image);
             }
             $item->image = $request->file('image')->store('portfolio', 'public');
         }
-
+        
         $item->fill($request->only(['title', 'subtitle', 'type', 'icon', 'number', 'label', 'order']));
         $item->is_active = $request->has('is_active');
         $item->save();
@@ -260,11 +259,11 @@ class AdminController extends Controller
     public function timKamiStore(Request $request)
     {
         $data = $request->only(['title', 'subtitle', 'name', 'position', 'facebook_url', 'instagram_url', 'linkedin_url', 'order', 'is_active']);
-
+        
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('team', 'public');
         }
-
+        
         TimKami::create($data);
         return redirect()->route('admin.tim-kami')->with('success', 'Team member added successfully');
     }
@@ -272,14 +271,14 @@ class AdminController extends Controller
     public function timKamiUpdate(Request $request, $id)
     {
         $member = TimKami::findOrFail($id);
-
+        
         if ($request->hasFile('photo')) {
             if ($member->photo) {
                 Storage::disk('public')->delete($member->photo);
             }
             $member->photo = $request->file('photo')->store('team', 'public');
         }
-
+        
         $member->fill($request->only(['title', 'subtitle', 'name', 'position', 'facebook_url', 'instagram_url', 'linkedin_url', 'order']));
         $member->is_active = $request->has('is_active');
         $member->save();
@@ -307,11 +306,11 @@ class AdminController extends Controller
     public function testimoniPelangganStore(Request $request)
     {
         $data = $request->only(['title', 'subtitle', 'customer_name', 'customer_role', 'testimonial', 'rating', 'order', 'is_active']);
-
+        
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('testimoni', 'public');
         }
-
+        
         TestimoniPelanggan::create($data);
         return redirect()->route('admin.testimoni-pelanggan')->with('success', 'Testimoni added successfully');
     }
@@ -319,14 +318,14 @@ class AdminController extends Controller
     public function testimoniPelangganUpdate(Request $request, $id)
     {
         $testimoni = TestimoniPelanggan::findOrFail($id);
-
+        
         if ($request->hasFile('photo')) {
             if ($testimoni->photo) {
                 Storage::disk('public')->delete($testimoni->photo);
             }
             $testimoni->photo = $request->file('photo')->store('testimoni', 'public');
         }
-
+        
         $testimoni->fill($request->only(['title', 'subtitle', 'customer_name', 'customer_role', 'testimonial', 'rating', 'order']));
         $testimoni->is_active = $request->has('is_active');
         $testimoni->save();
@@ -354,11 +353,11 @@ class AdminController extends Controller
     public function eventStore(Request $request)
     {
         $data = $request->only(['title', 'subtitle', 'event_title', 'event_description', 'event_date', 'link_url', 'order', 'is_active']);
-
+        
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('events', 'public');
         }
-
+        
         Event::create($data);
         return redirect()->route('admin.event')->with('success', 'Event added successfully');
     }
@@ -366,14 +365,14 @@ class AdminController extends Controller
     public function eventUpdate(Request $request, $id)
     {
         $event = Event::findOrFail($id);
-
+        
         if ($request->hasFile('image')) {
             if ($event->image) {
                 Storage::disk('public')->delete($event->image);
             }
             $event->image = $request->file('image')->store('events', 'public');
         }
-
+        
         $event->fill($request->only(['title', 'subtitle', 'event_title', 'event_description', 'event_date', 'link_url', 'order']));
         $event->is_active = $request->has('is_active');
         $event->save();
@@ -420,38 +419,40 @@ class AdminController extends Controller
         return redirect()->route('admin.footer')->with('success', 'Footer updated successfully');
     }
 
-    public function edit()
-    {
-        return view('admin.profile', [
-            'user' => auth()->user()
-        ]);
-    }
-
-    public function update(Request $request)
+    // Profile Management
+    public function profileEdit()
     {
         $user = auth()->user();
+        return view('admin.profile', compact('user'));
+    }
 
+    public function profileUpdate(Request $request)
+    {
+        $user = auth()->user();
+        
         $validated = $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
         ]);
 
         $user->update($validated);
 
-        return back()->with('success', 'Profil Anda berhasil diperbarui secara sistem.');
+        return redirect()->route('admin.profile.edit')->with('success', 'Profil berhasil diperbarui.');
     }
 
-    public function updatePassword(Request $request)
+    public function profilePassword(Request $request)
     {
+        $user = auth()->user();
+        
         $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
+            'current_password' => ['required', 'current_password:web'],
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
         ]);
 
-        auth()->user()->update([
+        $user->update([
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back()->with('success', 'Keamanan akun berhasil ditingkatkan (Password diganti).');
+        return redirect()->route('admin.profile.edit')->with('success', 'Password berhasil diperbarui.');
     }
 }

@@ -1,107 +1,95 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\UserController; // Untuk manajemen staff
-
-/*
-|--------------------------------------------------------------------------
-| 1. Public Routes (Pelanggan / Guest)
-|--------------------------------------------------------------------------
-| Pelanggan tidak perlu login dan tidak memiliki user_id.
-*/
 
 Route::get('/', function () {
     return view('home');
 })->name('home');
 
-Route::get('/menu', function () {
+
+Route::get('/menu', function() {
     return view('menu');
 })->name('menu');
 
-// Pelanggan mengirim pesanan
-Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-
-
-/*
-|--------------------------------------------------------------------------
-| 2. Kitchen Routes (Staff Dapur)
-|--------------------------------------------------------------------------
-| Hanya bisa diakses oleh user dengan role 'kitchen' atau 'admin'.
-*/
-Route::middleware(['auth', 'role:kitchen'])->group(function () {
-    Route::get('/dapur', [OrderController::class, 'index'])->name('dapur');
-    Route::post('/orders/{id}/complete', [OrderController::class, 'complete'])->name('orders.complete');
-    Route::get('/orders/active', [OrderController::class, 'activeOrders'])->name('orders.active');
+// Kitchen Routes (Hanya untuk role kitchen)
+Route::middleware(['auth.custom', 'role:kitchen'])->group(function () {
+    Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
+    Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
+    Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
+    Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
+    Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
+    Route::post('/reports/send-email', [App\Http\Controllers\OrderController::class, 'sendReportEmail'])->name('reports.send-email');
+    Route::get('/test-email', [App\Http\Controllers\OrderController::class, 'testEmail'])->name('test.email');
 });
 
+// Public order route (untuk customer membuat pesanan)
+Route::post('/orders', [App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
 
-/*
-|--------------------------------------------------------------------------
-| 3. Admin Routes (Pemilik / Manager)
-|--------------------------------------------------------------------------
-| Hanya bisa diakses oleh user dengan role 'admin'.
-*/
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-
-    // Dashboard & Reports
-    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-    Route::get('/reports', [OrderController::class, 'reports'])->name('reports');
-    Route::get('/reports/export', [OrderController::class, 'exportExcel'])->name('reports.export');
-
-    // Manajemen Konten Landing Page (Hero, Tentang Kami, dll)
-    Route::controller(AdminController::class)->group(function () {
-        Route::get('/hero', 'heroIndex')->name('hero');
-        Route::post('/hero', 'heroUpdate')->name('hero.update');
-
-        Route::get('/tentang-kami', 'tentangKamiIndex')->name('tentang-kami');
-        Route::post('/tentang-kami', 'tentangKamiUpdate')->name('tentang-kami.update');
-
-        Route::get('/about-founder', 'aboutFounderIndex')->name('about-founder');
-        Route::post('/about-founder', 'aboutFounderUpdate')->name('about-founder.update');
-
-        Route::get('/keunggulan-fasilitas', 'keunggulanFasilitasIndex')->name('keunggulan-fasilitas');
-        Route::post('/keunggulan-fasilitas', 'keunggulanFasilitasStore')->name('keunggulan-fasilitas.store');
-        Route::post('/keunggulan-fasilitas/{id}', 'keunggulanFasilitasUpdate')->name('keunggulan-fasilitas.update');
-        Route::delete('/keunggulan-fasilitas/{id}', 'keunggulanFasilitasDestroy')->name('keunggulan-fasilitas.destroy');
-
-        Route::get('/portfolio-achievement', 'portfolioAchievementIndex')->name('portfolio-achievement');
-        Route::post('/portfolio-achievement', 'portfolioAchievementStore')->name('portfolio-achievement.store');
-        Route::post('/portfolio-achievement/{id}', 'portfolioAchievementUpdate')->name('portfolio-achievement.update');
-        Route::delete('/portfolio-achievement/{id}', 'portfolioAchievementDestroy')->name('portfolio-achievement.destroy');
-
-        Route::get('/tim-kami', 'timKamiIndex')->name('tim-kami');
-        Route::post('/tim-kami', 'timKamiStore')->name('tim-kami.store');
-        Route::post('/tim-kami/{id}', 'timKamiUpdate')->name('tim-kami.update');
-        Route::delete('/tim-kami/{id}', 'timKamiDestroy')->name('tim-kami.destroy');
-
-        Route::get('/testimoni-pelanggan', 'testimoniPelangganIndex')->name('testimoni-pelanggan');
-        Route::post('/testimoni-pelanggan', 'testimoniPelangganStore')->name('testimoni-pelanggan.store');
-        Route::post('/testimoni-pelanggan/{id}', 'testimoniPelangganUpdate')->name('testimoni-pelanggan.update');
-        Route::delete('/testimoni-pelanggan/{id}', 'testimoniPelangganDestroy')->name('testimoni-pelanggan.destroy');
-
-        Route::get('/event', 'eventIndex')->name('event');
-        Route::post('/event', 'eventStore')->name('event.store');
-        Route::post('/event/{id}', 'eventUpdate')->name('event.update');
-        Route::delete('/event/{id}', 'eventDestroy')->name('event.destroy');
-
-        Route::get('/footer', 'footerIndex')->name('footer');
-        Route::post('/footer', 'footerUpdate')->name('footer.update');
-
-        Route::get('/profile',  'edit')->name('profile.edit');
-        Route::put('/profile/update', 'update')->name('profile.update');
-        Route::put('/profile/password', 'updatePassword')->name('profile.password');
+// Admin Routes (Hanya untuk role admin)
+Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin'])->group(function () {
+    Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+    
+    // Hero Section
+    Route::get('/hero', [App\Http\Controllers\AdminController::class, 'heroIndex'])->name('hero');
+    Route::post('/hero', [App\Http\Controllers\AdminController::class, 'heroUpdate'])->name('hero.update');
+    
+    // Tentang Kami
+    Route::get('/tentang-kami', [App\Http\Controllers\AdminController::class, 'tentangKamiIndex'])->name('tentang-kami');
+    Route::post('/tentang-kami', [App\Http\Controllers\AdminController::class, 'tentangKamiUpdate'])->name('tentang-kami.update');
+    
+    // About Founder
+    Route::get('/about-founder', [App\Http\Controllers\AdminController::class, 'aboutFounderIndex'])->name('about-founder');
+    Route::post('/about-founder', [App\Http\Controllers\AdminController::class, 'aboutFounderUpdate'])->name('about-founder.update');
+    
+    // Keunggulan Fasilitas
+    Route::get('/keunggulan-fasilitas', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasIndex'])->name('keunggulan-fasilitas');
+    Route::post('/keunggulan-fasilitas', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasStore'])->name('keunggulan-fasilitas.store');
+    Route::post('/keunggulan-fasilitas/{id}', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasUpdate'])->name('keunggulan-fasilitas.update');
+    Route::delete('/keunggulan-fasilitas/{id}', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasDestroy'])->name('keunggulan-fasilitas.destroy');
+    
+    // Portfolio Achievement
+    Route::get('/portfolio-achievement', [App\Http\Controllers\AdminController::class, 'portfolioAchievementIndex'])->name('portfolio-achievement');
+    Route::post('/portfolio-achievement', [App\Http\Controllers\AdminController::class, 'portfolioAchievementStore'])->name('portfolio-achievement.store');
+    Route::post('/portfolio-achievement/{id}', [App\Http\Controllers\AdminController::class, 'portfolioAchievementUpdate'])->name('portfolio-achievement.update');
+    Route::delete('/portfolio-achievement/{id}', [App\Http\Controllers\AdminController::class, 'portfolioAchievementDestroy'])->name('portfolio-achievement.destroy');
+    
+    // Tim Kami
+    Route::get('/tim-kami', [App\Http\Controllers\AdminController::class, 'timKamiIndex'])->name('tim-kami');
+    Route::post('/tim-kami', [App\Http\Controllers\AdminController::class, 'timKamiStore'])->name('tim-kami.store');
+    Route::post('/tim-kami/{id}', [App\Http\Controllers\AdminController::class, 'timKamiUpdate'])->name('tim-kami.update');
+    Route::delete('/tim-kami/{id}', [App\Http\Controllers\AdminController::class, 'timKamiDestroy'])->name('tim-kami.destroy');
+    
+    // Testimoni Pelanggan
+    Route::get('/testimoni-pelanggan', [App\Http\Controllers\AdminController::class, 'testimoniPelangganIndex'])->name('testimoni-pelanggan');
+    Route::post('/testimoni-pelanggan', [App\Http\Controllers\AdminController::class, 'testimoniPelangganStore'])->name('testimoni-pelanggan.store');
+    Route::post('/testimoni-pelanggan/{id}', [App\Http\Controllers\AdminController::class, 'testimoniPelangganUpdate'])->name('testimoni-pelanggan.update');
+    Route::delete('/testimoni-pelanggan/{id}', [App\Http\Controllers\AdminController::class, 'testimoniPelangganDestroy'])->name('testimoni-pelanggan.destroy');
+    
+    // Event
+    Route::get('/event', [App\Http\Controllers\AdminController::class, 'eventIndex'])->name('event');
+    Route::post('/event', [App\Http\Controllers\AdminController::class, 'eventStore'])->name('event.store');
+    Route::post('/event/{id}', [App\Http\Controllers\AdminController::class, 'eventUpdate'])->name('event.update');
+    Route::delete('/event/{id}', [App\Http\Controllers\AdminController::class, 'eventDestroy'])->name('event.destroy');
+    
+    // Footer
+    Route::get('/footer', [App\Http\Controllers\AdminController::class, 'footerIndex'])->name('footer');
+    Route::post('/footer', [App\Http\Controllers\AdminController::class, 'footerUpdate'])->name('footer.update');
+    
+    // User Management
+    Route::prefix('manage-users')->name('manage-users.')->group(function () {
+        Route::get('/', [App\Http\Controllers\UserController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\UserController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
+        Route::get('/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
+        Route::patch('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
     });
     
-    Route::controller(UserController::class)->group(function () {
-        Route::get('/manage-users', 'index')->name('manage-users.index');
-        Route::get('/manage-users/create', 'create')->name('manage-users.create');
-        Route::post('/manage-users', 'store')->name('manage-users.store');
-
-        Route::get('/manage-users/{user}/edit', 'edit')->name('manage-users.edit');
-        Route::put('/manage-users/{user}', 'update')->name('manage-users.update');
-
-        Route::delete('/manage-users/{user}', 'destroy')->name('manage-users.destroy');
+    // Profile Management
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/edit', [App\Http\Controllers\AdminController::class, 'profileEdit'])->name('edit');
+        Route::put('/', [App\Http\Controllers\AdminController::class, 'profileUpdate'])->name('update');
+        Route::put('/password', [App\Http\Controllers\AdminController::class, 'profilePassword'])->name('password');
     });
 });

@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\orders;
 use App\Models\order_items;
 use App\Exports\OrdersExport;
+use App\Mail\SendReportEmail;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class OrderController extends Controller
@@ -68,13 +72,31 @@ class OrderController extends Controller
 
     public function complete($id)
     {
-        $order = orders::findOrFail($id);
+        $order = orders::with('orderItems')->findOrFail($id);
         $order->status = 'completed';
         $order->save();
 
+        // Return order data untuk realtime update
         return response()->json([
             'success' => true,
-            'message' => 'Order telah diselesaikan'
+            'message' => 'Order telah diselesaikan',
+            'order' => [
+                'id' => $order->id,
+                'customer_name' => $order->customer_name,
+                'table_number' => $order->table_number,
+                'room' => $order->room,
+                'total_price' => $order->total_price,
+                'payment_method' => $order->payment_method,
+                'created_at' => $order->created_at->format('d M Y H:i'),
+                'updated_at' => $order->updated_at->format('d M Y H:i'),
+                'order_items' => $order->orderItems->map(function($item) {
+                    return [
+                        'menu_name' => $item->menu_name,
+                        'price' => $item->price,
+                        'quantity' => $item->quantity,
+                    ];
+                })
+            ]
         ]);
     }
 
@@ -180,6 +202,183 @@ class OrderController extends Controller
         $filename .= '.xlsx';
 
         return Excel::download(new OrdersExport($type, $date, $month, $year), $filename);
+    }
+
+    public function sendReportEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'type' => 'required|in:daily,monthly,yearly',
+            'date' => 'nullable|date',
+            'month' => 'nullable|string',
+            'year' => 'nullable|integer',
+        ]);
+
+        $type = $request->get('type', 'daily');
+        $date = $request->get('date', Carbon::today()->format('Y-m-d'));
+        $month = $request->get('month', Carbon::now()->format('Y-m'));
+        $year = $request->get('year', Carbon::now()->format('Y'));
+
+        // Generate filename
+        $filename = 'Laporan_';
+        $reportType = 'Harian';
+        if ($type === 'daily') {
+            $filename .= 'Harian_' . Carbon::parse($date)->format('Y-m-d');
+            $reportType = 'Harian ' . Carbon::parse($date)->format('d M Y');
+        } elseif ($type === 'monthly') {
+            $filename .= 'Bulanan_' . Carbon::parse($month)->format('Y-m');
+            $reportType = 'Bulanan ' . Carbon::parse($month)->format('F Y');
+        } elseif ($type === 'yearly') {
+            $filename .= 'Tahunan_' . $year;
+            $reportType = 'Tahunan ' . $year;
+        }
+        $filename .= '.xlsx';
+
+        try {
+            // Check email configuration
+            if (config('mail.default') === 'log') {
+                Log::info('Email akan dikirim ke: ' . $request->email);
+            }
+
+            // Ensure temp directory exists
+            $tempDir = storage_path('app/temp');
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Store Excel file temporarily
+            $filePath = 'temp/' . $filename;
+            Excel::store(new OrdersExport($type, $date, $month, $year), $filePath, 'local');
+
+            // Get full path for attachment
+            $fullPath = Storage::path($filePath);
+
+            // Check if file exists
+            if (!file_exists($fullPath)) {
+                throw new \Exception('File Excel tidak berhasil dibuat');
+            }
+
+            // Log before sending
+            Log::info('Attempting to send email', [
+                'to' => $request->email,
+                'file' => $filename,
+                'mailer' => config('mail.default'),
+                'host' => config('mail.mailers.smtp.host'),
+            ]);
+
+            // Send email with attachment (sync)
+            Mail::to($request->email)->send(new SendReportEmail($fullPath, $filename, $reportType));
+
+            // Log after sending
+            Log::info('Email sent successfully', [
+                'to' => $request->email,
+                'file' => $filename,
+            ]);
+
+            // Delete temporary file after sending
+            Storage::delete($filePath);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Laporan Excel berhasil dikirim ke ' . $request->email . '. Silakan cek kotak masuk dan folder Spam Anda.'
+            ]);
+        } catch (\Exception $e) {
+            // Delete temporary file if exists
+            if (isset($filePath)) {
+                Storage::delete($filePath);
+            }
+
+            Log::error('Email Error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim email: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function testEmail(Request $request)
+    {
+        $email = $request->get('email', 'test@example.com');
+        
+        // Get email config
+        $mailConfig = [
+            'mailer' => config('mail.default'),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'username' => config('mail.mailers.smtp.username'),
+            'encryption' => config('mail.mailers.smtp.encryption'),
+            'from_address' => config('mail.from.address'),
+            'from_name' => config('mail.from.name'),
+        ];
+
+        Log::info('Test email configuration', $mailConfig);
+        
+        try {
+            // Check if using log driver
+            if (config('mail.default') === 'log') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email menggunakan log driver. Ubah MAIL_MAILER=smtp di .env',
+                    'config' => $mailConfig,
+                    'help' => 'Tambahkan di .env: MAIL_MAILER=smtp, MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_USERNAME=your-email@gmail.com, MAIL_PASSWORD=your-app-password, MAIL_ENCRYPTION=tls'
+                ], 400);
+            }
+
+            // Check if config is empty
+            if (empty(config('mail.mailers.smtp.host'))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Konfigurasi email belum di-setup. Pastikan .env sudah dikonfigurasi dengan benar.',
+                    'config' => $mailConfig,
+                    'help' => 'Tambahkan di .env: MAIL_MAILER=smtp, MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_USERNAME=your-email@gmail.com, MAIL_PASSWORD=your-app-password, MAIL_ENCRYPTION=tls'
+                ], 400);
+            }
+
+            Mail::raw('Ini adalah test email dari Billiard Class. Jika Anda menerima email ini, konfigurasi email sudah benar.', function ($message) use ($email) {
+                $message->to($email)
+                        ->subject('Test Email - Billiard Class');
+            });
+
+            Log::info('Test email sent successfully', ['to' => $email]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Test email berhasil dikirim ke ' . $email . '. Silakan cek kotak masuk dan folder Spam.',
+                'config' => $mailConfig,
+                'tips' => [
+                    '1. Cek folder Spam/Promosi di Gmail',
+                    '2. Email mungkin memerlukan beberapa menit untuk sampai',
+                    '3. Pastikan menggunakan App Password, bukan password Gmail biasa',
+                    '4. Pastikan 2-Step Verification sudah aktif di Gmail'
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Test email failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'config' => $mailConfig
+            ]);
+
+            $errorMessage = $e->getMessage();
+            $helpMessage = '';
+
+            if (strpos($errorMessage, 'Connection') !== false || strpos($errorMessage, 'could not be established') !== false) {
+                $helpMessage = 'Pastikan MAIL_HOST dan MAIL_PORT benar. Untuk Gmail: smtp.gmail.com:587';
+            } elseif (strpos($errorMessage, 'Authentication') !== false || strpos($errorMessage, 'login') !== false) {
+                $helpMessage = 'Pastikan menggunakan App Password dari Gmail, bukan password biasa. Buat di: https://myaccount.google.com/apppasswords';
+            } elseif (strpos($errorMessage, 'password') !== false) {
+                $helpMessage = 'Pastikan MAIL_PASSWORD adalah App Password (16 karakter tanpa spasi) dari Gmail';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim test email: ' . $errorMessage,
+                'config' => $mailConfig,
+                'help' => $helpMessage ?: 'Cek konfigurasi email di .env dan pastikan sudah benar'
+            ], 500);
+        }
     }
 }
 

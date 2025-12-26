@@ -211,17 +211,17 @@
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-600 to-yellow-400 p-[2px]">
                         <div
                             class="w-full h-full rounded-[10px] bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=transparent&color=fa9a08&bold=true"
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()?->name ?? 'Guest') }}&background=transparent&color=fa9a08&bold=true"
                                 alt="Avatar">
                         </div>
                     </div>
                     <div class="text-left hidden sm:block">
                         <p
                             class="text-sm font-bold leading-none text-white group-hover:text-[var(--accent)] transition-colors">
-                            {{ Auth::user()->name }}
+                            {{ Auth::user()?->name ?? 'Guest' }}
                         </p>
                         <p class="text-[10px] text-gray-500 font-medium uppercase tracking-tighter mt-1">
-                            {{ Auth::user()->role }}
+                            {{ Auth::user()?->role ?? 'guest' }}
                         </p>
                     </div>
                     <i class="ri-arrow-down-s-line text-gray-500 transition-transform duration-300"

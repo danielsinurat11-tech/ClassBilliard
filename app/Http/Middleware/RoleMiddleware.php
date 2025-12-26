@@ -11,8 +11,13 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        // Jika belum login atau role tidak sesuai, tendang ke halaman login/welcome
-        if (!Auth::check() || Auth::user()->role !== $role) {
+        // Pastikan user sudah login (middleware auth sudah handle ini, tapi double check)
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        // Jika role tidak sesuai, tendang ke halaman home
+        if (Auth::user()->role !== $role) {
             return redirect('/')->with('error', 'Anda tidak memiliki akses.');
         }
 
