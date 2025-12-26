@@ -1,93 +1,110 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin Dashboard - Billiard Class')
+@section('title', 'System Overview')
 
 @section('content')
-<div class="min-h-screen bg-black py-12">
-    <div class="max-w-7xl mx-auto px-4">
-        <h1 class="text-4xl font-bold text-white mb-8">Admin Dashboard</h1>
-        
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <a href="{{ route('admin.hero') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-image-fill"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Hero Section</h3>
-                <p class="text-gray-400 text-sm">Edit hero section dengan background dan title</p>
-            </a>
+    <div class="space-y-10 animate-in fade-in duration-700">
 
-            <a href="{{ route('admin.tentang-kami') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-information-fill"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Tentang Kami</h3>
-                <p class="text-gray-400 text-sm">Edit visi, misi, dan video profil</p>
-            </a>
+        <!-- HEADER: Professional & Utility-Focused -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8">
+            <div class="space-y-1">
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    Dashboard Overview
+                </h1>
+                <p class="text-sm text-slate-500 dark:text-gray-400 font-medium">
+                    Sistem Manajemen Konten Billiard Class versi 1.0.4
+                </p>
+            </div>
 
-            <a href="{{ route('admin.about-founder') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-user-star-fill"></i>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                    <span
+                        class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">System
+                        Live</span>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">About Founder</h3>
-                <p class="text-gray-400 text-sm">Edit informasi founder</p>
-            </a>
-
-            <a href="{{ route('admin.keunggulan-fasilitas') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-star-fill"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Keunggulan & Fasilitas</h3>
-                <p class="text-gray-400 text-sm">Kelola daftar fasilitas</p>
-            </a>
-
-            <a href="{{ route('admin.portfolio-achievement') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-trophy-fill"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Portfolio & Achievement</h3>
-                <p class="text-gray-400 text-sm">Kelola achievement dan galeri</p>
-            </a>
-
-            <a href="{{ route('admin.tim-kami') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-team-fill"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Tim Kami</h3>
-                <p class="text-gray-400 text-sm">Kelola anggota tim</p>
-            </a>
-
-            <a href="{{ route('admin.testimoni-pelanggan') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-chat-quote-fill"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Testimoni Pelanggan</h3>
-                <p class="text-gray-400 text-sm">Kelola testimoni pelanggan</p>
-            </a>
-
-            <a href="{{ route('admin.event') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-calendar-event-fill"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Event</h3>
-                <p class="text-gray-400 text-sm">Kelola event yang diadakan</p>
-            </a>
-
-            <a href="{{ route('admin.footer') }}" class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20 hover:border-[#fa9a08] transition-all duration-300">
-                <div class="text-[#fa9a08] text-4xl mb-4">
-                    <i class="ri-footer-fill"></i>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Footer</h3>
-                <p class="text-gray-400 text-sm">Edit informasi footer</p>
-            </a>
+                <div class="h-8 w-[1px] bg-slate-200 dark:bg-white/10 mx-2"></div>
+                <span class="text-xs font-medium text-slate-400">{{ now()->format('l, d F Y') }}</span>
+            </div>
         </div>
 
-        <div class="mt-8">
-            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-[#fa9a08] hover:text-amber-400 transition-colors">
-                <i class="ri-arrow-left-line"></i>
-                <span>Kembali ke Home</span>
-            </a>
+        <!-- MODULE GRID: Clean & Precise Borders -->
+        <div class="space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-gray-500">
+                    Core Management Modules
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                @php
+                    $modules = [
+                        ['r' => 'admin.hero', 'i' => 'ri-image-2-line', 't' => 'Hero Section', 'd' => 'Konfigurasi visual utama dan headline halaman depan.'],
+                        ['r' => 'admin.tentang-kami', 'i' => 'ri-information-line', 'l' => 'Website CMS', 't' => 'Tentang Kami', 'd' => 'Visi, misi, dan manajemen video profil perusahaan.'],
+                        ['r' => 'admin.about-founder', 'i' => 'ri-user-star-line', 't' => 'About Founder', 'd' => 'Detail biografi dan profil profesional pendiri.'],
+                        ['r' => 'admin.keunggulan-fasilitas', 'i' => 'ri-medal-line', 't' => 'Keunggulan', 'd' => 'Daftar fasilitas pendukung dan nilai unik kelas.'],
+                        ['r' => 'admin.portfolio-achievement', 'i' => 'ri-trophy-line', 't' => 'Portfolio', 'd' => 'Dokumentasi prestasi dan galeri pencapaian.'],
+                        ['r' => 'admin.tim-kami', 'i' => 'ri-team-line', 't' => 'Tim Kami', 'd' => 'Manajemen data instruktur dan staf operasional.'],
+                        ['r' => 'admin.testimoni-pelanggan', 'i' => 'ri-chat-quote-line', 't' => 'Testimoni', 'd' => 'Moderasi ulasan dan feedback dari pelanggan.'],
+                        ['r' => 'admin.event', 'i' => 'ri-calendar-event-line', 't' => 'Event & Promo', 'd' => 'Penjadwalan turnamen dan penawaran khusus.'],
+                        ['r' => 'admin.footer', 'i' => 'ri-layout-bottom-line', 't' => 'Footer Info', 'd' => 'Informasi kontak, media sosial, dan copyright.'],
+                    ];
+                @endphp
+
+                @foreach($modules as $m)
+                    <a href="{{ route($m['r']) }}"
+                        class="group relative bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 p-6 rounded-lg transition-all duration-300 hover:border-[#fa9a08] hover:shadow-lg dark:hover:shadow-[#fa9a08]/5 flex items-start gap-5">
+
+                        <!-- Icon: Sharp & Minimalist -->
+                        <div
+                            class="w-12 h-12 shrink-0 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-md flex items-center justify-center text-slate-400 group-hover:text-[#fa9a08] group-hover:bg-[#fa9a08]/5 transition-all duration-300">
+                            <i class="{{ $m['i'] }} text-xl"></i>
+                        </div>
+
+                        <div class="space-y-1">
+                            <h3
+                                class="text-sm font-bold text-slate-900 dark:text-white transition-colors group-hover:text-[#fa9a08]">
+                                {{ $m['t'] }}
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-gray-500 leading-relaxed font-medium">
+                                {{ $m['d'] }}
+                            </p>
+                        </div>
+
+                        <!-- Indicator: Subtle Corner Arrow -->
+                        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="ri-arrow-right-up-line text-[#fa9a08] text-sm"></i>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- SYSTEM FOOTER: Balanced Spacing -->
+        <div
+            class="mt-12 p-8 border border-slate-200 dark:border-white/5 rounded-lg flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50/50 dark:bg-white/[0.02]">
+            <div class="flex items-center gap-4 text-center md:text-left">
+                <div
+                    class="p-3 bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-md hidden sm:block">
+                    <i class="ri-terminal-box-line text-2xl text-[#fa9a08]"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold dark:text-white">Butuh Bantuan Teknis?</h4>
+                    <p class="text-xs text-slate-500 dark:text-gray-500 font-medium mt-1">Tim developer kami siap membantu
+                        operasional dashboard Anda.</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <a href="{{ route('home') }}"
+                    class="px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold rounded-md hover:bg-slate-50 dark:hover:bg-white/10 transition-all">
+                    Preview Site
+                </a>
+                <button
+                    class="px-5 py-2.5 bg-[#fa9a08] text-black text-xs font-bold rounded-md hover:bg-orange-600 transition-all shadow-md">
+                    Contact Support
+                </button>
+            </div>
         </div>
     </div>
-</div>
 @endsection
-

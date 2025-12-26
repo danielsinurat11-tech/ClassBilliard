@@ -72,9 +72,10 @@
                             <div>
                                 <label class="text-xs font-bold text-gray-500 uppercase tracking-[0.2em] block mb-2">Harga
                                     (Rp)</label>
-                                <input type="number" name="price" value="{{ old('price') }}" required
+                                <input type="text" id="price_display"
                                     class="w-full bg-white/[0.03] border border-white/5 rounded-2xl px-6 py-4 text-orange-500 text-xl font-bold focus:outline-none focus:border-orange-500/50 transition-all"
                                     placeholder="0">
+                                <input type="hidden" name="price" id="price_real" value="{{ old('price') }}">
                             </div>
                             <div>
                                 <label
@@ -107,6 +108,25 @@
     </div>
 
     <script>
+        const priceDisplay = document.getElementById('price_display');
+        const priceReal = document.getElementById('price_real');
+
+        priceDisplay.addEventListener('keyup', function (e) {
+            let value = this.value.replace(/[^,\d]/g, '').toString();
+            let split = value.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            this.value = rupiah;
+            priceReal.value = value.replace(/\./g, ''); // Simpan angka murni ke hidden input
+        });
+
         document.getElementById('imgInput').onchange = evt => {
             const [file] = evt.target.files
             if (file) {

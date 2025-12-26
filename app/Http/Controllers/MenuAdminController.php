@@ -11,9 +11,14 @@ class MenuAdminController extends Controller
 {
     public function index()
     {
-        // Menampilkan daftar menu terbaru dengan paginasi (10 item per halaman)
-        $menus = Menu::with('categoryMenu')->latest()->paginate(10);
-        return view('admin.menus.index', compact('menus'));
+        // Mengambil menu dengan relasi kategorinya
+        $menus = Menu::with('categoryMenu')->latest()->paginate(12);
+
+        // AMBIL DATA KATEGORI (Ini yang tadi hilang)
+        $categories = CategoryMenu::orderBy('name', 'asc')->get();
+
+        // Kirim keduanya ke view
+        return view('admin.menus.index', compact('menus', 'categories'));
     }
 
     public function create()
@@ -27,14 +32,15 @@ class MenuAdminController extends Controller
         $request->validate([
             'category_menu_id' => 'required|exists:category_menus,id',
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric', // Tetap numeric karena kita kirim angka murni
             'description' => 'required',
             'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // Proses simpan gambar ke public/uploads/menus
         $imageName = time() . '-' . Str::slug($request->name) . '.' . $request->image->extension();
         $request->image->move(public_path('uploads/menus'), $imageName);
+
+        $labels = $request->labels ? array_map('trim', explode(',', $request->labels)) : [];
 
         Menu::create([
             'category_menu_id' => $request->category_menu_id,
@@ -44,7 +50,7 @@ class MenuAdminController extends Controller
             'short_description' => Str::limit(strip_tags($request->description), 120),
             'description' => $request->description,
             'image_path' => 'uploads/menus/' . $imageName,
-            'labels' => $request->labels, // Disimpan sebagai JSON array
+            'labels' => $labels,
         ]);
 
         return redirect()->route('admin.menus.index')->with('success', 'Menu Berhasil Dibuat!');
