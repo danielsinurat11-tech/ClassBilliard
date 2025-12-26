@@ -45,16 +45,31 @@
                     </select>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Password Awal</label>
-                    <input type="password" name="password" required
-                        class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Shift</label>
+                    <select name="shift_id"
+                        class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all appearance-none">
+                        <option value="">Pilih Shift</option>
+                        @foreach($shifts as $shift)
+                            <option value="{{ $shift->id }}">
+                                {{ $shift->name }} ({{ $shift->start_time->format('H:i') }} - {{ $shift->end_time->format('H:i') }} WIB)
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Konfirmasi Password</label>
-                <input type="password" name="password_confirmation" required
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Password Awal</label>
+                <input type="password" name="password" required
                     class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all">
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Konfirmasi Password</label>
+                    <input type="password" name="password_confirmation" required
+                        class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all">
+                </div>
             </div>
 
             <button type="submit"

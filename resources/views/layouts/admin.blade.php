@@ -15,6 +15,7 @@
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
@@ -198,6 +199,12 @@
                 class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.menus.*')) active-link @endif">
                 <i class="ri-dashboard-2-line text-xl shrink-0"></i>
                 <span class="sidebar-text font-medium">Manajemen Menu</span>
+            </a>
+
+            <a href="{{ route('admin.tables.index') }}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.tables.*') || request()->routeIs('admin.barcode.*')) active-link @endif">
+                <i class="ri-qr-code-line text-xl shrink-0"></i>
+                <span class="sidebar-text font-medium">Manajemen Barcode</span>
             </a>
         </nav>
 

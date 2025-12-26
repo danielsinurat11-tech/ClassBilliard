@@ -8,6 +8,7 @@ use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -34,8 +35,19 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
-        // 1. Tentukan View Login
-        Fortify::loginView(function () {
+        // 1. Tentukan View Login - Redirect jika sudah login
+        Fortify::loginView(function (Request $request) {
+            // Jika user sudah login, redirect ke dashboard sesuai role
+            if (Auth::check()) {
+                $role = Auth::user()->role;
+                if ($role === 'admin') {
+                    return redirect()->route('admin.dashboard');
+                } elseif ($role === 'kitchen') {
+                    return redirect()->route('dapur');
+                }
+                return redirect()->route('home');
+            }
+            
             return view('auth.login');
         });
 
@@ -46,13 +58,27 @@ class FortifyServiceProvider extends ServiceProvider
                 public function toResponse($request)
                 {
                     $role = auth()->user()->role;
+                    
+                    // Check if there's an intended URL and it's an admin/kitchen route
+                    $intended = session()->pull('url.intended');
+                    
                     if ($role === 'admin') {
-                        return redirect()->intended('/admin');
+                        // If intended URL is admin route, use it; otherwise go to admin dashboard
+                        if ($intended && (str_contains($intended, '/admin') || str_contains($intended, '/dapur'))) {
+                            return redirect($intended);
+                        }
+                        // Always redirect admin to admin dashboard
+                        return redirect()->route('admin.dashboard');
                     } elseif ($role === 'kitchen') {
-                        return redirect()->intended('/dapur');
+                        // If intended URL is kitchen route, use it; otherwise go to kitchen dashboard
+                        if ($intended && str_contains($intended, '/dapur')) {
+                            return redirect($intended);
+                        }
+                        // Always redirect kitchen to dapur
+                        return redirect()->route('dapur');
                     }
 
-                    // Jika tidak ada role yang cocok (opsional)
+                    // Jika tidak ada role yang cocok, redirect ke home
                     return redirect('/');
                 }
             }

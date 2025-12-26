@@ -946,7 +946,7 @@
     color: #ffffff;
     font-size: 0.95rem;
     font-family: inherit;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
     box-sizing: border-box;
 }
 
@@ -957,6 +957,20 @@
 
 .form-group input::placeholder {
     color: #888;
+}
+
+.form-group input[readonly] {
+    background-color: #1a1a1a;
+    border-color: #333;
+    color: #aaa;
+    cursor: not-allowed;
+    opacity: 0.8;
+    user-select: none;
+}
+
+.form-group input[readonly]:focus {
+    border-color: #333;
+    background-color: #1a1a1a;
 }
 
 .form-actions {

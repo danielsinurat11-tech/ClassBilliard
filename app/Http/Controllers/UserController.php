@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -12,16 +13,20 @@ class UserController extends Controller
     public function index()
     {
         // Menampilkan semua user kecuali ID yang sedang login
-        $users = User::where('id', '!=', auth()->id())
+        $users = User::with('shift')
+            ->where('id', '!=', auth()->id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('admin.manage-users.index', compact('users'));
+        $shifts = Shift::where('is_active', true)->orderBy('start_time')->get();
+
+        return view('admin.manage-users.index', compact('users', 'shifts'));
     }
 
     public function create()
     {
-        return view('admin.manage-users.create');
+        $shifts = Shift::where('is_active', true)->orderBy('start_time')->get();
+        return view('admin.manage-users.create', compact('shifts'));
     }
 
     public function store(Request $request)
@@ -31,6 +36,7 @@ class UserController extends Controller
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'role'     => ['required', 'in:admin,kitchen'],
+            'shift_id' => ['nullable', 'exists:shifts,id'],
         ]);
 
         User::create([
@@ -38,6 +44,7 @@ class UserController extends Controller
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role'     => $validated['role'],
+            'shift_id' => $validated['shift_id'] ?? null,
         ]);
 
         return redirect()->route('admin.manage-users.index')
@@ -51,7 +58,8 @@ class UserController extends Controller
             return redirect()->route('admin.manage-users.index')->with('error', 'Gunakan menu Profil untuk mengedit akun Anda.');
         }
 
-        return view('admin.manage-users.edit', compact('user'));
+        $shifts = Shift::where('is_active', true)->orderBy('start_time')->get();
+        return view('admin.manage-users.edit', compact('user', 'shifts'));
     }
 
     public function update(Request $request, User $user)
@@ -60,12 +68,14 @@ class UserController extends Controller
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'unique:users,email,' . $user->id],
             'role'  => ['required', 'in:admin,kitchen'],
+            'shift_id' => ['nullable', 'exists:shifts,id'],
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->role = $validated['role'];
+        $user->shift_id = $validated['shift_id'] ?? null;
 
         if ($request->filled('password')) {
             $user->password = Hash::make($validated['password']);

@@ -2,51 +2,33 @@
 
 namespace App\Exports;
 
-use App\Models\orders;
+use App\Models\Report;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Carbon\Carbon;
 
-class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithColumnWidths
+class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithColumnWidths
 {
-    protected $type;
-    protected $date;
-    protected $month;
-    protected $year;
+    protected $report;
 
-    public function __construct($type = 'daily', $date = null, $month = null, $year = null)
+    public function __construct(Report $report)
     {
-        $this->type = $type;
-        $this->date = $date ?? Carbon::today()->format('Y-m-d');
-        $this->month = $month ?? Carbon::now()->format('Y-m');
-        $this->year = $year ?? Carbon::now()->format('Y');
+        $this->report = $report;
     }
 
     public function collection()
     {
-        $query = orders::with('orderItems')
-            ->where('status', 'completed');
-
-        if ($this->type === 'daily') {
-            $query->whereDate('updated_at', $this->date);
-        } elseif ($this->type === 'monthly') {
-            $query->whereYear('updated_at', Carbon::parse($this->month)->year)
-                  ->whereMonth('updated_at', Carbon::parse($this->month)->month);
-        } elseif ($this->type === 'yearly') {
-            $query->whereYear('updated_at', $this->year);
-        }
-
-        return $query->orderBy('updated_at', 'desc')->get();
+        // Return order summary as collection
+        $orders = collect($this->report->order_summary ?? []);
+        return $orders;
     }
 
     public function headings(): array
@@ -61,7 +43,6 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             'Jumlah Item',
             'Total Harga',
             'Metode Pembayaran',
-            'Status'
         ];
     }
 
@@ -70,8 +51,8 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
         static $no = 0;
         $no++;
         
-        $items = $order->orderItems->pluck('menu_name')->implode(', ');
-        $totalItems = $order->orderItems->sum('quantity');
+        $items = collect($order['items'] ?? [])->pluck('menu_name')->implode(', ');
+        $totalItems = collect($order['items'] ?? [])->sum('quantity');
 
         // Format payment method
         $paymentMethods = [
@@ -79,19 +60,18 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             'qris' => 'QRIS',
             'transfer' => 'Transfer'
         ];
-        $paymentMethod = $paymentMethods[strtolower($order->payment_method)] ?? strtoupper($order->payment_method);
+        $paymentMethod = $paymentMethods[strtolower($order['payment_method'] ?? 'cash')] ?? 'Tunai';
 
         return [
             $no,
-            Carbon::parse($order->created_at)->format('d/m/Y H:i'),
-            $order->customer_name,
-            $order->table_number,
-            $order->room,
+            $order['created_at'] ?? '',
+            $order['customer_name'] ?? '',
+            $order['table_number'] ?? '',
+            $order['room'] ?? '',
             $items,
             $totalItems,
-            'Rp' . number_format($order->total_price, 0, ',', '.'),
+            'Rp' . number_format($order['total_price'] ?? 0, 0, ',', '.'),
             $paymentMethod,
-            'Selesai'
         ];
     }
 
@@ -104,12 +84,12 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
                 'size' => 11,
                 'color' => ['rgb' => 'FFFFFF']
             ],
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'FA9A08']
-                ],
-                'alignment' => [
-                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '8B5CF6']
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
                 'wrapText' => true
             ],
@@ -136,12 +116,12 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
         ];
 
         // Apply header style
-        $sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:I1')->applyFromArray($headerStyle);
 
         // Apply data style to all data rows
         $highestRow = $sheet->getHighestRow();
         if ($highestRow > 1) {
-            $sheet->getStyle('A2:J' . $highestRow)->applyFromArray($dataStyle);
+            $sheet->getStyle('A2:I' . $highestRow)->applyFromArray($dataStyle);
         }
 
         // Set alignment for specific columns
@@ -152,7 +132,6 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
         $sheet->getStyle('G:G')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Jumlah Item
         $sheet->getStyle('H:H')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT); // Total Harga
         $sheet->getStyle('I:I')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Metode Pembayaran
-        $sheet->getStyle('J:J')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Status
 
         // Set row height for header
         $sheet->getRowDimension(1)->setRowHeight(30);
@@ -172,18 +151,11 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             'G' => 12,  // Jumlah Item
             'H' => 15,  // Total Harga
             'I' => 18,  // Metode Pembayaran
-            'J' => 12,  // Status
         ];
     }
 
     public function title(): string
     {
-        if ($this->type === 'daily') {
-            return 'Laporan Harian ' . Carbon::parse($this->date)->format('d-m-Y');
-        } elseif ($this->type === 'monthly') {
-            return 'Laporan Bulanan ' . Carbon::parse($this->month)->format('F Y');
-        } else {
-            return 'Laporan Tahunan ' . $this->year;
-        }
+        return 'Rekapitulasi ' . Carbon::parse($this->report->start_date)->format('d-m-Y') . ' s/d ' . Carbon::parse($this->report->end_date)->format('d-m-Y');
     }
 }

@@ -21,7 +21,10 @@ class EnsureUserIsAuthenticated
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
 
-            return redirect('/login')->with('error', 'Silakan login terlebih dahulu.');
+            // Simpan URL yang diminta untuk redirect setelah login
+            session()->put('url.intended', $request->fullUrl());
+
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu untuk mengakses halaman ini.');
         }
 
         return $next($request);

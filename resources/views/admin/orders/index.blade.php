@@ -10,6 +10,8 @@
         border-radius: 16px;
         padding: 20px;
         transition: all 0.3s;
+        overflow: hidden;
+        word-wrap: break-word;
     }
     .order-card:hover {
         background: rgba(255, 255, 255, 0.04);
@@ -122,9 +124,13 @@
     <div class="flex justify-between items-center">
         <div>
             <h1 class="text-3xl font-bold text-white tracking-tight">Manajemen Order</h1>
-            <p class="text-gray-500 text-sm">Konfirmasi dan kelola pesanan dari pelanggan.</p>
+            <p class="text-gray-500 text-sm">Pantau dan kelola pesanan dari pelanggan. Order langsung masuk ke dapur tanpa perlu konfirmasi.</p>
         </div>
         <div class="flex items-center gap-4">
+            <a href="{{ route('admin.orders.recap.index') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
+                <i class="ri-file-list-3-line"></i>
+                Rekapitulasi Laporan
+            </a>
             <div class="text-right">
                 <p class="text-xs text-gray-500 mb-1">Total Orders</p>
                 <p class="text-2xl font-bold text-white">{{ $allOrders->count() }}</p>
@@ -180,9 +186,9 @@
             $tableFilter = $isStandardTable ? $numericTable : 'other';
         @endphp
         <div class="order-card {{ $order->status === 'rejected' ? 'opacity-60' : '' }}" data-table="{{ $tableFilter }}">
-            <div class="flex justify-between items-start mb-4">
-                <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-2">
+            <div class="flex justify-between items-start mb-4 gap-4">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 class="text-lg font-bold text-white">{{ $order->customer_name }}</h3>
                         @if($order->status === 'pending')
                             <span class="status-badge status-pending">Menunggu Konfirmasi</span>
@@ -196,14 +202,14 @@
                     </div>
                     <p class="text-gray-400 text-sm">Meja {{ $order->table_number }} • {{ $order->room }}</p>
                     <p class="text-gray-500 text-xs mt-1">
-                        Pesan: {{ $order->created_at->format('d M Y H:i') }}
+                        Pesan: {{ \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y H:i') }} WIB
                         @if($order->status === 'completed')
-                        <br>Selesai: {{ $order->updated_at->format('d M Y H:i') }}
+                        <br>Selesai: {{ \Carbon\Carbon::parse($order->updated_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y H:i') }} WIB
                         @endif
                     </p>
                 </div>
-                <div class="text-right ml-4">
-                    <p class="text-2xl font-bold {{ $order->status === 'completed' ? 'text-green-500' : ($order->status === 'rejected' ? 'text-gray-500' : 'text-[var(--accent)]') }}">Rp{{ number_format($order->total_price, 0, ',', '.') }}</p>
+                <div class="text-right shrink-0">
+                    <p class="text-xl md:text-2xl font-bold whitespace-nowrap {{ $order->status === 'completed' ? 'text-green-500' : ($order->status === 'rejected' ? 'text-gray-500' : 'text-orange-500') }}">Rp{{ number_format($order->total_price, 0, ',', '.') }}</p>
                     <p class="text-gray-500 text-xs mt-1">{{ strtoupper($order->payment_method) }}</p>
                 </div>
             </div>
@@ -223,9 +229,9 @@
                 </div>
             </div>
 
-            {{-- Action Buttons untuk Pending Orders --}}
+            {{-- Action Buttons untuk Pending Orders (hanya untuk order lama yang masih pending) --}}
             @if($order->status === 'pending')
-            <div class="flex gap-3">
+            <div class="flex gap-3 mb-3">
                 <form action="{{ route('admin.orders.approve', $order->id) }}" method="POST" class="flex-1">
                     @csrf
                     <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
@@ -243,7 +249,8 @@
             </div>
             @endif
 
-            {{-- Tombol Hapus untuk semua status --}}
+            {{-- Tombol Hapus hanya untuk order pending (untuk mencegah kecurangan tutup buku) --}}
+            @if($order->status === 'pending')
             <div class="mt-3">
                 <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus order ini? Tindakan ini tidak dapat dibatalkan.')">
                     @csrf
@@ -254,6 +261,15 @@
                     </button>
                 </form>
             </div>
+            @else
+            {{-- Info untuk order yang sudah tidak bisa dihapus --}}
+            <div class="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                <p class="text-yellow-400 text-xs flex items-center gap-2">
+                    <i class="ri-lock-line"></i>
+                    Order ini tidak dapat dihapus. Data penjualan tersimpan permanen untuk keperluan tutup buku dan audit.
+                </p>
+            </div>
+            @endif
 
             {{-- Info Box untuk Processing Orders --}}
             @if($order->status === 'processing')
@@ -330,10 +346,36 @@
         });
     }
 
-    // Auto refresh setiap 5 detik untuk update order status
-    setInterval(() => {
-        location.reload();
-    }, 5000);
+    // Auto refresh ketika ada order baru atau perubahan status (termasuk ketika dapur klik selesai)
+    let lastOrderId = {{ $allOrders->max('id') ?? 0 }};
+    let lastCheckTime = new Date().toISOString();
+    let isRefreshing = false;
+    
+    setInterval(async () => {
+        // Skip jika sedang refresh
+        if (isRefreshing) return;
+        
+        try {
+            const response = await fetch(`/admin/orders/check-new?last_order_id=${lastOrderId}&last_check_time=${encodeURIComponent(lastCheckTime)}`);
+            const data = await response.json();
+            
+            if (data.has_changes) {
+                // Ada perubahan (order baru atau status berubah), refresh halaman
+                isRefreshing = true;
+                location.reload();
+            } else {
+                // Update tracking variables
+                if (data.latest_order_id > lastOrderId) {
+                    lastOrderId = data.latest_order_id;
+                }
+                if (data.current_time) {
+                    lastCheckTime = data.current_time;
+                }
+            }
+        } catch (error) {
+            console.error('Error checking orders:', error);
+        }
+    }, 3000); // Check setiap 3 detik
 </script>
 @endpush
 @endsection

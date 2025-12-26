@@ -47,6 +47,33 @@
         padding-left: clamp(0rem, 1vw, 0.5rem);
         padding-right: 1rem;
     }
+
+    /* Responsive for Mobile and Tablet */
+    @media (max-width: 768px) {
+        .about-container {
+            margin-left: 0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        .about-body {
+            margin-left: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .about-panel {
+            padding: 1rem;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .about-container {
+            margin-left: 1rem;
+            padding-left: 0.75rem;
+            padding-right: 1rem;
+        }
+        .about-body {
+            margin-left: 1.5rem;
+        }
+    }
     .visimisi-section {
         position: relative;
         background: transparent;

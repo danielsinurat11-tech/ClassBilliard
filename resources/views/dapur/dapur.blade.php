@@ -59,6 +59,7 @@
     .sidebar-menu-item.active i {
         color: #fa9a08;
     }
+    /* Responsive Styles for Tablet and Mobile */
     @media (max-width: 1024px) {
         .sidebar {
             position: fixed;
@@ -67,6 +68,7 @@
             overflow-y: auto;
             transform: translateX(-100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 280px;
         }
         .sidebar:not(.collapsed) {
             transform: translateX(0);
@@ -95,6 +97,96 @@
             display: block;
             opacity: 1;
             pointer-events: auto;
+        }
+
+        /* Order cards responsive */
+        .grid.grid-cols-\[repeat\(auto-fill\,minmax\(350px\,1fr\)\)\] {
+            grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 260px;
+        }
+
+        .main-content {
+            padding: 0.75rem;
+        }
+
+        /* Order card mobile */
+        .bg-\[#fa9a08\] {
+            padding: 1rem !important;
+        }
+
+        /* Filter tabs mobile */
+        .filter-tab-btn {
+            padding: 0.75rem 1rem !important;
+            font-size: 0.85rem !important;
+        }
+
+        /* Filter inputs mobile */
+        .filter-input-group {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+
+        .filter-input-group label {
+            min-width: auto !important;
+        }
+
+        .filter-input-group input {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* Reports summary mobile */
+        #reportsSummary {
+            flex-direction: column;
+        }
+
+        #reportsSummary > div {
+            width: 100%;
+            min-width: auto;
+        }
+
+        /* Export buttons mobile */
+        #exportExcelContainer {
+            flex-direction: column;
+        }
+
+        #exportExcelContainer button {
+            width: 100%;
+        }
+
+        /* Table responsive */
+        .reports-table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            min-width: 600px;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        /* Tablet styles */
+        .grid.grid-cols-\[repeat\(auto-fill\,minmax\(350px\,1fr\)\)\] {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .filter-input-group {
+            flex-wrap: wrap;
+        }
+
+        #reportsSummary {
+            flex-wrap: wrap;
+        }
+
+        #reportsSummary > div {
+            flex: 1 1 calc(50% - 0.5rem);
+            min-width: 200px;
         }
     }
     
@@ -332,7 +424,7 @@
                                 @endforeach
                             </div>
                             <div class="text-white text-[0.95rem] leading-relaxed max-md:text-[0.85rem]">
-                                <p class="my-2"><strong class="font-semibold">Waktu Pesan :</strong> {{ \Carbon\Carbon::parse($order->created_at)->format('d M Y H:i') }}</p>
+                                <p class="my-2"><strong class="font-semibold">Waktu Pesan :</strong> {{ \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y H:i') }} WIB</p>
                                 <p class="my-2"><strong class="font-semibold">Nama Pemesan :</strong> {{ $order->customer_name }}</p>
                                 <p class="my-2"><strong class="font-semibold">Pesanan :</strong> 
                                     {{ $order->orderItems->map(function($item){ return $item->quantity . 'x ' . $item->menu_name; })->implode(', ') }}
@@ -381,7 +473,7 @@
                 </div>
             </div>
 
-            <div class="gap-4 mb-6 items-center flex-wrap hidden" id="reportsSummary">
+            <div class="gap-4 mb-6 items-center flex-wrap flex hidden" id="reportsSummary">
                 <div class="bg-[#fa9a08] p-6 rounded-xl flex-1 min-w-[200px]">
                     <h3 class="text-white text-[0.9rem] font-medium m-0 mb-2">Total Pesanan</h3>
                     <p id="totalOrders" class="text-white text-2xl font-bold m-0">0</p>
@@ -390,7 +482,18 @@
                     <h3 class="text-white text-[0.9rem] font-medium m-0 mb-2">Total Pendapatan</h3>
                     <p id="totalRevenue" class="text-white text-2xl font-bold m-0">Rp0</p>
                 </div>
-                <button class="export-excel-btn py-3 px-6 bg-emerald-500 text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 h-fit hover:bg-emerald-600" id="exportExcelBtn">Export Excel</button>
+            </div>
+
+            {{-- Export Buttons - Always visible in reports section --}}
+            <div class="mb-6 hidden flex gap-4" id="exportExcelContainer">
+                <button class="send-report-btn py-3 px-6 bg-blue-500 text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 hover:bg-blue-600 flex items-center gap-2" id="sendReportBtn">
+                    <i class="ri-mail-line"></i>
+                    Kirim Laporan
+                </button>
+                <button class="download-report-btn py-3 px-6 bg-emerald-500 text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 hover:bg-emerald-600 flex items-center gap-2" id="downloadReportBtn">
+                    <i class="ri-download-line"></i>
+                    Download Laporan
+                </button>
             </div>
 
             <div class="min-h-[200px] hidden" id="reportsContent">
@@ -827,7 +930,7 @@
                     `${item.quantity}x ${item.menu_name}`
                 ).join(', ');
 
-                // Format tanggal untuk tampilan lebih ringkas
+                // Format tanggal untuk tampilan lebih ringkas (WIB)
                 const formatDate = (dateString) => {
                     const date = new Date(dateString);
                     return date.toLocaleDateString('id-ID', {
@@ -835,8 +938,9 @@
                         month: 'short',
                         year: 'numeric',
                         hour: '2-digit',
-                        minute: '2-digit'
-                    }).replace(',', '');
+                        minute: '2-digit',
+                        timeZone: 'Asia/Jakarta'
+                    }).replace(',', '') + ' WIB';
                 };
 
                 row.innerHTML = `
@@ -888,6 +992,12 @@
                 if (reportsContent) {
                     reportsContent.innerHTML = '';
                     reportsContent.classList.add('hidden');
+                }
+                
+                // Show export Excel button
+                const exportExcelContainer = document.getElementById('exportExcelContainer');
+                if (exportExcelContainer) {
+                    exportExcelContainer.classList.remove('hidden');
                 }
                 
                 // Show table instead
@@ -995,8 +1105,8 @@
             });
         });
 
-        // Handle export Excel dengan popup email
-        document.getElementById('exportExcelBtn')?.addEventListener('click', async function() {
+        // Handle Kirim Laporan dengan popup email
+        document.getElementById('sendReportBtn')?.addEventListener('click', async function() {
             // Tampilkan popup untuk input email
             const { value: email } = await Swal.fire({
                 title: 'Kirim Laporan ke Email',
@@ -1126,6 +1236,19 @@
                     });
                 }
             }
+        });
+
+        // Handle Download Laporan - langsung download Excel
+        document.getElementById('downloadReportBtn')?.addEventListener('click', function() {
+            const params = new URLSearchParams({
+                type: currentFilterType,
+                date: currentFilterDate,
+                month: currentFilterMonth,
+                year: currentFilterYear
+            });
+
+            // Langsung download file Excel
+            window.location.href = `/reports/export?${params}`;
         });
     </script>
     @endpush

@@ -19,6 +19,7 @@
                 <tr class="bg-white/[0.02] border-b border-white/5">
                     <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Identitas</th>
                     <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Role Privilege</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Shift</th>
                     <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Dibuat Pada</th>
                     <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Aksi</th>
                 </tr>
@@ -39,6 +40,18 @@
                         <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter {{ $user->role == 'admin' ? 'bg-orange-500/10 text-orange-500' : 'bg-blue-500/10 text-blue-500' }}">
                             {{ $user->role }}
                         </span>
+                    </td>
+                    <td class="px-6 py-5">
+                        @if($user->shift)
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-green-500/10 text-green-500">
+                                {{ $user->shift->name }}
+                            </span>
+                            <div class="text-[10px] text-gray-500 mt-1">
+                                {{ $user->shift->start_time->format('H:i') }} - {{ $user->shift->end_time->format('H:i') }} WIB
+                            </div>
+                        @else
+                            <span class="text-gray-500 text-xs">Belum di-assign</span>
+                        @endif
                     </td>
                     <td class="px-6 py-5 text-gray-400 text-sm">
                         {{ $user->created_at->format('d M Y') }}

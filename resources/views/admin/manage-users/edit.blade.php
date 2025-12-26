@@ -32,6 +32,19 @@
         </div>
 
         <div class="space-y-2">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Shift</label>
+            <select name="shift_id" class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all appearance-none">
+                <option value="">Tidak ada shift</option>
+                @foreach($shifts as $shift)
+                    <option value="{{ $shift->id }}" {{ old('shift_id', $user->shift_id) == $shift->id ? 'selected' : '' }}>
+                        {{ $shift->name }} ({{ $shift->start_time->format('H:i') }} - {{ $shift->end_time->format('H:i') }} WIB)
+                    </option>
+                @endforeach
+            </select>
+            <p class="text-[10px] text-gray-500 mt-1">Assign shift untuk user admin/dapur agar order ter-assign ke shift yang sesuai</p>
+        </div>
+
+        <div class="space-y-2">
             <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Email Sistem</label>
             <input type="email" name="email" value="{{ old('email', $user->email) }}" required
                 class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all">
