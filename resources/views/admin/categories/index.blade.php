@@ -120,9 +120,12 @@
         function openEditModal(id, name, priority) {
             const modal = document.getElementById('editModal');
             const form = document.getElementById('editForm');
+
             document.getElementById('editName').value = name;
             document.getElementById('editPriority').value = priority;
+
             form.action = `/admin/categories/${id}`;
+
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
