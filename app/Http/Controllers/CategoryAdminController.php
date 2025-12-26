@@ -39,14 +39,14 @@ class CategoryAdminController extends Controller
     /**
      * Update kategori (misal mau ganti nama atau urutan tampil).
      */
-    public function update(Request $request, CategoryMenu $categoryMenu)
+    public function update(Request $request, CategoryMenu $category)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:category_menus,name,' . $categoryMenu->id,
+            'name' => 'required|string|max:255|unique:category_menus,name,' . $category->id,
             'order_priority' => 'required|integer'
         ]);
 
-        $categoryMenu->update([
+        $category->update([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'order_priority' => $request->order_priority
@@ -58,11 +58,10 @@ class CategoryAdminController extends Controller
     /**
      * Menghapus kategori.
      */
-    public function destroy(CategoryMenu $categoryMenu)
+    // UBAH: $categoryMenu menjadi $category
+    public function destroy(CategoryMenu $category)
     {
-        // Karena di migrasi kita pakai onDelete('cascade'), 
-        // semua menu di bawah kategori ini akan ikut terhapus otomatis.
-        $categoryMenu->delete();
-        return back()->with('success', 'Kategori dan semua menu di dalamnya telah dihapus.');
+        $category->delete();
+        return back()->with('success', 'Kategori berhasil dihapus.');
     }
 }

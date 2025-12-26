@@ -1,76 +1,150 @@
 @extends('layouts.admin')
 
+@section('title', 'Menu Gallery')
+
 @section('content')
-<div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <h1 class="text-4xl font-black text-white tracking-tight">Menu Gallery</h1>
-            <p class="text-gray-500 text-sm mt-1">Kelola daftar hidangan visual dan harga operasional.</p>
-        </div>
-        <a href="{{ route('admin.menus.create') }}" 
-           class="bg-[#ff6b00] hover:bg-orange-600 text-black font-bold py-4 px-8 rounded-2xl transition-all flex items-center gap-3 shadow-lg shadow-orange-500/20 active:scale-95">
-            <i class="ri-add-circle-fill text-xl"></i> Tambah Menu Baru
-        </a>
-    </div>
+    <div class="space-y-8 animate-in fade-in duration-500">
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white/5 border border-white/10 p-4 rounded-2xl">
-            <p class="text-gray-500 text-xs uppercase font-bold tracking-widest">Total Menu</p>
-            <p class="text-2xl font-bold text-white">{{ $menus->total() }}</p>
-        </div>
-        </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        @foreach($menus as $menu)
-        <div class="group bg-[#111] border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-orange-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/10">
-            <div class="relative aspect-[4/3] overflow-hidden">
-                <img src="{{ asset($menu->image_path) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                <div class="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent opacity-80"></div>
-                
-                <div class="absolute top-4 left-4">
-                    <span class="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-xl border border-white/10 uppercase tracking-widest">
-                        {{ $menu->categoryMenu->name }}
-                    </span>
-                </div>
+        <!-- HEADER: Sleek & Aligned -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8">
+            <div class="space-y-1">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    Menu Gallery
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-gray-500 font-medium font-['Plus_Jakarta_Sans']">
+                    Manajemen katalog visual dan konfigurasi harga hidangan.
+                </p>
             </div>
 
-            <div class="p-6 -mt-8 relative z-10">
-                <div class="flex flex-wrap gap-1 mb-3">
-                    @foreach($menu->labels ?? [] as $label)
-                        <span class="text-[9px] bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-md font-bold uppercase tracking-tighter border border-orange-500/20">
-                            {{ $label }}
-                        </span>
-                    @endforeach
-                </div>
-
-                <h3 class="text-xl font-bold text-white mb-1 truncate">{{ $menu->name }}</h3>
-                <p class="text-gray-500 text-xs line-clamp-2 mb-6 h-8 italic">{{ $menu->short_description }}</p>
-
-                <div class="flex justify-between items-center pt-4 border-t border-white/5">
-                    <div>
-                        <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Price</p>
-                        <p class="text-lg font-black text-white">Rp{{ number_format($menu->price, 0, ',', '.') }}</p>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <a href="{{ route('admin.menus.edit', $menu) }}" class="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all border border-white/5">
-                            <i class="ri-edit-box-line"></i>
-                        </a>
-                        <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" onsubmit="return confirm('Hapus hidangan ini?')">
-                            @csrf @method('DELETE')
-                            <button class="p-3 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl transition-all border border-red-500/10">
-                                <i class="ri-delete-bin-7-line"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('admin.menus.create') }}"
+                    class="inline-flex items-center gap-2 bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md transition-all shadow-sm">
+                    <i class="ri-add-circle-line text-lg"></i>
+                    <span>Add New Menu</span>
+                </a>
             </div>
         </div>
-        @endforeach
+
+        <!-- FILTER BAR: Dynamic Categories -->
+        <div
+            class="flex items-center gap-6 border-b border-slate-100 dark:border-white/5 pb-2 overflow-x-auto no-scrollbar">
+            <button
+                class="pb-2 px-1 border-b-2 border-[#fa9a08] text-[#fa9a08] text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                All Items
+            </button>
+            @foreach($categories as $category)
+                <button
+                    class="pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap">
+                    {{ $category->name }}
+                </button>
+            @endforeach
+        </div>
+
+        <!-- MAIN GRID: Professional Sleek Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            @foreach($menus as $menu)
+                <div class="group flex flex-col transition-all duration-300">
+
+                    <!-- Image Area: Precise Radius -->
+                    <div
+                        class="relative aspect-square overflow-hidden rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5">
+                        <img src="{{ asset($menu->image_path) }}"
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+
+                        <!-- Floating Price -->
+                        <div class="absolute bottom-3 right-3">
+                            <div
+                                class="bg-[#fa9a08] text-black px-2.5 py-1 rounded text-[10px] font-black shadow-lg uppercase tracking-tighter">
+                                IDR {{ number_format($menu->price, 0, ',', '.') }}
+                            </div>
+                        </div>
+
+                        <!-- Category Label -->
+                        <div class="absolute top-3 left-3">
+                            <span
+                                class="px-2 py-0.5 bg-black/60 backdrop-blur-md text-white text-[8px] font-bold uppercase tracking-[0.2em] rounded border border-white/10">
+                                {{ $menu->categoryMenu->name }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Content Area: Text Focused -->
+                    <div class="py-4 space-y-2 flex-1 flex flex-col">
+                        <div class="flex flex-wrap gap-1.5">
+                            @forelse($menu->labels ?? [] as $label)
+                                <span class="text-[8px] font-black text-[#fa9a08] uppercase tracking-widest">{{ $label }}</span>
+                                @if(!$loop->last) <span class="text-slate-300 dark:text-gray-700">•</span> @endif
+                            @empty
+                                <span
+                                    class="text-[8px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest">Regular</span>
+                            @endforelse
+                        </div>
+
+                        <h3
+                            class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#fa9a08] transition-colors leading-tight">
+                            {{ $menu->name }}
+                        </h3>
+
+                        <p class="text-[11px] text-slate-500 dark:text-gray-500 font-medium leading-relaxed line-clamp-2">
+                            {{ $menu->short_description }}
+                        </p>
+
+                        <!-- Actions: Discrete -->
+                        <div class="pt-4 flex items-center justify-between mt-auto">
+                            <span class="text-[9px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-[0.2em]">Menu
+                                Item #{{ $menu->id }}</span>
+
+                            <div class="flex items-center gap-1">
+                                <a href="{{ route('admin.menus.edit', $menu) }}"
+                                    class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 dark:border-white/10 text-slate-400 hover:border-[#fa9a08] hover:text-[#fa9a08] transition-all">
+                                    <i class="ri-pencil-line"></i>
+                                </a>
+
+                                <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" class="inline">
+                                    @csrf @method('DELETE')
+                                    <button type="button" onclick="confirmDelete(this)"
+                                        class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-500 hover:text-red-500 transition-all">
+                                        <i class="ri-delete-bin-line"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pt-10 flex justify-center border-t border-slate-100 dark:border-white/5">
+            {{ $menus->links() }}
+        </div>
     </div>
 
-    <div class="mt-10">
-        {{ $menus->links() }}
-    </div>
-</div>
+    @push('scripts')
+        <script>
+            function confirmDelete(button) {
+                Swal.fire({
+                    title: 'Hapus Item?',
+                    text: "Data ini akan dihapus permanen dari katalog menu.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#fa9a08',
+                    cancelButtonColor: '#1e1e1e',
+                    confirmButtonText: 'Ya, Hapus',
+                    background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    customClass: {
+                        popup: 'rounded-lg border border-white/5 shadow-2xl',
+                        confirmButton: 'rounded-md text-[10px] font-bold px-6 py-3',
+                        cancelButton: 'rounded-md text-[10px] font-bold px-6 py-3'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        button.closest('form').submit();
+                    }
+                });
+            }
+        </script>
+    @endpush
 @endsection
