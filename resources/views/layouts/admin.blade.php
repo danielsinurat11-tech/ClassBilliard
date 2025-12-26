@@ -53,27 +53,33 @@
             color: #fa9a08 !important;
             font-weight: 700;
         }
+
+        /* Sidebar Expansion Animation */
+        .sidebar-animate {
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s ease;
+        }
     </style>
 </head>
 
 <body
     class="font-['Plus_Jakarta_Sans'] antialiased theme-transition bg-white dark:bg-[#050505] text-slate-900 dark:text-slate-200"
-    x-data="{ sidebarCollapsed: false }">
+    x-data="{ sidebarCollapsed: false, sidebarHover: false }">
 
     <!-- SIDEBAR -->
-    <aside
-        class="fixed top-0 left-0 h-screen z-50 theme-transition border-r border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#0A0A0A] flex flex-col transition-all duration-300"
-        :class="sidebarCollapsed ? 'w-20' : 'w-72'">
-
-        <!-- Logo -->
-        <div class="h-20 flex items-center px-6 shrink-0 border-b border-slate-200 dark:border-white/5">
+    <aside @mouseenter="if(sidebarCollapsed) sidebarHover = true" @mouseleave="sidebarHover = false"
+        class="fixed top-0 left-0 h-screen z-50 theme-transition border-r border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#0A0A0A] flex flex-col sidebar-animate"
+        :class="[(sidebarCollapsed && !sidebarHover) ? 'w-20' : 'w-72', (sidebarCollapsed && sidebarHover) ? 'shadow-[20px_0_50px_rgba(0,0,0,0.2)] dark:shadow-[20px_0_50px_rgba(0,0,0,0.5)]' : '']">
+        <!-- Logo Area -->
+        <div class="h-20 flex items-center px-6 shrink-0 border-b border-slate-200 dark:border-white/5 overflow-hidden">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-[#fa9a08] rounded-lg flex items-center justify-center shrink-0">
                     <i class="ri-shield-star-fill text-black text-lg"></i>
                 </div>
-                <div x-show="!sidebarCollapsed" x-transition class="flex flex-col whitespace-nowrap">
-                    <span class="font-bold text-sm tracking-tight dark:text-white uppercase">Billiard Admin</span>
-                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Core System</span>
+                <div x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms
+                    class="flex flex-col whitespace-nowrap">
+                    <span class="font-bold text-sm tracking-tight dark:text-white uppercase leading-none">Billiard
+                        Admin</span>
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Core System</span>
                 </div>
             </div>
         </div>
@@ -82,15 +88,15 @@
         <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-8 no-scrollbar">
             <!-- Group: Main -->
             <div>
-                <p x-show="!sidebarCollapsed"
+                <p x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Main</p>
                 <div class="space-y-1">
                     <a href="{{ route('admin.dashboard') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.dashboard') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-dashboard-2-line text-lg"></i>
-                        <span x-show="!sidebarCollapsed" class="font-bold text-xs tracking-tight">Dashboard
-                            Overview</span>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Dashboard Overview</span>
                     </a>
                 </div>
             </div>
@@ -98,7 +104,7 @@
             <!-- Group: Website CMS -->
             <div
                 x-data="{ open: {{ request()->routeIs('admin.hero', 'admin.tentang-kami', 'admin.about-founder', 'admin.keunggulan-fasilitas', 'admin.portfolio-achievement', 'admin.tim-kami', 'admin.testimoni-pelanggan', 'admin.event', 'admin.footer') ? 'true' : 'false' }} }">
-                <p x-show="!sidebarCollapsed"
+                <p x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Content</p>
 
@@ -106,13 +112,15 @@
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all text-slate-600 dark:text-slate-400 group">
                     <div class="flex items-center gap-4">
                         <i class="ri-stack-line text-lg group-hover:text-[#fa9a08]"></i>
-                        <span x-show="!sidebarCollapsed" class="font-bold text-xs tracking-tight">Website CMS</span>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Website CMS</span>
                     </div>
-                    <i x-show="!sidebarCollapsed" class="ri-arrow-down-s-line text-xs transition-transform duration-300"
+                    <i x-show="!sidebarCollapsed || sidebarHover"
+                        class="ri-arrow-down-s-line text-xs transition-transform duration-300"
                         :class="open ? 'rotate-180' : ''"></i>
                 </button>
 
-                <div x-show="open && !sidebarCollapsed" x-collapse
+                <div x-show="open && (!sidebarCollapsed || sidebarHover)" x-collapse
                     class="pl-12 space-y-1 mt-2 border-l border-slate-200 dark:border-white/5 ml-6">
                     @php
                         $cmsLinks = [
@@ -138,62 +146,59 @@
 
             <!-- Group: Management -->
             <div>
-                <p x-show="!sidebarCollapsed"
+                <p x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Management</p>
                 <div class="space-y-1">
-                    <!-- User Access -->
                     <a href="{{ route('admin.manage-users.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.manage-users.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-user-settings-line text-lg"></i>
-                        <span x-show="!sidebarCollapsed" class="font-bold text-xs tracking-tight">User Access</span>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">User Access</span>
                     </a>
-
-                    <!-- Orders -->
                     <a href="{{ route('admin.orders.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.orders.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-shopping-cart-line text-lg"></i>
-                        <span x-show="!sidebarCollapsed" class="font-bold text-xs tracking-tight">Orders</span>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Orders</span>
                     </a>
-
-                    <!-- Categories -->
                     <a href="{{ route('admin.categories.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.categories.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-price-tag-3-line text-lg"></i>
-                        <span x-show="!sidebarCollapsed" class="font-bold text-xs tracking-tight">Categories</span>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Categories</span>
                     </a>
-
-                    <!-- Menu Items -->
                     <a href="{{ route('admin.menus.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.menus.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-restaurant-line text-lg"></i>
-                        <span x-show="!sidebarCollapsed" class="font-bold text-xs tracking-tight">Menu Items</span>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Menu Items</span>
                     </a>
                 </div>
             </div>
         </nav>
 
-        <!-- Sidebar Bottom -->
-        <div class="p-4 border-t border-slate-200 dark:border-white/5 space-y-2">
-            <button @click="sidebarCollapsed = !sidebarCollapsed"
+        <!-- Sidebar Toggle Bottom -->
+        <div class="p-4 border-t border-slate-200 dark:border-white/5">
+            <button @click="sidebarCollapsed = !sidebarCollapsed; sidebarHover = false"
                 class="w-full h-9 flex items-center justify-center rounded-md bg-slate-200 dark:bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
                 <i :class="sidebarCollapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line'" class="text-sm"></i>
             </button>
         </div>
     </aside>
 
-    <!-- WRAPPER -->
+    <!-- MAIN WRAPPER -->
     <div class="min-h-screen flex flex-col transition-all duration-300" :class="sidebarCollapsed ? 'ml-20' : 'ml-72'">
 
         <!-- HEADER -->
         <header
             class="h-16 px-8 flex items-center justify-between sticky top-0 z-40 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5">
-            <div class="flex flex-col">
+            <div>
                 <h1 class="text-sm font-bold dark:text-white tracking-tight">@yield('title', 'Dashboard Overview')</h1>
             </div>
 
             <div class="flex items-center gap-4">
-                <!-- Theme Toggle -->
+                <!-- Theme Switcher -->
                 <button @click="toggleTheme"
                     class="w-8 h-8 rounded-md border border-slate-200 dark:border-white/10 flex items-center justify-center hover:border-[#fa9a08] transition-all">
                     <i x-show="!darkMode" class="ri-moon-line text-sm"></i>
@@ -228,7 +233,7 @@
             </div>
         </header>
 
-        <!-- MAIN CONTENT AREA -->
+        <!-- MAIN CONTENT -->
         <main class="flex-1 p-8 md:p-12">
             <div class="max-w-[1600px] mx-auto">
                 @yield('content')
@@ -242,7 +247,7 @@
             <div class="flex items-center gap-4">
                 <span class="flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    Secure Connection
+                    Secure Core
                 </span>
             </div>
         </footer>
@@ -265,16 +270,16 @@
                 handleLogout() {
                     Swal.fire({
                         title: 'Confirm Logout',
-                        text: "Apakah Anda yakin ingin keluar?",
+                        text: "Sesi administrasi akan diakhiri.",
                         icon: 'warning',
                         showCancelButton: true,
                         background: this.darkMode ? '#0A0A0A' : '#fff',
                         color: this.darkMode ? '#fff' : '#000',
                         confirmButtonColor: '#fa9a08',
                         cancelButtonColor: '#1e1e1e',
-                        confirmButtonText: 'Yes, Logout',
+                        confirmButtonText: 'Yes, Sign Out',
                         customClass: {
-                            popup: 'rounded-lg border border-white/5 shadow-2xl',
+                            popup: 'rounded-lg border border-white/5',
                             confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5',
                             cancelButton: 'rounded-md text-xs font-bold px-5 py-2.5'
                         }
