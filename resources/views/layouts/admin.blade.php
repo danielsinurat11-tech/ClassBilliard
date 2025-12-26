@@ -145,37 +145,6 @@
                 </div>
             </div>
 
-<<<<<<< HEAD
-            <a href="{{ route('admin.manage-users.index') }}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.manage-users.*')) active-link @endif">
-                <i class="ri-dashboard-2-line text-xl shrink-0"></i>
-                <span class="sidebar-text font-medium">Manajemen User</span>
-            </a>
-
-            <a href="{{ route('admin.orders.index') }}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.orders.*')) active-link @endif">
-                <i class="ri-shopping-cart-line text-xl shrink-0"></i>
-                <span class="sidebar-text font-medium">Manajemen Order</span>
-            </a>
-
-            <a href="{{ route('admin.categories.index') }}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.categories.*')) active-link @endif">
-                <i class="ri-dashboard-2-line text-xl shrink-0"></i>
-                <span class="sidebar-text font-medium">Manajemen Kategori</span>
-            </a>
-
-            <a href="{{ route('admin.menus.index') }}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.menus.*')) active-link @endif">
-                <i class="ri-dashboard-2-line text-xl shrink-0"></i>
-                <span class="sidebar-text font-medium">Manajemen Menu</span>
-            </a>
-
-            <a href="{{ route('admin.tables.index') }}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.tables.*') || request()->routeIs('admin.barcode.*')) active-link @endif">
-                <i class="ri-qr-code-line text-xl shrink-0"></i>
-                <span class="sidebar-text font-medium">Manajemen Barcode</span>
-            </a>
-=======
             <!-- Group: Management -->
             <div>
                 <p x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
@@ -206,9 +175,14 @@
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">Menu Items</span>
                     </a>
+                    <a href="{{ route('admin.tables.index') }}"
+                        class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.tables.*') || request()->routeIs('admin.barcode.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
+                        <i class="ri-qr-code-line text-lg"></i>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Barcode</span>
+                    </a>
                 </div>
             </div>
->>>>>>> 4dcc4bed6a4ba3ffc801d6f618a73bb4fab53c46
         </nav>
 
         <!-- Sidebar Toggle Bottom -->
