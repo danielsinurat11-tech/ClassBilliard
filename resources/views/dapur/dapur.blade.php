@@ -62,9 +62,14 @@
     @media (max-width: 1024px) {
         .sidebar {
             position: fixed;
-            z-index: 50;
+            z-index: 9999;
             height: 100vh;
-            overflow-y: hidden;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar:not(.collapsed) {
+            transform: translateX(0);
         }
         .main-content {
             margin-left: 0;
@@ -73,23 +78,181 @@
         }
         .sidebar-overlay {
             display: none;
-        }
-        .sidebar-overlay.show {
-            display: block;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.7);
-            z-index: 40;
+            z-index: 9998;
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+    
+    /* Notification Styles */
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 400px;
+    }
+    
+    .notification-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9998;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        visibility: hidden;
+    }
+    
+    .notification-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+        visibility: visible;
+    }
+    
+    @media (min-width: 1024px) {
+        .notification-overlay {
+            display: none;
+        }
+    }
+    
+    .notification {
+        background: linear-gradient(135deg, #fa9a08 0%, #ffb84d 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(250, 154, 8, 0.4);
+        margin-bottom: 15px;
+        animation: slideInRight 0.5s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        min-width: 300px;
+        position: relative;
+        z-index: 9999;
+    }
+    
+    @media (max-width: 640px) {
+        .notification-container {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+        
+        .notification {
+            min-width: auto;
+            width: 100%;
+            padding: 16px;
+        }
+    }
+    
+    .notification.hide {
+        animation: slideOutRight 0.5s ease-out forwards;
+    }
+    
+    .notification-icon {
+        font-size: 32px;
+        animation: pulse 1s infinite;
+    }
+    
+    .notification-content {
+        flex: 1;
+    }
+    
+    .notification-title {
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    
+    .notification-message {
+        font-size: 14px;
+        opacity: 0.95;
+    }
+    
+    .notification-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+    
+    .notification-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
         }
     }
 </style>
 @endpush
 
 @section('content')
+    {{-- Audio element for notification sound --}}
+    <audio id="notificationSound" preload="auto">
+        <source src="{{ asset('assets/sounds/new_order.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    {{-- Notification Overlay (Mobile Blur) --}}
+    <div id="notificationOverlay" class="notification-overlay"></div>
+
+    {{-- Notification Container --}}
+    <div id="notificationContainer" class="notification-container"></div>
+
     <div class="flex min-h-screen bg-black">
         {{-- Sidebar --}}
         <aside id="sidebar" class="sidebar fixed lg:static top-0 left-0 h-screen bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] border-r border-white/10 z-50 flex flex-col">
@@ -275,21 +438,70 @@
         const mainContent = document.querySelector('.main-content');
 
         function toggleSidebar() {
-            sidebar.classList.toggle('collapsed');
-            sidebarOverlay.classList.toggle('show');
+            const isMobile = window.innerWidth <= 1024;
+            if (isMobile) {
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                if (isCollapsed) {
+                    // Open sidebar
+                    sidebar.classList.remove('collapsed');
+                    if (sidebarOverlay) {
+                        sidebarOverlay.classList.add('show');
+                    }
+                    // Prevent body scroll when sidebar is open
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    // Close sidebar
+                    sidebar.classList.add('collapsed');
+                    if (sidebarOverlay) {
+                        sidebarOverlay.classList.remove('show');
+                    }
+                    // Restore body scroll
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+
+        // Initialize sidebar as collapsed on mobile
+        if (window.innerWidth <= 1024) {
+            sidebar.classList.add('collapsed');
         }
 
         if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSidebar();
+            });
         }
 
         if (mobileSidebarToggle) {
-            mobileSidebarToggle.addEventListener('click', toggleSidebar);
+            mobileSidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSidebar();
+            });
         }
 
         if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSidebar();
+            });
         }
+
+        // Close sidebar when window is resized to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('collapsed');
+                if (sidebarOverlay) {
+                    sidebarOverlay.classList.remove('show');
+                }
+                document.body.style.overflow = '';
+            } else {
+                // Ensure sidebar is collapsed on mobile
+                if (!sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                }
+            }
+        });
 
         // Menu Navigation
         const menuOrders = document.getElementById('menu-orders');
@@ -328,6 +540,223 @@
             e.preventDefault();
             switchSection('reports');
         });
+
+        // Notification and Sound Functions
+        const notificationSound = document.getElementById('notificationSound');
+        const notificationContainer = document.getElementById('notificationContainer');
+        const notificationOverlay = document.getElementById('notificationOverlay');
+        let currentOrderIds = new Set();
+        let isFirstLoad = true;
+        let activeNotifications = new Set();
+
+        // Function to update overlay visibility
+        function updateNotificationOverlay() {
+            if (notificationOverlay) {
+                // Check if there are any visible notifications
+                const visibleNotifications = notificationContainer.querySelectorAll('.notification:not(.hide)');
+                
+                if (visibleNotifications.length > 0) {
+                    notificationOverlay.classList.add('show');
+                } else {
+                    notificationOverlay.classList.remove('show');
+                    // Force hide with visibility
+                    notificationOverlay.style.visibility = 'hidden';
+                }
+            }
+        }
+
+        // Function to show notification
+        function showNotification(order) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.id = `notification-${order.id}`;
+            
+            const itemsText = order.order_items.map(item => 
+                `${item.quantity}x ${item.menu_name}`
+            ).join(', ');
+            
+            notification.innerHTML = `
+                <div class="notification-icon">
+                    <i class="ri-notification-3-line"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">Pesanan Baru!</div>
+                    <div class="notification-message">
+                        <strong>${order.customer_name}</strong> - Meja ${order.table_number} (${order.room})<br>
+                        ${itemsText}<br>
+                        <strong>Total: Rp${parseInt(order.total_price).toLocaleString('id-ID')}</strong>
+                    </div>
+                </div>
+                <button class="notification-close" onclick="closeNotification(${order.id})">
+                    <i class="ri-close-line"></i>
+                </button>
+            `;
+            
+            notificationContainer.appendChild(notification);
+            activeNotifications.add(order.id);
+            
+            // Small delay to ensure DOM is updated
+            setTimeout(() => {
+                updateNotificationOverlay();
+            }, 10);
+            
+            // Auto close after 8 seconds
+            setTimeout(() => {
+                closeNotification(order.id);
+            }, 8000);
+            
+            // Play sound
+            if (notificationSound) {
+                notificationSound.currentTime = 0;
+                notificationSound.play().catch(err => {
+                    console.log('Sound play failed:', err);
+                });
+            }
+        }
+
+        // Function to close notification (global scope)
+        window.closeNotification = function(orderId) {
+            const notification = document.getElementById(`notification-${orderId}`);
+            if (notification) {
+                notification.classList.add('hide');
+                activeNotifications.delete(orderId);
+                
+                // Update overlay immediately
+                updateNotificationOverlay();
+                
+                setTimeout(() => {
+                    notification.remove();
+                    
+                    // Final check - ensure overlay is hidden if no notifications
+                    const remainingNotifications = notificationContainer.querySelectorAll('.notification:not(.hide)');
+                    if (remainingNotifications.length === 0 && notificationOverlay) {
+                        notificationOverlay.classList.remove('show');
+                        notificationOverlay.style.visibility = 'hidden';
+                        notificationOverlay.style.opacity = '0';
+                    }
+                }, 500);
+            }
+        }
+
+        // Close overlay when clicked (mobile) - but prevent event bubbling
+        if (notificationOverlay) {
+            notificationOverlay.addEventListener('click', function(e) {
+                // Only close if clicking directly on overlay, not on notification
+                if (e.target === notificationOverlay) {
+                    // Close all notifications
+                    const notificationsToClose = Array.from(activeNotifications);
+                    notificationsToClose.forEach(orderId => {
+                        window.closeNotification(orderId);
+                    });
+                }
+            });
+        }
+        
+        // Prevent notification clicks from closing overlay
+        if (notificationContainer) {
+            notificationContainer.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        // Function to render order card
+        function renderOrderCard(order) {
+            const items = order.order_items || [];
+            const itemsText = items.map(i => `${i.quantity}x ${i.menu_name}`).join(', ');
+            const orderTime = new Date(order.created_at).toLocaleString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            return `
+                <div class="bg-[#fa9a08] border-2 border-amber-400 rounded-2xl p-6 flex flex-col gap-4 relative transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] max-md:p-5" data-order-id="${order.id}">
+                    <div class="flex flex-wrap gap-3 justify-start items-center mb-2">
+                        ${items.map(item => `
+                            <img src="${item.image ? (item.image.startsWith('http') ? item.image : '/' + item.image) : '/assets/img/default.png'}" 
+                                 alt="${item.menu_name}" 
+                                 class="w-[60px] h-[60px] rounded-full object-cover border-2 border-white bg-white max-md:w-[50px] max-md:h-[50px]"
+                                 onerror="this.src='/assets/img/default.png'">
+                        `).join('')}
+                    </div>
+                    <div class="text-white text-[0.95rem] leading-relaxed max-md:text-[0.85rem]">
+                        <p class="my-2"><strong class="font-semibold">Waktu Pesan :</strong> ${orderTime}</p>
+                        <p class="my-2"><strong class="font-semibold">Nama Pemesan :</strong> ${order.customer_name}</p>
+                        <p class="my-2"><strong class="font-semibold">Pesanan :</strong> ${itemsText}</p>
+                        <p class="my-2"><strong class="font-semibold">Nomor Meja :</strong> ${order.table_number}</p>
+                        <p class="my-2"><strong class="font-semibold">Ruangan :</strong> ${order.room}</p>
+                        <p class="my-2"><strong class="font-semibold">Total Harga :</strong> Rp${parseInt(order.total_price).toLocaleString('id-ID')}</p>
+                    </div>
+                    <button class="self-end bg-white text-[#fa9a08] border-none rounded-lg py-2 px-6 text-[0.9rem] font-semibold cursor-pointer transition-all duration-200 mt-2 hover:bg-slate-100 hover:scale-105 active:scale-95 max-md:py-2 max-md:px-5 max-md:text-[0.85rem]" data-order-id="${order.id}">Selesai</button>
+                </div>
+            `;
+        }
+
+        // Function to fetch and update orders
+        async function fetchAndUpdateOrders() {
+            try {
+                const response = await fetch('/orders/active');
+                const data = await response.json();
+                
+                if (!response.ok || !data.orders) return;
+                
+                const ordersSection = document.getElementById('ordersSection');
+                if (!ordersSection) return;
+                
+                const newOrderIds = new Set(data.orders.map(o => o.id));
+                
+                // Detect new orders
+                if (!isFirstLoad) {
+                    data.orders.forEach(order => {
+                        if (!currentOrderIds.has(order.id)) {
+                            // New order detected!
+                            showNotification(order);
+                        }
+                    });
+                } else {
+                    isFirstLoad = false;
+                }
+                
+                // Update current order IDs
+                currentOrderIds = newOrderIds;
+                
+                // Update orders display only if we're in orders section
+                if (!ordersSection.classList.contains('hidden')) {
+                    if (data.orders.length === 0) {
+                        ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-400 text-lg"><p>Belum ada pesanan</p></div>';
+                    } else {
+                        const ordersGrid = ordersSection.querySelector('.grid');
+                        if (ordersGrid) {
+                            ordersGrid.innerHTML = data.orders.map(order => renderOrderCard(order)).join('');
+                        } else {
+                            ordersSection.innerHTML = `
+                                <div class="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
+                                    ${data.orders.map(order => renderOrderCard(order)).join('')}
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            }
+        }
+
+        // Initialize order IDs on page load
+        (function() {
+            const initialOrders = @json($orders);
+            initialOrders.forEach(order => {
+                currentOrderIds.add(order.id);
+            });
+            
+            // Start auto-refresh every 3 seconds
+            setInterval(fetchAndUpdateOrders, 3000);
+            
+            // Initial fetch after 1 second
+            setTimeout(fetchAndUpdateOrders, 1000);
+        })();
 
         // Realtime Reports Table
         let reportsData = [];

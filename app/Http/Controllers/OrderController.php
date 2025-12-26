@@ -67,7 +67,7 @@ class OrderController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('dapur', compact('orders'));
+        return view('dapur.dapur', compact('orders'));
     }
 
     public function complete($id)
@@ -119,7 +119,8 @@ class OrderController extends Controller
                     'room' => $order->room,
                     'total_price' => $order->total_price,
                     'payment_method' => $order->payment_method,
-                    'created_at' => $order->created_at,
+                    'created_at' => $order->created_at->toISOString(),
+                    'updated_at' => $order->updated_at->toISOString(),
                     'order_items' => $order->orderItems->map(function ($item) {
                         return [
                             'menu_name' => $item->menu_name,
