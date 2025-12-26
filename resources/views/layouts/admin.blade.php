@@ -182,6 +182,12 @@
                 <span class="sidebar-text font-medium">Manajemen User</span>
             </a>
 
+            <a href="{{ route('admin.orders.index') }}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.orders.*')) active-link @endif">
+                <i class="ri-shopping-cart-line text-xl shrink-0"></i>
+                <span class="sidebar-text font-medium">Manajemen Order</span>
+            </a>
+
             <a href="{{ route('admin.categories.index') }}"
                 class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.categories.*')) active-link @endif">
                 <i class="ri-dashboard-2-line text-xl shrink-0"></i>
@@ -196,7 +202,7 @@
         </nav>
 
         <div class="p-4 border-t border-white/5 space-y-2">
-            <a href="{{ route('home') }}"
+            <a href="{{ route('home') }}" id="back-to-site-link"
                 class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 text-gray-400 transition-all">
                 <i class="ri-arrow-left-circle-line text-xl shrink-0"></i>
                 <span class="sidebar-text font-medium">Kembali ke Situs</span>
@@ -302,7 +308,13 @@
             localStorage.setItem('sb-state', isCol);
         }
 
-        if (localStorage.getItem('sb-state') === 'true') toggleSidebar();
+        // Restore sidebar state from localStorage
+        const savedState = localStorage.getItem('sb-state');
+        if (savedState === 'true') {
+            sidebar.classList.add('collapsed');
+            icon.classList.remove('ri-side-bar-fill');
+            icon.classList.add('ri-layout-column-line');
+        }
 
         function toggleSubmenu(e) {
             if (sidebar.classList.contains('collapsed')) toggleSidebar();

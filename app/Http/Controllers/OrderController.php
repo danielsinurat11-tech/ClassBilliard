@@ -63,11 +63,82 @@ class OrderController extends Controller
     public function index()
     {
         $orders = orders::with('orderItems')
-            ->where('status', '!=', 'completed')
+            ->where('status', 'processing')
             ->orderBy('created_at', 'desc')
             ->get();
 
         return view('dapur.dapur', compact('orders'));
+    }
+
+    /**
+     * Admin: List all orders for management
+     */
+    public function adminIndex()
+    {
+        // Gabungkan semua orders menjadi satu list, urutkan berdasarkan waktu terbaru
+        $allOrders = orders::with('orderItems')
+            ->orderByRaw("CASE 
+                WHEN status = 'pending' THEN 1 
+                WHEN status = 'processing' THEN 2 
+                WHEN status = 'completed' THEN 3 
+                WHEN status = 'rejected' THEN 4 
+                ELSE 5 
+            END")
+            ->orderBy('created_at', 'desc')
+            ->limit(100) // Limit untuk performa
+            ->get();
+
+        return view('admin.orders.index', compact('allOrders'));
+    }
+
+    /**
+     * Admin: Approve order (change status from pending to processing)
+     */
+    public function approve($id)
+    {
+        $order = orders::with('orderItems')->findOrFail($id);
+        
+        if ($order->status !== 'pending') {
+            return back()->with('error', 'Order ini tidak dapat diapprove karena statusnya bukan pending.');
+        }
+
+        $order->status = 'processing';
+        $order->save();
+
+        return back()->with('success', 'Order berhasil diapprove dan akan muncul di dapur.');
+    }
+
+    /**
+     * Admin: Reject order
+     */
+    public function reject($id)
+    {
+        $order = orders::with('orderItems')->findOrFail($id);
+        
+        if ($order->status !== 'pending') {
+            return back()->with('error', 'Order ini tidak dapat direject karena statusnya bukan pending.');
+        }
+
+        $order->status = 'rejected';
+        $order->save();
+
+        return back()->with('success', 'Order berhasil direject.');
+    }
+
+    /**
+     * Admin: Delete order
+     */
+    public function destroy($id)
+    {
+        $order = orders::with('orderItems')->findOrFail($id);
+        
+        // Hapus order items terlebih dahulu
+        $order->orderItems()->delete();
+        
+        // Hapus order
+        $order->delete();
+
+        return back()->with('success', 'Order berhasil dihapus.');
     }
 
     public function complete($id)
@@ -101,12 +172,12 @@ class OrderController extends Controller
     }
 
     /**
-     * Get active (pending) orders for live refresh on kitchen page.
+     * Get active (processing) orders for live refresh on kitchen page.
      */
     public function activeOrders()
     {
         $orders = orders::with('orderItems')
-            ->where('status', '!=', 'completed')
+            ->where('status', 'processing')
             ->orderBy('created_at', 'desc')
             ->get();
 

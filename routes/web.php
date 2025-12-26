@@ -88,6 +88,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin']
         Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
     });
 
+    // Order Management
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [App\Http\Controllers\OrderController::class, 'adminIndex'])->name('index');
+        Route::post('/{id}/approve', [App\Http\Controllers\OrderController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [App\Http\Controllers\OrderController::class, 'reject'])->name('reject');
+        Route::delete('/{id}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('destroy');
+    });
+
     // Profile Management
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/edit', [App\Http\Controllers\AdminController::class, 'profileEdit'])->name('edit');
