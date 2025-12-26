@@ -13,13 +13,13 @@ class MenuAdminController extends Controller
     {
         // Menampilkan daftar menu terbaru dengan paginasi (10 item per halaman)
         $menus = Menu::with('categoryMenu')->latest()->paginate(10);
-        return view('admin.index', compact('menus'));
+        return view('admin.menus.index', compact('menus'));
     }
 
     public function create()
     {
         $categories = CategoryMenu::orderBy('name', 'asc')->get();
-        return view('admin.create', compact('categories'));
+        return view('admin.menus.create', compact('categories'));
     }
 
     public function store(Request $request)

@@ -181,6 +181,18 @@
                 <i class="ri-dashboard-2-line text-xl shrink-0"></i>
                 <span class="sidebar-text font-medium">Manajemen User</span>
             </a>
+
+            <a href="{{ route('admin.categories.index') }}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.categories.*')) active-link @endif">
+                <i class="ri-dashboard-2-line text-xl shrink-0"></i>
+                <span class="sidebar-text font-medium">Manajemen Kategori</span>
+            </a>
+
+            <a href="{{ route('admin.menus.index') }}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 transition-all @if(request()->routeIs('admin.menus.*')) active-link @endif">
+                <i class="ri-dashboard-2-line text-xl shrink-0"></i>
+                <span class="sidebar-text font-medium">Manajemen Menu</span>
+            </a>
         </nav>
 
         <div class="p-4 border-t border-white/5 space-y-2">
