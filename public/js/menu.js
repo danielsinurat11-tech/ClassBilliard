@@ -47,10 +47,10 @@ function filterMenuItems(category) {
     });
 }
 
-// Initialize page with "makanan" category active
+// Initialize page with "all" category active (show all items)
 document.addEventListener('DOMContentLoaded', () => {
-    // Filter to show makanan items on page load
-    filterMenuItems('makanan');
+    // Filter to show all items on page load
+    filterMenuItems('all');
     
     // Auto-fill nomor meja dan ruangan dari query parameter (jika scan QR code)
     const urlParams = new URLSearchParams(window.location.search);
@@ -108,16 +108,34 @@ function addToCart(name, price) {
     
     const category = menuItem ? menuItem.getAttribute('data-category') : 'all';
     
-    // Get image source (extract relative path from full URL)
+    // Get image source - prefer data-image attribute, fallback to img element
     let imageSrc = '';
     if (menuItem) {
+        const btn = menuItem.querySelector('.add-to-cart-btn');
+        // Check if button has data-image attribute
+        if (btn && btn.getAttribute('data-image')) {
+            const fullSrc = btn.getAttribute('data-image');
+            // Extract relative path from full URL if needed
+            try {
+                const url = new URL(fullSrc);
+                imageSrc = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            } catch (e) {
+                // If already relative path, use as is
+                imageSrc = fullSrc.replace(/^\/+/, '');
+            }
+        } else {
+            // Fallback to img element
         const img = menuItem.querySelector('.menu-item-image');
         if (img) {
             const fullSrc = img.src;
             // Extract relative path from full URL
-            // e.g., "http://localhost/assets/img/file.png" -> "assets/img/file.png"
+                try {
             const url = new URL(fullSrc);
             imageSrc = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+                } catch (e) {
+                    imageSrc = fullSrc.replace(/^\/+/, '');
+                }
+            }
         }
     }
     
@@ -829,13 +847,21 @@ async function addItemsToExistingOrder(orderId, itemsToAdd) {
     }
 }
 
-// Category filter functionality
-document.querySelectorAll('.category-btn').forEach(btn => {
+// Category filter functionality (support both .category-btn and .category-filter-btn)
+document.querySelectorAll('.category-btn, .category-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         // Remove active class from all buttons
-        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.category-btn, .category-filter-btn').forEach(b => {
+            b.classList.remove('active');
+            // Also remove border classes for filter buttons
+            b.classList.remove('border-b-2', 'border-[#fa9a08]');
+        });
         // Add active class to clicked button
         btn.classList.add('active');
+        // Add border for filter buttons
+        if (btn.classList.contains('category-filter-btn')) {
+            btn.classList.add('border-b-2', 'border-[#fa9a08]');
+        }
         
         const category = btn.dataset.category;
         filterMenuItems(category);

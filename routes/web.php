@@ -9,9 +9,7 @@ Route::get('/', function () {
 })->name('home');
 
 
-Route::get('/menu', function () {
-    return view('menu');
-})->name('menu');
+Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name('menu');
 
 // Kitchen Routes (Hanya untuk role kitchen)
 Route::middleware(['auth.custom', 'role:kitchen'])->group(function () {

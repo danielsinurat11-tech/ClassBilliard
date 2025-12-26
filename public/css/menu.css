@@ -1028,3 +1028,56 @@
     }
 }
 
+/* Filter Bar Style (sama seperti admin) */
+.category-filter-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.category-filter-btn.active {
+    border-bottom-color: #fa9a08;
+    color: #fa9a08;
+}
+
+.category-filter-btn:not(.active) {
+    border-bottom-color: transparent;
+    color: rgba(156, 163, 175, 1);
+}
+
+.category-filter-btn:not(.active):hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Update menu-item-card untuk desain admin */
+.menu-item-card {
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item-card:hover {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.menu-item-card.hidden {
+    display: none;
+}
+

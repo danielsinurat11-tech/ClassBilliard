@@ -159,18 +159,27 @@
                 <div class="table-number">Semua</div>
                 <div class="table-label">Meja</div>
             </div>
-            {{-- Card Meja 1-17 --}}
-            @for($i = 1; $i <= 17; $i++)
-            <div class="table-filter-card" data-table="{{ $i }}" onclick="filterByTable('{{ $i }}')">
-                <div class="table-number">{{ $i }}</div>
-                <div class="table-label">Meja</div>
-            </div>
-            @endfor
-            {{-- Card Meja Lainnya --}}
+            {{-- Card Meja dari Database --}}
+            @foreach($tables as $table)
+                @php
+                    // Extract number from table name (e.g., "Meja 10" -> 10, "10" -> 10)
+                    $tableNum = preg_replace('/[^0-9]/', '', $table->name);
+                    if (empty($tableNum)) {
+                        $tableNum = $table->name; // Use name as is if no number found
+                    }
+                @endphp
+                <div class="table-filter-card" data-table="{{ $tableNum }}" onclick="filterByTable('{{ $tableNum }}')">
+                    <div class="table-number">{{ $tableNum }}</div>
+                    <div class="table-label">Meja</div>
+                </div>
+            @endforeach
+            {{-- Card Meja Lainnya (untuk order yang tidak ada di daftar meja) --}}
+            @if($tables->count() > 0)
             <div class="table-filter-card" data-table="other" onclick="filterByTable('other')">
                 <div class="table-number">+</div>
                 <div class="table-label">Lainnya</div>
             </div>
+            @endif
         </div>
     </div>
 
@@ -180,10 +189,17 @@
         @foreach($allOrders as $order)
         @php
             $tableNum = $order->table_number;
-            // Cek apakah table_number adalah angka atau string yang berisi angka
-            $numericTable = is_numeric($tableNum) ? (int)$tableNum : (preg_match('/\d+/', $tableNum, $matches) ? (int)$matches[0] : null);
-            $isStandardTable = $numericTable !== null && $numericTable >= 1 && $numericTable <= 17;
-            $tableFilter = $isStandardTable ? $numericTable : 'other';
+            // Extract number from table_number (e.g., "Meja 10" -> 10, "10" -> 10)
+            $numericTable = preg_replace('/[^0-9]/', '', $tableNum);
+            
+            // Cek apakah table_number ada di daftar meja yang ada di database
+            $tableExists = $tables->contains(function($table) use ($tableNum, $numericTable) {
+                $tableNameNum = preg_replace('/[^0-9]/', '', $table->name);
+                return $table->name === $tableNum || $tableNameNum === $numericTable || $table->name === $numericTable;
+            });
+            
+            // Jika ada di database, gunakan nomor meja, jika tidak gunakan 'other'
+            $tableFilter = $tableExists && !empty($numericTable) ? $numericTable : 'other';
         @endphp
         <div class="order-card {{ $order->status === 'rejected' ? 'opacity-60' : '' }}" data-table="{{ $tableFilter }}">
             <div class="flex justify-between items-start mb-4 gap-4">

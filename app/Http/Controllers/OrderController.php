@@ -7,6 +7,7 @@ use App\Models\order_items;
 use App\Models\Report;
 use App\Models\KitchenReport;
 use App\Models\Shift;
+use App\Models\meja_billiard;
 use App\Exports\OrdersExport;
 use App\Exports\RecapExport;
 use App\Mail\SendReportEmail;
@@ -380,7 +381,8 @@ class OrderController extends Controller
         } else {
             // Jika user belum di-assign shift, tampilkan pesan error
             return view('admin.orders.index', [
-                'allOrders' => collect([])
+                'allOrders' => collect([]),
+                'tables' => collect([])
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
         
@@ -396,7 +398,10 @@ class OrderController extends Controller
             ->limit(100) // Limit untuk performa
             ->get();
 
-        return view('admin.orders.index', compact('allOrders'));
+        // Ambil semua meja dari database
+        $tables = meja_billiard::orderBy('name', 'asc')->get();
+
+        return view('admin.orders.index', compact('allOrders', 'tables'));
     }
 
     /**
