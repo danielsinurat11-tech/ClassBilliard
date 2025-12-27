@@ -3,150 +3,182 @@
 @section('title', 'Edit Menu Details')
 
 @section('content')
-    <div class="max-w-5xl mx-auto animate-in fade-in duration-500">
-
-        <!-- HEADER -->
-        <div class="flex items-center gap-4 mb-10 border-b border-slate-200 dark:border-white/5 pb-8">
-            <a href="{{ route('admin.menus.index') }}"
-                class="w-9 h-9 flex items-center justify-center rounded-md border border-slate-200 dark:border-white/10 text-slate-400 hover:text-[#fa9a08] hover:border-[#fa9a08] transition-all">
-                <i class="ri-arrow-left-line"></i>
+<div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10">
+    
+    <!-- HEADER STANDARD -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
+        <div class="space-y-1">
+            <a href="{{ route('admin.menus.index') }}" class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Kembali ke Galeri
             </a>
-            <div>
-                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Edit Masterpiece</h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    Editing: <span class="text-[#fa9a08]">{{ $menu->name }}</span>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Edit Masterpiece</h1>
+            <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">
+                Sedang menyunting: <span class="text-[#fa9a08] font-bold tracking-tight">{{ $menu->name }}</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- ERROR HANDLING (Manifesto Style) -->
+    @if ($errors->any())
+        <div class="mb-8 p-4 bg-red-500/5 border border-red-500/20 rounded-md">
+            <div class="flex items-center gap-2 mb-2">
+                <i class="ri-error-warning-fill text-red-500"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Koreksi Diperlukan</span>
+            </div>
+            <ul class="list-none space-y-1">
+                @foreach ($errors->all() as $error)
+                    <li class="text-[11px] text-red-400/80 font-medium leading-relaxed">— {{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form action="{{ route('admin.menus.update', $menu->id) }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        @csrf
+        @method('PUT')
+        
+        <!-- LEFT COLUMN: VISUAL IDENTITY -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Visual Identity</label>
+                <div class="relative group aspect-square">
+                    <input type="file" name="image" id="imgInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                    <div id="preview" class="w-full h-full rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:border-[#fa9a08]">
+                        <img src="{{ asset($menu->image_path) }}" class="w-full h-full object-cover group-hover:scale-105 group-hover:blur-[2px] transition-all duration-700">
+                        <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                            <i class="ri-camera-switch-line text-3xl text-white mb-2"></i>
+                            <span class="text-[9px] font-black text-white uppercase tracking-[0.2em]">Ganti Foto</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 rounded-md border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
+                <p class="text-[10px] text-slate-400 dark:text-gray-500 leading-relaxed italic">
+                    <span class="text-[#fa9a08] font-bold">Tips:</span> Kosongkan jika tidak ingin mengubah foto. Gunakan resolusi tinggi untuk hasil maksimal di website utama.
                 </p>
             </div>
         </div>
 
-        @if ($errors->any())
-            <div
-                class="mb-8 p-4 bg-red-500/5 border-l-4 border-red-500 rounded-md text-red-500 text-xs font-bold uppercase tracking-wider">
-                @foreach ($errors->all() as $error)
-                    <p>• {{ $error }}</p>
-                @endforeach
-            </div>
-        @endif
-
-        <form action="{{ route('admin.menus.update', $menu->id) }}" method="POST" enctype="multipart/form-data"
-            class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            @csrf
-            @method('PUT')
-
-            <!-- LEFT: Visual Control -->
-            <div class="lg:col-span-5 space-y-4">
-                <label class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest ml-1">Visual
-                    Identity</label>
-                <div class="relative group aspect-square">
-                    <input type="file" name="image" id="imgInput"
-                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
-                    <div id="preview"
-                        class="w-full h-full rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all">
-                        <img src="{{ asset($menu->image_path) }}"
-                            class="w-full h-full object-cover group-hover:blur-sm transition-all duration-500">
-                        <div
-                            class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i class="ri-camera-switch-line text-3xl text-white"></i>
-                        </div>
-                    </div>
-                </div>
-                <p
-                    class="text-center text-[9px] text-slate-400 dark:text-gray-600 font-bold uppercase tracking-widest italic">
-                    *Kosongkan jika tidak ingin mengubah foto</p>
-            </div>
-
-            <!-- RIGHT: Data Control -->
-            <div class="lg:col-span-7 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Name -->
+        <!-- RIGHT COLUMN: DATA CONTROL -->
+        <div class="lg:col-span-8 space-y-8">
+            <div class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 transition-all duration-300">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    <!-- Menu Name -->
                     <div class="space-y-2 md:col-span-2">
-                        <label
-                            class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest ml-1">Menu
-                            Name</label>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Nama Hidangan</label>
                         <input type="text" name="name" value="{{ old('name', $menu->name) }}" required
-                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white focus:border-[#fa9a08] outline-none transition-all font-medium">
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none font-medium"
+                               placeholder="Nama menu Anda">
                     </div>
 
                     <!-- Category -->
                     <div class="space-y-2">
-                        <label
-                            class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest ml-1">Category</label>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Kategori</label>
                         <div class="relative">
                             <select name="category_menu_id" required
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white focus:border-[#fa9a08] outline-none transition-all appearance-none font-bold">
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none appearance-none cursor-pointer font-bold">
                                 @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}" {{ (old('category_menu_id', $menu->category_menu_id) == $cat->id) ? 'selected' : '' }}>
+                                    <option value="{{ $cat->id }}" {{ (old('category_menu_id', $menu->category_menu_id) == $cat->id) ? 'selected' : '' }} class="bg-white dark:bg-[#0A0A0A]">
                                         {{ $cat->name }}
                                     </option>
                                 @endforeach
                             </select>
-                            <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                         </div>
                     </div>
 
                     <!-- Price -->
                     <div class="space-y-2">
-                        <label
-                            class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest ml-1">Valuation
-                            (IDR)</label>
-                        <input type="text" id="price_display" value="{{ number_format($menu->price, 0, ',', '.') }}"
-                            required
-                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm font-bold text-[#fa9a08] focus:border-[#fa9a08] outline-none">
-                        <input type="hidden" name="price" id="price_real" value="{{ old('price', $menu->price) }}">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Valuation (IDR)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                            <input type="text" id="price_display" value="{{ number_format($menu->price, 0, ',', '.') }}" required
+                                   class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md pl-10 pr-4 py-3 text-sm font-bold text-[#fa9a08] focus:border-[#fa9a08] focus:ring-0 transition-all outline-none"
+                                   placeholder="0">
+                            <input type="hidden" name="price" id="price_real" value="{{ old('price', $menu->price) }}">
+                        </div>
+                    </div>
+
+                    <!-- Labels -->
+                    <div class="space-y-2 md:col-span-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Labels / Tags</label>
+                        <input type="text" name="labels" value="{{ old('labels', is_array($menu->labels) ? implode(', ', $menu->labels) : $menu->labels) }}"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none font-medium"
+                               placeholder="Contoh: Best Seller, Pedas, Signature">
                     </div>
                 </div>
 
-                <!-- Labels -->
-                <div class="space-y-2">
-                    <label
-                        class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest ml-1">Current
-                        Labels</label>
-                    <input type="text" name="labels"
-                        value="{{ old('labels', is_array($menu->labels) ? implode(', ', $menu->labels) : $menu->labels) }}"
-                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white focus:border-[#fa9a08] outline-none transition-all font-medium">
-                </div>
-
                 <!-- Description -->
-                <div class="space-y-2">
-                    <label
-                        class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest ml-1">Gastronomy
-                        Description</label>
+                <div class="mt-8 space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Gastronomy Description</label>
                     <textarea name="description" rows="4" required
-                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white focus:border-[#fa9a08] outline-none transition-all font-medium leading-relaxed">{{ old('description', $menu->description) }}</textarea>
+                              class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none leading-relaxed font-medium"
+                              placeholder="Deskripsikan cita rasa dan komposisi hidangan ini secara mendetail...">{{ old('description', $menu->description) }}</textarea>
                 </div>
 
                 <!-- Actions -->
-                <div class="pt-6 flex gap-3">
+                <div class="mt-10 pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row gap-4">
                     <a href="{{ route('admin.menus.index') }}"
-                        class="flex-1 text-center py-3.5 rounded-md border border-slate-200 dark:border-white/10 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 transition-all">Cancel</a>
+                       class="flex-1 text-center py-4 rounded-md border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-300">
+                        Discard Changes
+                    </a>
                     <button type="submit"
-                        class="flex-[2] bg-[#fa9a08] hover:bg-orange-600 text-black font-extrabold py-3.5 rounded-md shadow-lg shadow-orange-500/10 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-[10px]">
+                            class="flex-[2] bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-md transition-all shadow-sm flex items-center justify-center gap-3 active:scale-[0.98]">
+                        <i class="ri-refresh-line text-lg"></i>
                         Update Masterpiece
                     </button>
                 </div>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
+</div>
 
-    <script>
-        // Sama dengan script Create untuk formatting harga & preview image
-        const priceDisplay = document.getElementById('price_display');
-        const priceReal = document.getElementById('price_real');
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
 
-        priceDisplay.addEventListener('keyup', function (e) {
-            let value = this.value.replace(/[^,\d]/g, '').toString();
-            let split = value.split(',');
-            let sisa = split[0].length % 3;
-            let rupiah = split[0].substr(0, sisa);
-            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-            if (ribuan) { let separator = sisa ? '.' : ''; rupiah += separator + ribuan.join('.'); }
-            this.value = rupiah;
-            priceReal.value = value.replace(/\./g, '');
-        });
+    /* Custom Focus State */
+    input:focus, select:focus, textarea:focus {
+        border-color: #fa9a08 !important;
+        box-shadow: 0 0 0 1px #fa9a08 !important;
+    }
+</style>
 
-        document.getElementById('imgInput').onchange = evt => {
-            const [file] = evt.target.files
-            if (file) { document.getElementById('preview').innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover">`; }
+<script>
+    const priceDisplay = document.getElementById('price_display');
+    const priceReal = document.getElementById('price_real');
+
+    priceDisplay.addEventListener('keyup', function (e) {
+        let value = this.value.replace(/[^,\d]/g, '').toString();
+        let split = value.split(',');
+        let sisa = split[0].length % 3;
+        let rupiah = split[0].substr(0, sisa);
+        let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            let separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
         }
-    </script>
+
+        this.value = rupiah;
+        priceReal.value = value.replace(/\./g, ''); 
+    });
+
+    document.getElementById('imgInput').onchange = evt => {
+        const [file] = evt.target.files
+        if (file) {
+            const preview = document.getElementById('preview');
+            preview.style.opacity = '0';
+            setTimeout(() => {
+                preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500">`;
+                preview.style.opacity = '100';
+            }, 300);
+        }
+    }
+</script>
 @endsection

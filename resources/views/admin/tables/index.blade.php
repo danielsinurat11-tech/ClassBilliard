@@ -3,145 +3,170 @@
 @section('title', 'Manajemen Meja')
 
 @section('content')
-<div class="space-y-8">
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <h1 class="text-3xl font-bold italic tracking-tight uppercase">
-                Manajemen <span class="text-[var(--accent)]">Meja</span>
-            </h1>
-            <p class="text-gray-500 text-sm mt-1">Kelola barcode dan akses digital untuk setiap meja.</p>
-        </div>
+    <div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10">
 
-        <a href="{{ route('admin.tables.create') }}"
-            class="flex items-center gap-2 bg-[#fa9a08] hover:bg-[#e19e2b] text-black px-6 py-3 rounded-2xl font-bold transition-all transform hover:scale-105 shadow-[0_10px_20px_rgba(250,154,8,0.2)]">
-            <i class="ri-add-circle-fill text-xl text-black"></i>
-            <span class="text-black">Tambah Meja Baru</span>
-        </a>
-    </div>
-
-    <!-- Alert Success -->
-    @if(session('success'))
-        <div class="p-4 bg-green-500/10 border border-green-500/50 rounded-2xl flex items-center justify-between text-green-400">
-            <div class="flex items-center gap-3">
-                <i class="ri-checkbox-circle-fill text-xl"></i>
-                <span class="text-sm font-medium">{{ session('success') }}</span>
+        <!-- HEADER STANDARD -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
+            <div class="space-y-1">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Management <span
+                        class="text-[#fa9a08]">Meja</span></h1>
+                <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Kelola akses barcode digital dan pemetaan
+                    identitas meja operasional.</p>
             </div>
+
+            <a href="{{ route('admin.tables.create') }}"
+                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95">
+                <i class="ri-add-circle-line text-lg"></i>
+                Tambah Meja Baru
+            </a>
         </div>
-    @endif
 
-    <!-- Tables Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @forelse($tables as $table)
-            <div class="bg-[#1A1A1A] rounded-[32px] border border-white/5 overflow-hidden group hover:border-[var(--accent)]/40 transition-all duration-500 shadow-xl flex flex-col">
+        <!-- ALERT SUCCESS STANDARD -->
+        @if(session('success'))
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+                class="mb-8 flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 rounded-md transition-all">
+                <div class="flex items-center gap-3 text-emerald-500">
+                    <i class="ri-checkbox-circle-fill text-lg"></i>
+                    <span class="text-[11px] font-black uppercase tracking-widest">{{ session('success') }}</span>
+                </div>
+                <button @click="show = false" class="text-emerald-500/50 hover:text-emerald-500"><i
+                        class="ri-close-line"></i></button>
+            </div>
+        @endif
 
-                <!-- QR Code Preview Area -->
-                <div class="aspect-square bg-white m-4 rounded-[24px] flex items-center justify-center relative overflow-hidden group-hover:bg-slate-50 transition-colors border-4 border-transparent group-hover:border-[var(--accent)]/20">
+        <!-- TABLES GRID -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @forelse($tables as $table)
+                <div
+                    class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden hover:border-[#fa9a08] transition-all duration-300 flex flex-col">
 
-                    <!-- Gambar Barcode -->
-                    @if($table->qrcode && Storage::disk('public')->exists($table->qrcode))
-                        <img src="{{ asset('storage/' . $table->qrcode) }}" alt="QR {{ $table->name }}"
-                            class="w-48 h-48 relative z-10 p-2 object-contain">
-                    @else
-                        <!-- Jika QR Code belum ada, tampilkan placeholder dan tombol generate -->
-                        <div class="p-4 bg-white rounded-lg w-full h-full flex flex-col items-center justify-center gap-3">
-                            <i class="ri-qr-code-line text-4xl text-gray-400"></i>
-                            <p class="text-xs text-gray-500 text-center">QR Code belum di-generate</p>
-                            <form action="{{ route('admin.tables.generate-qr', $table->id) }}" method="POST" class="mt-2">
+                    <!-- QR CODE AREA -->
+                    <div class="p-6 pb-0">
+                        <div
+                            class="aspect-square bg-slate-50 dark:bg-white/5 rounded-md flex items-center justify-center relative overflow-hidden transition-colors border border-slate-100 dark:border-white/5">
+
+                            @if($table->qrcode && Storage::disk('public')->exists($table->qrcode))
+                                <div class="p-4 bg-white rounded-md shadow-sm">
+                                    <img src="{{ asset('storage/' . $table->qrcode) }}" alt="QR {{ $table->name }}"
+                                        class="w-40 h-40 object-contain">
+                                </div>
+                            @else
+                                <div class="flex flex-col items-center justify-center gap-4 text-center p-6">
+                                    <div
+                                        class="w-12 h-12 rounded-md bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                                        <i class="ri-qr-code-line text-2xl"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p
+                                            class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-widest">
+                                            QR Not Found</p>
+                                        <form action="{{ route('admin.tables.generate-qr', $table->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit"
+                                                class="text-[10px] font-black text-[#fa9a08] uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
+                                                Generate Now
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- HOVER QUICK ACTIONS -->
+                            <div
+                                class="absolute inset-0 bg-[#050505]/90 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 z-20 backdrop-blur-sm">
+                                <a href="{{ route('admin.tables.barcode', $table->id) }}"
+                                    class="w-10 h-10 bg-[#fa9a08] text-black rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                                    title="Print Poster">
+                                    <i class="ri-printer-line text-lg"></i>
+                                </a>
+
+                                @if($table->qrcode && Storage::disk('public')->exists($table->qrcode))
+                                    <a href="{{ asset('storage/' . $table->qrcode) }}" download="QR_{{ $table->slug }}.png"
+                                        class="w-10 h-10 bg-white text-black rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                                        title="Download PNG">
+                                        <i class="ri-download-2-line text-lg"></i>
+                                    </a>
+                                @endif
+
+                                @php
+                                    $tableNumber = preg_replace('/[^0-9]/', '', $table->name);
+                                    if (empty($tableNumber)) {
+                                        $tableNumber = $table->name;
+                                    }
+                                @endphp
+                                <a href="{{ route('menu') }}?table={{ urlencode($tableNumber) }}&room={{ urlencode($table->room ?? '') }}"
+                                    target="_blank"
+                                    class="w-10 h-10 bg-blue-600 text-white rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                                    title="Live Preview">
+                                    <i class="ri-external-link-line text-lg"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABLE INFO -->
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="space-y-1">
+                                <h3
+                                    class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#fa9a08] transition-colors uppercase tracking-tight">
+                                    {{ $table->name }}
+                                </h3>
+                                <p class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em]">
+                                    ID: {{ $table->slug }}
+                                </p>
+                            </div>
+                            <div
+                                class="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">
+                                <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
+                            </div>
+                        </div>
+
+                        <!-- FOOTER ACTIONS -->
+                        <div class="mt-auto flex gap-2 pt-4 border-t border-slate-100 dark:border-white/5">
+                            <a href="{{ route('admin.tables.barcode', $table->id) }}"
+                                class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-50 dark:bg-white/[0.02] hover:bg-[#fa9a08] hover:text-black rounded-md text-[10px] font-black uppercase tracking-widest transition-all border border-slate-200 dark:border-white/10 group/btn">
+                                <i class="ri-fullscreen-line"></i> Detail QR
+                            </a>
+
+                            <form action="{{ route('admin.tables.destroy', $table->id) }}" method="POST" class="shrink-0">
                                 @csrf
-                                <button type="submit" class="px-4 py-2 bg-[var(--accent)] text-black text-xs font-bold rounded-lg hover:bg-[#e19e2b] transition-all">
-                                    Generate QR
+                                @method('DELETE')
+                                <button type="submit" onclick="return confirm('Hapus data meja secara permanen?')"
+                                    class="w-10 h-10 flex items-center justify-center bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-all border border-red-500/10">
+                                    <i class="ri-delete-bin-line"></i>
                                 </button>
                             </form>
                         </div>
-                    @endif
-
-                    <!-- Quick Hover Actions -->
-                    <div class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 z-20 backdrop-blur-sm">
-                        <!-- LIHAT DETAIL POSTER -->
-                        <a href="{{ route('admin.tables.barcode', $table->id) }}"
-                            class="p-3 bg-[var(--accent)] text-black rounded-2xl hover:scale-110 transition-transform shadow-xl flex flex-col items-center gap-1 w-20">
-                            <i class="ri-printer-line text-xl"></i>
-                            <span class="text-[9px] font-bold uppercase tracking-tighter">Poster</span>
-                        </a>
-
-                        <!-- UNDUH FILE -->
-                        @if($table->qrcode && Storage::disk('public')->exists($table->qrcode))
-                        <a href="{{ asset('storage/' . $table->qrcode) }}" download="QR_{{ $table->slug }}.png"
-                            class="p-3 bg-white text-black rounded-2xl hover:scale-110 transition-transform shadow-xl flex flex-col items-center gap-1 w-20">
-                            <i class="ri-download-2-line text-xl"></i>
-                            <span class="text-[9px] font-bold uppercase tracking-tighter">Unduh</span>
-                        </a>
-                        @endif
-
-                        <!-- BUKA LINK ORDER -->
-                        @php
-                            $tableNumber = preg_replace('/[^0-9]/', '', $table->name);
-                            if (empty($tableNumber)) {
-                                $tableNumber = $table->name;
-                            }
-                        @endphp
-                        <a href="{{ route('menu') }}?table={{ urlencode($tableNumber) }}&room={{ urlencode($table->room ?? '') }}" target="_blank"
-                            class="p-3 bg-blue-500 text-white rounded-2xl hover:scale-110 transition-transform shadow-xl flex flex-col items-center gap-1 w-20">
-                            <i class="ri-external-link-line text-xl"></i>
-                            <span class="text-[9px] font-bold uppercase tracking-tighter">Cek Link</span>
-                        </a>
                     </div>
                 </div>
-
-                <!-- Table Info -->
-                <div class="p-6 pt-2 flex-1 flex flex-col">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-white group-hover:text-[var(--accent)] transition-colors leading-none mb-2">
-                                {{ $table->name }}
-                            </h3>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] bg-black text-gray-500 px-2 py-1 rounded border border-white/5 font-mono">
-                                    /{{ $table->slug }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="flex flex-col items-end">
-                            <span class="flex items-center gap-1 text-green-500 text-[10px] font-bold uppercase tracking-widest">
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                Active
-                            </span>
-                        </div>
+            @empty
+                <!-- EMPTY STATE STANDARD -->
+                <div
+                    class="col-span-full py-20 flex flex-col items-center justify-center bg-slate-50 dark:bg-white/[0.01] rounded-lg border border-dashed border-slate-200 dark:border-white/10 text-center">
+                    <div
+                        class="w-16 h-16 rounded-md bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 mb-4">
+                        <i class="ri-qr-code-line text-3xl"></i>
                     </div>
-
-                    <!-- Footer Actions -->
-                    <div class="mt-auto flex gap-2 pt-4 border-t border-white/5">
-                        <!-- KE HALAMAN DETAIL BARCODE -->
-                        <a href="{{ route('admin.tables.barcode', $table->id) }}"
-                            class="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-[var(--accent)] hover:text-black rounded-xl text-xs font-bold transition-all border border-white/10 group/btn">
-                            <i class="ri-fullscreen-line text-sm"></i> Detail QR
-                        </a>
-
-                        <!-- HAPUS -->
-                        <form action="{{ route('admin.tables.destroy', $table->id) }}" method="POST" class="shrink-0">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" onclick="return confirm('Hapus meja ini?')"
-                                class="w-12 flex items-center justify-center py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all border border-red-500/20">
-                                <i class="ri-delete-bin-line text-sm"></i>
-                            </button>
-                        </form>
-                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">Data Meja Kosong</h3>
+                    <p class="text-xs text-slate-500 dark:text-gray-500 mt-1">Sistem belum mendeteksi adanya meja operasional
+                        yang terdaftar.</p>
+                    <a href="{{ route('admin.tables.create') }}"
+                        class="mt-6 bg-[#fa9a08] text-black px-8 py-3 rounded-md text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm">
+                        Inisialisasi Meja Baru
+                    </a>
                 </div>
-            </div>
-        @empty
-            <!-- Empty State -->
-            <div class="col-span-full py-20 flex flex-col items-center justify-center bg-[#1A1A1A] rounded-[40px] border border-dashed border-white/10 text-center">
-                <i class="ri-qr-code-line text-6xl text-gray-600 mb-4"></i>
-                <h3 class="text-xl font-bold text-white">Belum Ada Meja</h3>
-                <p class="text-gray-500 text-sm mt-1">Generate barcode meja pertama Anda sekarang.</p>
-                <a href="{{ route('admin.tables.create') }}"
-                    class="mt-6 bg-[var(--accent)] text-black px-8 py-3 rounded-xl font-bold hover:scale-105 transition-transform">Tambah Meja</a>
-            </div>
-        @endforelse
+            @endforelse
+        </div>
     </div>
-</div>
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
 @endsection
-

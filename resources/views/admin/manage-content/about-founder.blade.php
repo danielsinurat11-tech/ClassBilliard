@@ -3,75 +3,191 @@
 @section('title', 'Edit About Founder - Admin')
 
 @section('content')
-<div class="min-h-screen bg-black py-12">
-    <div class="max-w-4xl mx-auto px-4">
-        <div class="mb-6">
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 text-[#fa9a08] hover:text-amber-400 transition-colors">
-                <i class="ri-arrow-left-line"></i>
-                <span>Kembali ke Dashboard</span>
-            </a>
+    <div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10 transition-colors duration-300">
+
+        <!-- HEADER STANDARD -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
+            <div class="space-y-1">
+                <a href="{{ route('admin.dashboard') }}"
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Back to Dashboard
+                </a>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Edit <span
+                        class="text-[#fa9a08]">About Founder</span></h1>
+                <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Manajemen profil naratif dan identitas
+                    digital pendiri perusahaan.</p>
+            </div>
         </div>
 
-        <h1 class="text-4xl font-bold text-white mb-8">Edit About Founder</h1>
-
+        <!-- FLASH MESSAGE -->
         @if(session('success'))
-            <div class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-3 rounded-lg mb-6">
-                {{ session('success') }}
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+                class="mb-8 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 rounded-md animate-in fade-in slide-in-from-top-4 duration-300">
+                <i class="ri-checkbox-circle-fill text-emerald-500"></i>
+                <span class="text-[11px] font-black uppercase tracking-widest text-emerald-500">{{ session('success') }}</span>
             </div>
         @endif
 
-        <form action="{{ route('admin.about-founder.update') }}" method="POST" class="bg-[#1a1a1a] p-8 rounded-xl border border-[#fa9a08]/20">
+        <form action="{{ route('admin.about-founder.update') }}" method="POST" enctype="multipart/form-data"
+            class="grid grid-cols-1 lg:grid-cols-12 gap-12">
             @csrf
 
-            <div class="mb-6">
-                <label class="block text-white mb-2">Title</label>
-                <input type="text" name="title" value="{{ $aboutFounder->title ?? 'Tentang Founder' }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
+            <!-- LEFT COLUMN: VISUAL IDENTITY -->
+            <div class="lg:col-span-4 space-y-8">
+                <div class="space-y-2">
+                    <label
+                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Founder
+                        Photo</label>
+                    <div
+                        class="relative group aspect-[3/4] overflow-hidden rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02]">
+                        <input type="file" name="photo" id="photoInput"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                        <div id="preview"
+                            class="w-full h-full flex flex-col items-center justify-center text-slate-400 group-hover:text-[#fa9a08] transition-all duration-300">
+                            @if($aboutFounder && $aboutFounder->photo)
+                                <img src="{{ asset('storage/' . $aboutFounder->photo) }}"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                <div
+                                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                                    <i class="ri-camera-line text-3xl text-white"></i>
+                                </div>
+                            @else
+                                <i class="ri-image-add-line text-4xl mb-3"></i>
+                                <span class="text-[10px] font-black uppercase tracking-widest">Upload Portrait</span>
+                            @endif
+                        </div>
+                    </div>
+                    <p class="text-[9px] text-slate-400 dark:text-gray-600 italic tracking-tight">*Format portrait (3:4)
+                        direkomendasikan untuk hasil terbaik.</p>
+                </div>
+
+                <!-- STATUS TOGGLE -->
+                <div class="p-6 rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
+                    <div class="flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">
+                                Module Status</p>
+                            <p class="text-[9px] text-slate-400 uppercase tracking-tighter">Visibility on frontend</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_active" value="1" {{ ($aboutFounder && $aboutFounder->is_active) ? 'checked' : '' }} class="sr-only peer">
+                            <div
+                                class="w-11 h-6 bg-slate-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]">
+                            </div>
+                        </label>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-6">
-                <label class="block text-white mb-2">Subtitle</label>
-                <textarea name="subtitle" rows="2" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">{{ $aboutFounder->subtitle ?? '' }}</textarea>
+            <!-- RIGHT COLUMN: BIOGRAPHY & SOCIALS -->
+            <div class="lg:col-span-8 space-y-8">
+                <div
+                    class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 transition-all duration-300">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Title -->
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Section
+                                Title</label>
+                            <input type="text" name="title" value="{{ $aboutFounder->title ?? 'Tentang Founder' }}"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all font-bold"
+                                placeholder="e.g. Meet Our Visionary">
+                        </div>
+
+                        <!-- Founder Name -->
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Founder
+                                Full Name</label>
+                            <input type="text" name="name" value="{{ $aboutFounder->name ?? '' }}"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all font-bold"
+                                placeholder="Enter name here">
+                        </div>
+
+                        <!-- Subtitle -->
+                        <div class="space-y-2 md:col-span-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Subtitle
+                                / Short Catchphrase</label>
+                            <textarea name="subtitle" rows="2"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $aboutFounder->subtitle ?? '' }}</textarea>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="space-y-2 md:col-span-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Biography
+                                Description</label>
+                            <textarea name="description" rows="6"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $aboutFounder->description ?? '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- SOCIAL MEDIA SECTION -->
+                    <div class="mt-10 pt-10 border-t border-slate-100 dark:border-white/5">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-[#fa9a08] block mb-6">Social
+                            Connectors</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-400"><i
+                                        class="ri-facebook-fill mr-1"></i> Facebook</label>
+                                <input type="url" name="facebook_url" value="{{ $aboutFounder->facebook_url ?? '' }}"
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                    placeholder="https://facebook.com/...">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-400"><i
+                                        class="ri-instagram-line mr-1"></i> Instagram</label>
+                                <input type="url" name="instagram_url" value="{{ $aboutFounder->instagram_url ?? '' }}"
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                    placeholder="https://instagram.com/...">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-400"><i
+                                        class="ri-linkedin-box-fill mr-1"></i> LinkedIn</label>
+                                <input type="url" name="linkedin_url" value="{{ $aboutFounder->linkedin_url ?? '' }}"
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                    placeholder="https://linkedin.com/in/...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SAVE BUTTON -->
+                    <div class="mt-12 flex justify-end">
+                        <button type="submit"
+                            class="w-full md:w-auto bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-4 px-12 rounded-md transition-all shadow-sm active:scale-95">
+                            Commit Changes
+                        </button>
+                    </div>
+                </div>
             </div>
-
-            <div class="mb-6">
-                <label class="block text-white mb-2">Nama Founder</label>
-                <input type="text" name="name" value="{{ $aboutFounder->name ?? '' }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-white mb-2">Description</label>
-                <textarea name="description" rows="6" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">{{ $aboutFounder->description ?? '' }}</textarea>
-            </div>
-
-            
-
-            <div class="mb-6">
-                <label class="block text-white mb-2">Facebook URL</label>
-                <input type="url" name="facebook_url" value="{{ $aboutFounder->facebook_url ?? '' }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-white mb-2">Instagram URL</label>
-                <input type="url" name="instagram_url" value="{{ $aboutFounder->instagram_url ?? '' }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-white mb-2">LinkedIn URL</label>
-                <input type="url" name="linkedin_url" value="{{ $aboutFounder->linkedin_url ?? '' }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-            </div>
-
-            <div class="mb-6">
-                <label class="flex items-center gap-2 text-white">
-                    <input type="checkbox" name="is_active" {{ ($aboutFounder && $aboutFounder->is_active) ? 'checked' : '' }} class="w-4 h-4 text-[#fa9a08] bg-[#2a2a2a] border-[#fa9a08]/20 rounded">
-                    <span>Active</span>
-                </label>
-            </div>
-
-            <button type="submit" class="w-full bg-[#fa9a08] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#e19e2b] transition-colors">
-                Simpan Perubahan
-            </button>
         </form>
     </div>
-</div>
-@endsection
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Focus State Standard */
+        input:focus,
+        textarea:focus {
+            border-color: #fa9a08 !important;
+            box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
+        }
+    </style>
+
+    <script>
+        // Simple Preview Handler
+        document.getElementById('photoInput').onchange = evt => {
+            const [file] = evt.target.files
+            if (file) {
+                const preview = document.getElementById('preview');
+                preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover animate-in fade-in duration-500">`;
+            }
+        }
+    </script>
+@endsection
