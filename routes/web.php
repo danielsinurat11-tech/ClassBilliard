@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryAdminController;
 use App\Http\Controllers\MenuAdminController;
 use Illuminate\Support\Facades\Route;
@@ -122,11 +123,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin']
     // Tutup Hari Email
     Route::post('/orders/recap/{id}/send-email', [App\Http\Controllers\OrderController::class, 'sendRecapEmail'])->name('orders.recap.send-email');
 
-    // Profile Management
-    Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('/edit', [App\Http\Controllers\AdminController::class, 'profileEdit'])->name('edit');
-        Route::put('/', [App\Http\Controllers\AdminController::class, 'profileUpdate'])->name('update');
-        Route::put('/password', [App\Http\Controllers\AdminController::class, 'profilePassword'])->name('password');
+    Route::controller(AdminController   ::class)->group(function () {
+        Route::get('/profile', 'profileEdit')->name('profile.edit');
+        Route::put('/profile/update', 'profileUpdate')->name('profile.update');
+        Route::put('/profile/password', 'profilePassword')->name('profile.password');
     });
 
     // Menu Management (CRUD)
