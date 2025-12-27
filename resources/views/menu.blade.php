@@ -8,7 +8,13 @@
             <div class="find-food-section" id="menuSection">
                 <div class="find-food-header">
                     <h2>Menu Class Billiard</h2>
-                    <button class="view-order-btn" id="viewOrderBtn">Lihat Pesanan</button>
+                    @php
+                        $urlParams = request()->query();
+                        $hasBarcodeParams = isset($urlParams['table']) || isset($urlParams['room']) || isset($urlParams['order_id']);
+                    @endphp
+                    @if($hasBarcodeParams)
+                        <button class="view-order-btn" id="viewOrderBtn">Lihat Pesanan</button>
+                    @endif
                 </div>
 
                 {{-- FILTER BAR: Dynamic Categories (sama seperti admin) --}}
@@ -95,12 +101,9 @@
                                     </p>
                                 @endif
 
-                                {{-- Action: Tambah Button (beda dengan admin yang punya edit/delete) --}}
-                                <div class="pt-4 flex items-center justify-between mt-auto">
-                                    <span class="text-[9px] font-bold text-gray-600 uppercase tracking-[0.2em]">
-                                        Menu Item #{{ $menu->id }}
-                                    </span>
-
+                                {{-- Action: Tambah Button (hanya muncul jika ada query parameter dari barcode) --}}
+                                @if($hasBarcodeParams)
+                                <div class="pt-4 flex items-center justify-end mt-auto">
                                     <button class="add-to-cart-btn bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded transition-all shadow-sm flex items-center gap-1" 
                                             data-name="{{ $menu->name }}" 
                                             data-price="{{ $menu->price }}"
@@ -108,7 +111,8 @@
                                             data-category="{{ $category->slug }}">
                                         <i class="ri-add-circle-line"></i> Tambah
                                     </button>
-                    </div>
+                                </div>
+                                @endif
                 </div>
                         </div>
                     @empty
@@ -120,7 +124,8 @@
     </div>
     </div>
    
-            <!-- Order Panel -->
+            <!-- Order Panel (hanya muncul jika ada query parameter dari barcode) -->
+            @if($hasBarcodeParams)
             <div class="order-panel" id="orderPanel">
                 <div class="order-panel-header">
                     <h3>Pesanan Saya</h3>
@@ -149,10 +154,12 @@
                 </div>
                 <button class="checkout-btn" id="checkoutBtn">Checkout</button>
             </div>
+            @endif
     </div>
 </section>
 
-    <!-- Order Panel Overlay -->
+    <!-- Order Panel Overlay (hanya muncul jika ada query parameter dari barcode) -->
+    @if($hasBarcodeParams)
     <div class="order-panel-overlay" id="orderPanelOverlay"></div>
 
     <!-- Bottom Order Bar -->
@@ -169,8 +176,10 @@
             </button>
     </div>
     </div>
+    @endif
 
-    <!-- Checkout Form Modal -->
+    <!-- Checkout Form Modal (hanya muncul jika ada query parameter dari barcode) -->
+    @if($hasBarcodeParams)
     <div class="checkout-modal" id="checkoutModal">
         <div class="checkout-modal-content">
             <div class="checkout-modal-header">
@@ -199,6 +208,7 @@
             </form>
         </div>
     </div>
+    @endif
    
     @push('styles')
     <link rel="stylesheet" href="{{ asset('css/menu.css') }}">

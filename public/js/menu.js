@@ -47,10 +47,44 @@ function filterMenuItems(category) {
     });
 }
 
+// Check if order functionality should be enabled (only if accessed via barcode)
+function isOrderEnabled() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableParam = urlParams.get('table');
+    const roomParam = urlParams.get('room');
+    const orderIdParam = urlParams.get('order_id');
+    return !!(tableParam || roomParam || orderIdParam);
+}
+
 // Initialize page with "all" category active (show all items)
 document.addEventListener('DOMContentLoaded', () => {
     // Filter to show all items on page load
     filterMenuItems('all');
+    
+    // Check if order functionality is enabled
+    const orderEnabled = isOrderEnabled();
+    
+    // If order is disabled, hide all order-related elements
+    if (!orderEnabled) {
+        // Hide order panel, overlay, bottom bar, and checkout modal if they exist
+        const orderPanel = document.getElementById('orderPanel');
+        const orderOverlay = document.getElementById('orderPanelOverlay');
+        const bottomOrderBar = document.getElementById('bottomOrderBar');
+        const checkoutModal = document.getElementById('checkoutModal');
+        
+        if (orderPanel) orderPanel.style.display = 'none';
+        if (orderOverlay) orderOverlay.style.display = 'none';
+        if (bottomOrderBar) bottomOrderBar.style.display = 'none';
+        if (checkoutModal) checkoutModal.style.display = 'none';
+        
+        // Disable all add-to-cart buttons
+        document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+            btn.style.display = 'none';
+        });
+        
+        // Don't initialize order functionality
+        return;
+    }
     
     // Auto-fill nomor meja dan ruangan dari query parameter (jika scan QR code)
     const urlParams = new URLSearchParams(window.location.search);
@@ -100,6 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
 let cart = [];
 
 function addToCart(name, price) {
+    // Don't allow adding to cart if order is disabled
+    if (!isOrderEnabled()) {
+        showNotification('Scan QR Code untuk memesan');
+        return;
+    }
+    
     // Find the menu item to get its category and image
     const menuItem = Array.from(document.querySelectorAll('.menu-item-card')).find(card => {
         const btn = card.querySelector('.add-to-cart-btn');
@@ -354,6 +394,11 @@ function filterOrderItems(category) {
 
 // Function to attach event listeners to add-to-cart buttons
 function attachAddToCartListeners() {
+    // Don't attach listeners if order is disabled
+    if (!isOrderEnabled()) {
+        return;
+    }
+    
     // Add event listeners to all "Tambah" buttons
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
         // Remove existing listener jika ada (dengan clone node)
@@ -393,6 +438,14 @@ function attachAddToCartListeners() {
 
 // Add event listeners after DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if order functionality is enabled
+    const orderEnabled = isOrderEnabled();
+    
+    // Only attach order-related listeners if order is enabled
+    if (!orderEnabled) {
+        return;
+    }
+    
     // Attach event listeners immediately
     attachAddToCartListeners();
 

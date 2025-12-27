@@ -335,8 +335,8 @@
 
 @section('content')
     {{-- Audio element for notification sound --}}
-    <audio id="notificationSound" preload="auto">
-        <source src="" type="audio/mpeg">
+    <audio id="notificationSound" preload="auto" style="display: none;">
+        <source id="notificationSoundSource" src="" type="audio/mpeg">
     </audio>
 
     {{-- Notification Overlay (Mobile Blur) --}}
@@ -384,7 +384,107 @@
             </nav>
 
             {{-- Sidebar Footer --}}
-            <div class="p-4 border-t border-white/10 bg-[#0f0f0f]">
+            <div class="p-4 border-t border-white/10 bg-[#0f0f0f] space-y-2">
+                {{-- Audio Settings Button --}}
+                <div x-data="kitchenNotification()" class="relative">
+                    <button @click="openSettings = !openSettings" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98]">
+                        <i class="ri-settings-3-line text-lg"></i>
+                        <span>Pengaturan Audio</span>
+                    </button>
+                    
+                    {{-- Audio Settings Dropdown --}}
+                    <div x-show="openSettings" @click.away="openSettings = false" x-cloak
+                        class="absolute bottom-full left-0 mb-2 w-80 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl p-4 z-50">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold text-white">Pengaturan Audio Notifikasi</h3>
+                            <button @click="openSettings = false" class="text-gray-400 hover:text-white">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                        
+                        {{-- Audio Settings --}}
+                        <div class="mb-4">
+                            <label class="block text-xs font-medium text-gray-400 mb-2">Pilih Audio Notifikasi</label>
+                            
+                            {{-- Current Audio Display --}}
+                            <div x-show="selectedAudio" class="mb-2 p-2 bg-black/20 rounded-lg">
+                                <p class="text-xs text-gray-400">Audio Saat Ini:</p>
+                                <p class="text-xs font-medium text-white" x-text="getCurrentAudioName() || 'Tidak ada audio dipilih'"></p>
+                            </div>
+                            <div x-show="!selectedAudio" class="mb-2 p-2 bg-gray-500/10 border border-gray-500/20 rounded-lg">
+                                <p class="text-xs text-gray-400">Audio Saat Ini:</p>
+                                <p class="text-xs font-medium text-gray-500">Tidak ada audio</p>
+                            </div>
+                            
+                            {{-- File Picker untuk Pilih/Upload Audio --}}
+                            <div class="mb-2">
+                                <input type="file" @change="handleAudioFileSelect($event)" accept="audio/*" 
+                                    class="hidden" x-ref="audioFilePicker">
+                                <button @click="openFilePicker()" 
+                                    class="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all mb-2">
+                                    <i class="ri-file-music-line"></i> Pilih File Audio
+                                </button>
+                                
+                                {{-- Preview Selected File --}}
+                                <div x-show="previewFile" class="mb-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg">
+                                    <p class="text-xs text-green-400 mb-1">File Dipilih:</p>
+                                    <p class="text-xs text-white font-medium" x-text="previewFile.name"></p>
+                                    <p class="text-xs text-gray-400" x-text="formatFileSize(previewFile.size)"></p>
+                                </div>
+                                
+                                {{-- Options untuk File yang Dipilih --}}
+                                <div x-show="previewFile" class="space-y-2">
+                                    <input type="text" x-model="newAudioName" placeholder="Nama audio (opsional)" 
+                                        class="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50">
+                                    
+                                    <div class="flex gap-2">
+                                        <button @click="useAudioDirectly()" 
+                                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all">
+                                            <i class="ri-check-line"></i> Gunakan Langsung
+                                        </button>
+                                        <button @click="uploadAudioAsNew()" 
+                                            class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all">
+                                            <i class="ri-upload-cloud-line"></i> Simpan ke Daftar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{-- Test Audio Button --}}
+                            <button x-show="selectedAudio" @click="testAudio()" 
+                                class="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all mb-3">
+                                <i class="ri-play-line"></i> Test Audio
+                            </button>
+                            
+                            {{-- List of Saved Audios --}}
+                            <div class="mt-3 pt-3 border-t border-white/10">
+                                <label class="block text-xs font-medium text-gray-400 mb-2">Daftar Audio Tersimpan</label>
+                                <div class="max-h-32 overflow-y-auto">
+                                    <div x-show="availableSounds.length === 0" class="text-xs text-gray-500 text-center py-2">
+                                        Belum ada audio tersimpan
+                                    </div>
+                                    <template x-for="sound in availableSounds" :key="sound.id">
+                                        <div class="flex items-center justify-between bg-black/20 rounded-lg p-2 mb-1">
+                                            <span class="text-xs text-white" x-text="sound.name"></span>
+                                            <div class="flex items-center gap-2">
+                                                <button @click="selectAudioFromList(sound)" 
+                                                    class="text-xs text-blue-400 hover:text-blue-300" title="Gunakan audio ini">
+                                                    <i class="ri-check-line"></i>
+                                                </button>
+                                                <button @click="deleteSound(sound.id)" 
+                                                    class="text-xs text-red-400 hover:text-red-300" title="Hapus">
+                                                    <i class="ri-delete-bin-line"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {{-- Logout Button --}}
                 <form action="{{ route('logout') }}" method="POST" class="w-full">
                     @csrf
                     <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-red-500/20 hover:shadow-red-500/30 hover:scale-[1.02] active:scale-[0.98]">
@@ -652,17 +752,33 @@
         let isFirstLoad = true;
         let activeNotifications = new Set();
 
-        // Load active notification sound from admin settings
+        // Load active notification sound from localStorage (set by dapur audio settings)
         async function loadActiveNotificationSound() {
             try {
-                const response = await fetch('/notification-sounds/active');
-                const data = await response.json();
+                const savedAudio = localStorage.getItem('kitchenNotificationAudio');
+                const audioType = localStorage.getItem('kitchenNotificationAudioType');
                 
-                if (data.success && data.sound && notificationSound) {
-                    const source = notificationSound.querySelector('source');
+                if (savedAudio && notificationSound) {
+                    const source = notificationSound.querySelector('#notificationSoundSource');
                     if (source) {
-                        source.src = data.sound.url;
-                        notificationSound.load();
+                        if (audioType === 'database') {
+                            // Load from database
+                            const response = await fetch('/admin/notification-sounds');
+                            const sounds = await response.json();
+                            const sound = sounds.find(s => s.filename === savedAudio);
+                            if (sound) {
+                                if (sound.file_path.startsWith('sounds/')) {
+                                    source.src = '{{ asset("storage") }}/' + sound.file_path;
+                                } else {
+                                    source.src = '{{ asset("assets/sounds") }}/' + sound.filename;
+                                }
+                                notificationSound.load();
+                            }
+                        } else if (audioType === 'file') {
+                            // File was selected directly, but file object is not persistent
+                            // User needs to reselect on page reload
+                            source.src = '';
+                        }
                     }
                 }
             } catch (error) {
@@ -820,12 +936,17 @@
 
         // Variable to store interval ID
         let refreshInterval = null;
+        let refreshDelay = 3000; // Default refresh delay: 3 seconds
 
         // Function to start auto refresh
         function startAutoRefresh() {
-            if (refreshInterval === null) {
-                refreshInterval = setInterval(fetchAndUpdateOrders, 3000);
+            // Stop existing interval if any
+            if (refreshInterval !== null) {
+                clearInterval(refreshInterval);
             }
+            
+            // Start new interval with current delay
+            refreshInterval = setInterval(fetchAndUpdateOrders, refreshDelay);
         }
 
         // Function to stop auto refresh
@@ -843,8 +964,7 @@
                 const data = await response.json();
                 
                 if (!response.ok || !data.orders) {
-                    // Stop refresh if error
-                    stopAutoRefresh();
+                    // Continue refresh even on error (retry)
                     return;
                 }
                 
@@ -852,12 +972,14 @@
                 if (!ordersSection) return;
                 
                 const newOrderIds = new Set(data.orders.map(o => o.id));
+                let hasNewOrder = false;
                 
                 // Detect new orders
                 if (!isFirstLoad) {
                     data.orders.forEach(order => {
                         if (!currentOrderIds.has(order.id)) {
                             // New order detected!
+                            hasNewOrder = true;
                             showNotification(order);
                         }
                     });
@@ -868,13 +990,33 @@
                 // Update current order IDs
                 currentOrderIds = newOrderIds;
                 
-                // Control auto refresh based on orders availability
-                if (data.orders.length === 0) {
-                    // No orders, stop auto refresh
+                // Adjust refresh speed based on order status
+                if (hasNewOrder) {
+                    // New order detected - refresh faster (1 second)
+                    refreshDelay = 1000;
                     stopAutoRefresh();
-                } else {
-                    // Has orders, ensure auto refresh is running
                     startAutoRefresh();
+                    
+                    // After 5 fast refreshes, return to normal speed
+                    setTimeout(() => {
+                        refreshDelay = 3000;
+                        stopAutoRefresh();
+                        startAutoRefresh();
+                    }, 5000);
+                } else if (data.orders.length > 0) {
+                    // Has orders but no new ones - normal speed (3 seconds)
+                    if (refreshDelay !== 3000) {
+                        refreshDelay = 3000;
+                        stopAutoRefresh();
+                        startAutoRefresh();
+                    }
+                } else {
+                    // No orders - slower refresh (5 seconds) but keep checking
+                    if (refreshDelay !== 5000) {
+                        refreshDelay = 5000;
+                        stopAutoRefresh();
+                        startAutoRefresh();
+                    }
                 }
                 
                 // Update orders display only if we're in orders section
@@ -911,10 +1053,8 @@
             // Initial fetch after 1 second
             setTimeout(() => {
                 fetchAndUpdateOrders();
-                // Start auto refresh only if there are orders
-                if (initialOrders.length > 0) {
-                    startAutoRefresh();
-                }
+                // Always start auto refresh (will adjust speed based on orders)
+                startAutoRefresh();
             }, 1000);
         })();
 
@@ -1104,8 +1244,7 @@
                                 const orderCards = ordersSection.querySelectorAll('[data-order-id]');
                                 if (orderCards.length === 0) {
                                     ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-400 text-lg"><p>Belum ada pesanan</p></div>';
-                                    // Stop auto refresh when no more orders
-                                    stopAutoRefresh();
+                                    // Keep auto refresh running but slower (will be adjusted in fetchAndUpdateOrders)
                                 }
                             }, 300);
                         }
@@ -1314,6 +1453,396 @@
 
             // Langsung download file Excel
             window.location.href = `/reports/export?${params}`;
+        });
+    </script>
+
+    {{-- Alpine.js untuk Pengaturan Audio --}}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('kitchenNotification', () => ({
+                openSettings: false,
+                availableSounds: [],
+                selectedAudio: localStorage.getItem('kitchenNotificationAudio') || '',
+                audioElement: null,
+                newAudioName: '',
+                previewFile: null,
+                currentAudioName: '',
+
+                openFilePicker() {
+                    const filePicker = this.$refs.audioFilePicker;
+                    if (filePicker) {
+                        filePicker.click();
+                    }
+                },
+
+                async init() {
+                    // Initialize audio element
+                    this.audioElement = document.getElementById('notificationSound');
+                    
+                    // Clear audio source initially
+                    const source = document.getElementById('notificationSoundSource');
+                    if (source) {
+                        source.src = '';
+                    }
+                    
+                    // Load available sounds from database
+                    await this.loadAvailableSounds();
+                    
+                    // Load audio preference
+                    const savedAudio = localStorage.getItem('kitchenNotificationAudio');
+                    const audioType = localStorage.getItem('kitchenNotificationAudioType');
+                    
+                    if (savedAudio && savedAudio !== '') {
+                        if (audioType === 'database' && this.availableSounds.find(s => s.filename === savedAudio)) {
+                            this.selectedAudio = savedAudio;
+                            const sound = this.availableSounds.find(s => s.filename === savedAudio);
+                            this.currentAudioName = sound ? sound.name : '';
+                            this.updateAudioSource();
+                        } else if (audioType === 'file') {
+                            // File was selected directly, user needs to reselect on page reload
+                            this.selectedAudio = '';
+                            this.currentAudioName = '';
+                            localStorage.removeItem('kitchenNotificationAudio');
+                            localStorage.removeItem('kitchenNotificationAudioType');
+                        }
+                    } else {
+                        // No audio available, clear selection
+                        this.selectedAudio = '';
+                        this.currentAudioName = '';
+                    }
+                },
+
+                async loadAvailableSounds() {
+                    try {
+                        const response = await fetch('/admin/notification-sounds');
+                        this.availableSounds = await response.json();
+                    } catch (error) {
+                        console.error('Error loading sounds:', error);
+                    }
+                },
+
+                updateAudioSource() {
+                    const source = document.getElementById('notificationSoundSource');
+                    if (!source || !this.audioElement) return;
+                    
+                    // Clear audio source if no audio selected
+                    if (!this.selectedAudio || this.selectedAudio === '') {
+                        source.src = '';
+                        this.audioElement.pause();
+                        this.audioElement.currentTime = 0;
+                        return;
+                    }
+                    
+                    // Check if selectedAudio is a file object (direct file)
+                    if (this.selectedAudio instanceof File) {
+                        source.src = URL.createObjectURL(this.selectedAudio);
+                    } else {
+                        // It's a filename from database
+                        const sound = this.availableSounds.find(s => s.filename === this.selectedAudio);
+                        if (sound) {
+                            // Use storage path if file exists in storage
+                            if (sound.file_path.startsWith('sounds/')) {
+                                source.src = '{{ asset("storage") }}/' + sound.file_path;
+                            } else {
+                                source.src = '{{ asset("assets/sounds") }}/' + sound.filename;
+                            }
+                        } else {
+                            // No sound found, clear source
+                            source.src = '';
+                            return;
+                        }
+                    }
+                    
+                    if (this.audioElement) {
+                        this.audioElement.load();
+                    }
+                },
+
+                getCurrentAudioName() {
+                    if (this.selectedAudio instanceof File) {
+                        return this.selectedAudio.name;
+                    }
+                    const sound = this.availableSounds.find(s => s.filename === this.selectedAudio);
+                    return sound ? sound.name : 'Tidak ada audio';
+                },
+
+                formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+                },
+
+                handleAudioFileSelect(event) {
+                    const file = event.target?.files?.[0] || event?.files?.[0];
+                    if (!file) return;
+                    
+                    // Validate file type
+                    if (!file.type.startsWith('audio/')) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'File tidak valid',
+                            text: 'Harap pilih file audio (mp3, wav, ogg)',
+                            background: '#161616',
+                            color: '#fff'
+                        });
+                        return;
+                    }
+                    
+                    // Validate file size (max 2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'File terlalu besar',
+                            text: 'Ukuran file maksimal 2MB',
+                            background: '#161616',
+                            color: '#fff'
+                        });
+                        return;
+                    }
+                    
+                    this.previewFile = file;
+                    // Auto-generate name from filename if not provided
+                    if (!this.newAudioName) {
+                        this.newAudioName = file.name.replace(/\.[^/.]+$/, '');
+                    }
+                },
+
+                useAudioDirectly() {
+                    if (!this.previewFile) return;
+                    
+                    this.selectedAudio = this.previewFile;
+                    this.currentAudioName = this.previewFile.name;
+                    this.saveAudioPreference();
+                    
+                    // Clear preview
+                    this.previewFile = null;
+                    this.newAudioName = '';
+                    if (this.$refs.audioFilePicker) {
+                        this.$refs.audioFilePicker.value = '';
+                    }
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Audio berhasil dipilih',
+                        background: '#161616',
+                        color: '#fff',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                },
+
+                async uploadAudioAsNew() {
+                    if (!this.previewFile) return;
+                    
+                    if (!this.newAudioName) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Nama audio diperlukan',
+                            text: 'Harap isi nama audio',
+                            background: '#161616',
+                            color: '#fff'
+                        });
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('name', this.newAudioName);
+                    formData.append('audio', this.previewFile);
+
+                    try {
+                        const response = await fetch('/admin/notification-sounds', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Audio berhasil disimpan',
+                                background: '#161616',
+                                color: '#fff'
+                            });
+                            
+                            // Reload sounds
+                            await this.loadAvailableSounds();
+                            
+                            // Auto-select the newly uploaded sound
+                            if (data.sound) {
+                                this.selectedAudio = data.sound.filename;
+                                this.currentAudioName = data.sound.name;
+                                this.saveAudioPreference();
+                            }
+                            
+                            // Clear preview
+                            this.previewFile = null;
+                            this.newAudioName = '';
+                            if (this.$refs.audioFilePicker) {
+                                this.$refs.audioFilePicker.value = '';
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message || 'Gagal upload audio',
+                                background: '#161616',
+                                color: '#fff'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error uploading audio:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi kesalahan saat upload audio',
+                            background: '#161616',
+                            color: '#fff'
+                        });
+                    }
+                },
+
+                async selectAudioFromList(sound) {
+                    this.selectedAudio = sound.filename;
+                    this.currentAudioName = sound.name;
+                    this.saveAudioPreference();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Audio berhasil dipilih',
+                        background: '#161616',
+                        color: '#fff',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                },
+
+                saveAudioPreference() {
+                    // Save filename if it's from database, or save file name if it's a direct file
+                    if (this.selectedAudio instanceof File) {
+                        localStorage.setItem('kitchenNotificationAudio', this.selectedAudio.name);
+                        localStorage.setItem('kitchenNotificationAudioType', 'file');
+                    } else {
+                        localStorage.setItem('kitchenNotificationAudio', this.selectedAudio);
+                        localStorage.setItem('kitchenNotificationAudioType', 'database');
+                    }
+                    this.updateAudioSource();
+                    
+                    // Update the notification sound source for current session
+                    const source = document.getElementById('notificationSoundSource');
+                    if (source && this.audioElement) {
+                        this.updateAudioSource();
+                    }
+                },
+
+                testAudio() {
+                    if (!this.selectedAudio || this.selectedAudio === '') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Tidak ada audio',
+                            text: 'Harap pilih audio terlebih dahulu',
+                            background: '#161616',
+                            color: '#fff',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        return;
+                    }
+                    
+                    if (this.audioElement && this.audioElement.src) {
+                        this.audioElement.currentTime = 0;
+                        this.audioElement.play().catch(err => {
+                            console.log('Audio test failed:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal memutar audio',
+                                text: 'Pastikan file audio tersedia',
+                                background: '#161616',
+                                color: '#fff',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        });
+                    }
+                },
+
+                async deleteSound(soundId) {
+                    Swal.fire({
+                        title: 'Hapus Audio?',
+                        text: 'Audio yang dihapus tidak dapat dikembalikan',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal',
+                        background: '#161616',
+                        color: '#fff'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            try {
+                                const response = await fetch(`/admin/notification-sounds/${soundId}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+
+                                const data = await response.json();
+
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: 'Audio berhasil dihapus',
+                                        background: '#161616',
+                                        color: '#fff'
+                                    });
+                                    
+                                    // Reload sounds
+                                    await this.loadAvailableSounds();
+                                    
+                                    // If deleted sound was selected, clear selection
+                                    const deletedSound = this.availableSounds.find(s => s.id === soundId);
+                                    if (deletedSound && this.selectedAudio === deletedSound.filename) {
+                                        this.selectedAudio = '';
+                                        this.currentAudioName = '';
+                                        localStorage.removeItem('kitchenNotificationAudio');
+                                        localStorage.removeItem('kitchenNotificationAudioType');
+                                        this.updateAudioSource();
+                                    }
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        text: data.message || 'Gagal menghapus audio',
+                                        background: '#161616',
+                                        color: '#fff'
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Error deleting sound:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Terjadi kesalahan saat menghapus audio',
+                                    background: '#161616',
+                                    color: '#fff'
+                                });
+                            }
+                        }
+                    });
+                }
+            }));
         });
     </script>
     @endpush
