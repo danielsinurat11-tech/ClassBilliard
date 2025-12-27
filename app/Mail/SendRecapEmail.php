@@ -17,15 +17,17 @@ class SendRecapEmail extends Mailable
     public $filePath;
     public $fileName;
     public $reportPeriod;
+    public $report;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($filePath, $fileName, $reportPeriod)
+    public function __construct($filePath, $fileName, $reportPeriod, $report = null)
     {
         $this->filePath = $filePath;
         $this->fileName = $fileName;
         $this->reportPeriod = $reportPeriod;
+        $this->report = $report;
     }
 
     /**
@@ -34,7 +36,7 @@ class SendRecapEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Rekapitulasi Laporan - ' . $this->reportPeriod . ' - Billiard Class',
+            subject: 'Tutup Hari - ' . $this->reportPeriod . ' - Billiard Class',
         );
     }
 
@@ -48,6 +50,7 @@ class SendRecapEmail extends Mailable
             text: 'emails.recap-text',
             with: [
                 'reportPeriod' => $this->reportPeriod,
+                'report' => $this->report,
             ],
         );
     }

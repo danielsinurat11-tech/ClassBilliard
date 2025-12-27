@@ -336,7 +336,7 @@
 @section('content')
     {{-- Audio element for notification sound --}}
     <audio id="notificationSound" preload="auto">
-        <source src="{{ asset('assets/sounds/new_order.mp3') }}" type="audio/mpeg">
+        <source src="" type="audio/mpeg">
     </audio>
 
     {{-- Notification Overlay (Mobile Blur) --}}
@@ -652,6 +652,27 @@
         let isFirstLoad = true;
         let activeNotifications = new Set();
 
+        // Load active notification sound from admin settings
+        async function loadActiveNotificationSound() {
+            try {
+                const response = await fetch('/notification-sounds/active');
+                const data = await response.json();
+                
+                if (data.success && data.sound && notificationSound) {
+                    const source = notificationSound.querySelector('source');
+                    if (source) {
+                        source.src = data.sound.url;
+                        notificationSound.load();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading active notification sound:', error);
+            }
+        }
+
+        // Load active sound on page load
+        loadActiveNotificationSound();
+
         // Function to update overlay visibility
         function updateNotificationOverlay() {
             if (notificationOverlay) {
@@ -797,13 +818,35 @@
             `;
         }
 
+        // Variable to store interval ID
+        let refreshInterval = null;
+
+        // Function to start auto refresh
+        function startAutoRefresh() {
+            if (refreshInterval === null) {
+                refreshInterval = setInterval(fetchAndUpdateOrders, 3000);
+            }
+        }
+
+        // Function to stop auto refresh
+        function stopAutoRefresh() {
+            if (refreshInterval !== null) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
         // Function to fetch and update orders
         async function fetchAndUpdateOrders() {
             try {
                 const response = await fetch('/orders/active');
                 const data = await response.json();
                 
-                if (!response.ok || !data.orders) return;
+                if (!response.ok || !data.orders) {
+                    // Stop refresh if error
+                    stopAutoRefresh();
+                    return;
+                }
                 
                 const ordersSection = document.getElementById('ordersSection');
                 if (!ordersSection) return;
@@ -825,6 +868,15 @@
                 // Update current order IDs
                 currentOrderIds = newOrderIds;
                 
+                // Control auto refresh based on orders availability
+                if (data.orders.length === 0) {
+                    // No orders, stop auto refresh
+                    stopAutoRefresh();
+                } else {
+                    // Has orders, ensure auto refresh is running
+                    startAutoRefresh();
+                }
+                
                 // Update orders display only if we're in orders section
                 if (!ordersSection.classList.contains('hidden')) {
                     if (data.orders.length === 0) {
@@ -844,6 +896,8 @@
                 }
             } catch (error) {
                 console.error('Error fetching orders:', error);
+                // Stop refresh on error
+                stopAutoRefresh();
             }
         }
 
@@ -854,11 +908,14 @@
                 currentOrderIds.add(order.id);
             });
             
-            // Start auto-refresh every 3 seconds
-            setInterval(fetchAndUpdateOrders, 3000);
-            
             // Initial fetch after 1 second
-            setTimeout(fetchAndUpdateOrders, 1000);
+            setTimeout(() => {
+                fetchAndUpdateOrders();
+                // Start auto refresh only if there are orders
+                if (initialOrders.length > 0) {
+                    startAutoRefresh();
+                }
+            }, 1000);
         })();
 
         // Realtime Reports Table
@@ -1030,6 +1087,9 @@
                     const result = await response.json();
 
                     if (response.ok && result.success) {
+                        // Remove order ID from tracking
+                        currentOrderIds.delete(parseInt(orderId));
+                        
                         // Remove order from orders section
                         const orderCard = button.closest('[data-order-id]');
                         if (orderCard) {
@@ -1044,6 +1104,8 @@
                                 const orderCards = ordersSection.querySelectorAll('[data-order-id]');
                                 if (orderCards.length === 0) {
                                     ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-400 text-lg"><p>Belum ada pesanan</p></div>';
+                                    // Stop auto refresh when no more orders
+                                    stopAutoRefresh();
                                 }
                             }, 300);
                         }
@@ -1052,6 +1114,9 @@
                         if (result.order && !reportsSection.classList.contains('hidden')) {
                             addOrderToReportsTable(result.order);
                         }
+                        
+                        // Fetch latest orders to check if there are still active orders
+                        fetchAndUpdateOrders();
                     }
                 } catch (error) {
                     console.error('Error completing order:', error);

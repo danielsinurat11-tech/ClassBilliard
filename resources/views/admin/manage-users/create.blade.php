@@ -5,10 +5,10 @@
 @section('content')
 <div class="max-w-xl mx-auto animate-in fade-in duration-500">
     <div class="flex items-center gap-4 mb-8">
-        <a href="{{ route('admin.manage-users.index') }}" 
+            <a href="{{ route('admin.manage-users.index') }}"
            class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white hover:bg-white/10 transition-all">
-            <i class="ri-arrow-left-line"></i>
-        </a>
+                <i class="ri-arrow-left-line"></i>
+            </a>
         <div>
             <h1 class="text-2xl font-bold text-white">Registrasi Staff Baru</h1>
             <p class="text-gray-500 text-xs">User Access Control</p>
@@ -30,7 +30,7 @@
     @endif
 
     <form action="{{ route('admin.manage-users.store') }}" method="POST" class="space-y-6">
-        @csrf
+            @csrf
 
         <div class="space-y-6">
             <div class="space-y-2">
@@ -77,7 +77,7 @@
                 <input type="password" name="password_confirmation" required placeholder="••••••••"
                     class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all placeholder:text-gray-600">
             </div>
-        </div>
+            </div>
 
         <div class="pt-4">
             <button type="submit" class="w-full bg-[var(--accent)] hover:bg-orange-600 text-black font-bold py-4 rounded-2xl transition-all uppercase tracking-wider text-sm">
@@ -87,6 +87,6 @@
                 Pastikan data yang dimasukkan sudah valid sesuai kebijakan keamanan sistem.
             </p>
         </div>
-    </form>
-</div>
+        </form>
+    </div>
 @endsection

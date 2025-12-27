@@ -22,26 +22,26 @@
         @method('PUT')
         
         <div class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
-                    <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                        class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Hak Akses (Role)</label>
-                    <select name="role" class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all appearance-none">
-                        <option value="kitchen" {{ $user->role == 'kitchen' ? 'selected' : '' }}>Staff Dapur</option>
-                        <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Administrator</option>
-                    </select>
-                </div>
-            </div>
-
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Email Sistem</label>
-                <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                <input type="text" name="name" value="{{ old('name', $user->name) }}" required
                     class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all">
             </div>
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Hak Akses (Role)</label>
+                <select name="role" class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all appearance-none">
+                    <option value="kitchen" {{ $user->role == 'kitchen' ? 'selected' : '' }}>Staff Dapur</option>
+                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Administrator</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Email Sistem</label>
+            <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all">
+        </div>
 
             <div class="space-y-2">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Shift</label>
@@ -67,7 +67,7 @@
                 <p class="text-xs text-blue-400 font-medium flex items-start gap-2">
                     <i class="ri-information-line"></i>
                     Biarkan kolom di bawah kosong jika tidak ingin merubah password user ini.
-                </p>
+            </p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

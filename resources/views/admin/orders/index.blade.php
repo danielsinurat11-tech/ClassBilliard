@@ -129,7 +129,7 @@
         <div class="flex items-center gap-4">
             <a href="{{ route('admin.orders.recap.index') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
                 <i class="ri-file-list-3-line"></i>
-                Rekapitulasi Laporan
+                Tutup Hari
             </a>
             <div class="text-right">
                 <p class="text-xs text-gray-500 mb-1">Total Orders</p>
@@ -297,9 +297,15 @@
             </div>
             @endif
 
-            {{-- Info Box untuk Completed Orders --}}
+            {{-- Tombol Rekap untuk Completed Orders --}}
             @if($order->status === 'completed')
-            <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+            <div class="mt-3">
+                <button onclick="rekapOrder({{ $order->id }})" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i class="ri-file-list-3-line"></i>
+                    Rekap Order
+                </button>
+            </div>
+            <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mt-3">
                 <p class="text-green-400 text-sm flex items-center gap-2">
                     <i class="ri-checkbox-circle-line"></i>
                     Order ini sudah selesai diproses oleh dapur
@@ -366,8 +372,25 @@
     let lastOrderId = {{ $allOrders->max('id') ?? 0 }};
     let lastCheckTime = new Date().toISOString();
     let isRefreshing = false;
+    let refreshInterval = null;
     
-    setInterval(async () => {
+    // Function to start auto refresh
+    function startAutoRefresh() {
+        if (refreshInterval === null) {
+            refreshInterval = setInterval(checkForChanges, 3000);
+        }
+    }
+    
+    // Function to stop auto refresh
+    function stopAutoRefresh() {
+        if (refreshInterval !== null) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+    }
+    
+    // Function to check for changes
+    async function checkForChanges() {
         // Skip jika sedang refresh
         if (isRefreshing) return;
         
@@ -375,7 +398,21 @@
             const response = await fetch(`/admin/orders/check-new?last_order_id=${lastOrderId}&last_check_time=${encodeURIComponent(lastCheckTime)}`);
             const data = await response.json();
             
-            if (data.has_changes) {
+            // Control auto refresh based on active orders availability
+            if (data.has_active_orders === false) {
+                // No active orders, stop auto refresh
+                stopAutoRefresh();
+                // Schedule a check after 10 seconds to detect new orders
+                setTimeout(checkForChanges, 10000);
+            } else {
+                // Has active orders, ensure auto refresh is running
+                if (refreshInterval === null) {
+                    startAutoRefresh();
+                }
+            }
+            
+            // Only refresh page if there are changes AND active orders exist
+            if (data.has_changes && data.has_active_orders) {
                 // Ada perubahan (order baru atau status berubah), refresh halaman
                 isRefreshing = true;
                 location.reload();
@@ -390,8 +427,53 @@
             }
         } catch (error) {
             console.error('Error checking orders:', error);
+            // Stop refresh on error, but schedule a retry
+            stopAutoRefresh();
+            setTimeout(checkForChanges, 10000);
         }
-    }, 3000); // Check setiap 3 detik
+    }
+    
+    // Initialize auto refresh based on initial orders
+    @php
+        $hasActiveOrders = $allOrders->whereIn('status', ['pending', 'processing'])->count() > 0;
+    @endphp
+    
+    @if($hasActiveOrders)
+        // Start auto refresh if there are active orders
+        startAutoRefresh();
+    @endif
+    
+    // Initial check after 1 second
+    setTimeout(checkForChanges, 1000);
+
+    // Function to rekap order
+    async function rekapOrder(orderId) {
+        if (!confirm('Yakin ingin rekap order ini? Order akan masuk ke tutup hari dan tidak bisa diubah lagi.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/orders/${orderId}/rekap`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Order berhasil di-rekap!');
+                location.reload();
+            } else {
+                alert('Gagal rekap order: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error rekap order:', error);
+            alert('Terjadi kesalahan saat rekap order');
+        }
+    }
 </script>
 @endpush
 @endsection

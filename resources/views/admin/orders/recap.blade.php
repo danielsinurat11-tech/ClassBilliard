@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Rekapitulasi Laporan')
+@section('title', 'Tutup Hari')
 
 @push('styles')
 <style>
@@ -77,6 +77,204 @@
         color: rgba(156, 163, 175, 0.5);
         cursor: not-allowed;
     }
+
+    /* Receipt/Nota Styles */
+    .receipt-container {
+        max-width: 400px;
+        margin: 0 auto 2rem;
+        background: white;
+        border: none;
+        padding: 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .receipt-content {
+        padding: 20px;
+        color: #000;
+        font-family: 'Courier New', monospace;
+    }
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .receipt-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0 0 5px 0;
+        color: #000;
+    }
+
+    .receipt-address {
+        font-size: 12px;
+        margin: 5px 0;
+        color: #000;
+    }
+
+    .receipt-id {
+        font-size: 11px;
+        margin: 5px 0;
+        color: #000;
+        letter-spacing: 1px;
+    }
+
+    .receipt-divider {
+        border-top: 1px dashed #000;
+        margin: 15px 0;
+    }
+
+    .receipt-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-size: 12px;
+    }
+
+    .receipt-info-left {
+        text-align: left;
+    }
+
+    .receipt-info-right {
+        text-align: right;
+    }
+
+    .receipt-date,
+    .receipt-time,
+    .receipt-number,
+    .receipt-staff {
+        margin: 2px 0;
+        color: #000;
+    }
+
+    .receipt-items {
+        margin-bottom: 15px;
+    }
+
+    .receipt-item {
+        margin-bottom: 10px;
+        font-size: 12px;
+    }
+
+    .receipt-item-name {
+        margin-bottom: 3px;
+        color: #000;
+    }
+
+    .receipt-item-details {
+        display: flex;
+        justify-content: space-between;
+        color: #000;
+    }
+
+    .receipt-summary {
+        margin-bottom: 15px;
+    }
+
+    .receipt-summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        font-size: 12px;
+        color: #000;
+    }
+
+    .receipt-footer {
+        text-align: center;
+        font-size: 11px;
+        margin-top: 15px;
+        color: #000;
+    }
+
+    .receipt-footer p {
+        margin: 3px 0;
+    }
+
+    .receipt-actions {
+        display: flex;
+        gap: 10px;
+        padding: 15px;
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        flex-wrap: wrap;
+    }
+
+    .btn-print,
+    .btn-download,
+    .btn-email {
+        flex: 1;
+        min-width: 120px;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s;
+        font-size: 14px;
+    }
+
+    .btn-print {
+        background: #22c55e;
+        color: white;
+    }
+
+    .btn-print:hover {
+        background: #16a34a;
+    }
+
+    .btn-download {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-download:hover {
+        background: #2563eb;
+    }
+
+    .btn-email {
+        background: #8b5cf6;
+        color: white;
+    }
+
+    .btn-email:hover {
+        background: #7c3aed;
+    }
+
+    /* Print Styles */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .print-container, .print-container * {
+            visibility: visible;
+        }
+        .print-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            color: black;
+            padding: 0;
+            border: none;
+        }
+        .no-print {
+            display: none !important;
+        }
+        .receipt-container {
+            page-break-after: always;
+            margin: 0;
+            box-shadow: none;
+        }
+        .receipt-container:last-child {
+            page-break-after: auto;
+        }
+    }
 </style>
 @endpush
 
@@ -84,8 +282,8 @@
 <div class="space-y-6 animate-in fade-in duration-500">
     <div class="flex justify-between items-center">
         <div>
-            <h1 class="text-3xl font-bold text-white tracking-tight">Rekapitulasi Laporan</h1>
-            <p class="text-gray-500 text-sm">Rekap order yang sudah selesai menjadi laporan. Setelah di-rekap, histori order akan clear.</p>
+            <h1 class="text-3xl font-bold text-white tracking-tight">Tutup Hari</h1>
+            <p class="text-gray-500 text-sm">Histori tutup hari yang sudah dibuat. Order dapat di-rekap langsung dari halaman Manajemen Order.</p>
         </div>
         <a href="{{ route('admin.orders.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
             <i class="ri-arrow-left-line"></i>
@@ -93,55 +291,44 @@
         </a>
     </div>
 
-    {{-- Form Rekapitulasi --}}
+    {{-- Filter Tanggal --}}
     <div class="recap-card">
-        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <i class="ri-file-add-line text-purple-400"></i>
-            Buat Rekapitulasi Baru
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <i class="ri-filter-line text-purple-400"></i>
+            Filter Tanggal
         </h2>
-        <form id="recapForm" class="space-y-4">
-            @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-2">Tanggal Mulai</label>
-                    <input type="date" id="start_date" name="start_date" required
-                        class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-600 transition-all"
-                        value="{{ date('Y-m-d') }}">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-2">Tanggal Akhir</label>
-                    <input type="date" id="end_date" name="end_date" required
-                        class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-600 transition-all"
-                        value="{{ date('Y-m-d') }}">
-                </div>
+        <form method="GET" action="{{ route('admin.orders.recap.index') }}" class="flex flex-col md:flex-row gap-4 items-end">
+            <div class="flex-1">
+                <label class="block text-sm font-medium text-gray-400 mb-2">Pilih Tanggal</label>
+                <input type="date" name="filter_date" value="{{ request('filter_date', \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d')) }}"
+                    class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-600 transition-all">
             </div>
-            
-            {{-- Quick Date Buttons --}}
-            <div class="flex flex-wrap gap-2">
-                <button type="button" onclick="setToday()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 hover:text-purple-300 rounded-lg text-sm font-medium transition-all border border-purple-600/30">
-                    <i class="ri-calendar-line"></i> Hari Ini
+            <div class="flex gap-2">
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2">
+                    <i class="ri-search-line"></i>
+                    Filter
                 </button>
-                <button type="button" onclick="setThisMonth()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 hover:text-purple-300 rounded-lg text-sm font-medium transition-all border border-purple-600/30">
-                    <i class="ri-calendar-2-line"></i> Bulan Ini
-                </button>
-                <button type="button" onclick="setLast7Days()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 hover:text-purple-300 rounded-lg text-sm font-medium transition-all border border-purple-600/30">
-                    <i class="ri-calendar-check-line"></i> 7 Hari Terakhir
-                </button>
+                @if(request('filter_date'))
+                <a href="{{ route('admin.orders.recap.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2">
+                    <i class="ri-close-line"></i>
+                    Reset
+                </a>
+                @endif
             </div>
-            
-            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
-                <i class="ri-file-list-3-line"></i>
-                Buat Rekapitulasi
-            </button>
         </form>
     </div>
 
-    {{-- Daftar Rekapitulasi --}}
+    {{-- Daftar Tutup Hari --}}
     <div class="space-y-4">
         <div class="flex justify-between items-center">
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
                 <i class="ri-history-line text-purple-400"></i>
-                Histori Rekapitulasi
+                Histori Tutup Hari
+                @if(request('filter_date'))
+                <span class="text-sm font-normal text-gray-400 ml-2">
+                    ({{ \Carbon\Carbon::parse(request('filter_date'))->setTimezone('Asia/Jakarta')->format('d M Y') }})
+                </span>
+                @endif
             </h2>
             @if(!$reports->isEmpty())
             <div class="text-sm text-gray-400">
@@ -153,66 +340,103 @@
         @if($reports->isEmpty())
         <div class="recap-card text-center py-12">
             <i class="ri-file-list-3-line text-6xl text-gray-600 mb-4"></i>
-            <p class="text-gray-400">Belum ada rekapitulasi yang dibuat.</p>
+            <p class="text-gray-400">Belum ada tutup hari yang dibuat.</p>
         </div>
         @else
         @foreach($reports as $report)
-        <div class="recap-card">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <h3 class="text-lg font-bold text-white mb-1">
-                        Rekapitulasi #{{ $report->id }}
-                    </h3>
-                    <p class="text-sm text-gray-400">
-                        Periode: {{ \Carbon\Carbon::parse($report->start_date)->format('d M Y') }} - 
-                        {{ \Carbon\Carbon::parse($report->end_date)->format('d M Y') }}
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">
-                        Dibuat: {{ \Carbon\Carbon::parse($report->created_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y H:i') }} WIB oleh {{ $report->created_by }}
-                    </p>
+        <div class="receipt-container print-container" id="recap-{{ $report->id }}">
+            <div class="receipt-content">
+                {{-- Header --}}
+                <div class="receipt-header">
+                    <h2 class="receipt-title">BILLIARD CLASS</h2>
+                    <p class="receipt-address">Jl. Alpukat, Madurejo, Kec. Arut Sel., Kabupaten Kotawaringin Barat, Kalimantan Tengah 74117</p>
+                    <p class="receipt-id">{{ str_pad($report->id, 20, '0', STR_PAD_LEFT) }}</p>
                 </div>
-                <span class="bg-purple-600/20 text-purple-400 px-3 py-1 rounded-lg text-sm font-medium">
-                    {{ \Carbon\Carbon::parse($report->report_date)->format('d M Y') }}
-                </span>
+
+                <div class="receipt-divider"></div>
+
+                {{-- Transaction Info --}}
+                <div class="receipt-info">
+                    <div class="receipt-info-left">
+                        <p class="receipt-date">{{ \Carbon\Carbon::parse($report->report_date)->setTimezone('Asia/Jakarta')->format('Y-m-d') }}</p>
+                        <p class="receipt-time">{{ \Carbon\Carbon::parse($report->created_at)->utc()->setTimezone('Asia/Jakarta')->format('H:i:s') }}</p>
+                        <p class="receipt-number">No.{{ str_pad($report->id, 6, '0', STR_PAD_LEFT) }}</p>
+                    </div>
+                    <div class="receipt-info-right">
+                        <p class="receipt-staff">{{ $report->created_by }}</p>
+                    </div>
+                </div>
+
+                <div class="receipt-divider"></div>
+
+                {{-- Items List --}}
+                <div class="receipt-items">
+                    @php
+                        $orderSummary = is_array($report->order_summary) ? $report->order_summary : json_decode($report->order_summary, true);
+                    @endphp
+                    @foreach($orderSummary as $order)
+                        @foreach($order['items'] as $item)
+                        <div class="receipt-item">
+                            <div class="receipt-item-name">{{ $item['menu_name'] }}</div>
+                            <div class="receipt-item-details">
+                                <span>{{ $item['quantity'] }} x {{ number_format($item['price'], 0, ',', '.') }}</span>
+                                <span>Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        @endforeach
+                    @endforeach
+                </div>
+
+                <div class="receipt-divider"></div>
+
+                {{-- Summary --}}
+                <div class="receipt-summary">
+                    <div class="receipt-summary-row">
+                        <span>Total:</span>
+                        <span>Rp {{ number_format($report->total_revenue, 0, ',', '.') }}</span>
+                    </div>
+                    @if($report->cash_revenue > 0)
+                    <div class="receipt-summary-row">
+                        <span>Bayar (Cash):</span>
+                        <span>Rp {{ number_format($report->cash_revenue, 0, ',', '.') }}</span>
+                    </div>
+                    @endif
+                    @if($report->qris_revenue > 0)
+                    <div class="receipt-summary-row">
+                        <span>Bayar (QRIS):</span>
+                        <span>Rp {{ number_format($report->qris_revenue, 0, ',', '.') }}</span>
+                    </div>
+                    @endif
+                    @if($report->transfer_revenue > 0)
+                    <div class="receipt-summary-row">
+                        <span>Bayar (Transfer):</span>
+                        <span>Rp {{ number_format($report->transfer_revenue, 0, ',', '.') }}</span>
+                    </div>
+                    @endif
+                    <div class="receipt-summary-row">
+                        <span>Total Order:</span>
+                        <span>{{ number_format($report->total_orders) }} order</span>
+                    </div>
+                </div>
+
+                {{-- Footer --}}
+                <div class="receipt-footer">
+                    <p>Tutup Hari</p>
+                    <p>Billiard Class</p>
+                </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-                <div class="stat-card">
-                    <p class="text-xs text-gray-400 mb-1">Total Order</p>
-                    <p class="text-2xl font-bold text-white">{{ number_format($report->total_orders) }}</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-xs text-gray-400 mb-1">Total Revenue</p>
-                    <p class="text-2xl font-bold text-green-400">Rp {{ number_format($report->total_revenue, 0, ',', '.') }}</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-xs text-gray-400 mb-1">Cash</p>
-                    <p class="text-lg font-bold text-white">Rp {{ number_format($report->cash_revenue, 0, ',', '.') }}</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-xs text-gray-400 mb-1">QRIS</p>
-                    <p class="text-lg font-bold text-white">Rp {{ number_format($report->qris_revenue, 0, ',', '.') }}</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-xs text-gray-400 mb-1">Transfer</p>
-                    <p class="text-lg font-bold text-white">Rp {{ number_format($report->transfer_revenue, 0, ',', '.') }}</p>
-                </div>
-            </div>
-
-            <div class="flex gap-3 mt-4 flex-wrap">
-                <button onclick="showReportDetail({{ $report->id }})" class="flex-1 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 hover:text-purple-300 font-medium py-2 px-4 rounded-xl transition-all flex items-center justify-center gap-2 min-w-[140px]">
-                    <i class="ri-eye-line"></i>
-                    Lihat Detail
+            {{-- Action Buttons (Hidden saat print) --}}
+            <div class="receipt-actions no-print">
+                <button onclick="printRecap({{ $report->id }})" class="btn-print">
+                    <i class="ri-printer-line"></i>
+                    Print Nota
                 </button>
-                <button onclick="updateRecap({{ $report->id }}, '{{ $report->start_date }}', '{{ $report->end_date }}')" class="flex-1 bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 hover:text-orange-300 font-medium py-2 px-4 rounded-xl transition-all flex items-center justify-center gap-2 min-w-[140px]">
-                    <i class="ri-refresh-line"></i>
-                    Perbarui
-                </button>
-                <button onclick="downloadRecap({{ $report->id }})" class="flex-1 bg-green-600/20 hover:bg-green-600/30 text-green-400 hover:text-green-300 font-medium py-2 px-4 rounded-xl transition-all flex items-center justify-center gap-2 min-w-[140px]">
+                <button onclick="downloadRecap({{ $report->id }})" class="btn-download">
                     <i class="ri-download-line"></i>
-                    Download
+                    Download Excel
                 </button>
-                <button onclick="sendRecapEmail({{ $report->id }})" class="flex-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 font-medium py-2 px-4 rounded-xl transition-all flex items-center justify-center gap-2 min-w-[140px]">
+                <button onclick="sendRecapEmail({{ $report->id }})" class="btn-email">
                     <i class="ri-mail-line"></i>
                     Kirim Email
                 </button>
@@ -239,7 +463,7 @@
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold text-white flex items-center gap-2">
                     <i class="ri-refresh-line text-orange-400"></i>
-                    Perbarui Rekapitulasi
+                    Perbarui Tutup Hari
                 </h3>
                 <button onclick="closeUpdateRecapModal()" class="text-gray-400 hover:text-white transition-colors">
                     <i class="ri-close-line text-2xl"></i>
@@ -263,7 +487,7 @@
                 <div class="bg-orange-600/10 border border-orange-600/30 rounded-xl p-4">
                     <p class="text-sm text-orange-300 flex items-start gap-2">
                         <i class="ri-information-line text-lg mt-0.5"></i>
-                        <span>Rekapitulasi akan diperbarui dengan data terbaru. Order baru yang completed untuk periode ini akan ditambahkan ke rekapitulasi.</span>
+                        <span>Tutup hari akan diperbarui dengan data terbaru. Order baru yang completed untuk periode ini akan ditambahkan ke tutup hari.</span>
                     </p>
                 </div>
                 <div class="flex gap-3 mt-6">
@@ -272,7 +496,7 @@
                     </button>
                     <button type="submit" class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
                         <i class="ri-refresh-line"></i>
-                        Perbarui Rekapitulasi
+                        Perbarui Tutup Hari
                     </button>
                 </div>
             </form>
@@ -285,7 +509,7 @@
     <div class="bg-gray-900 border border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div class="sticky top-0 bg-gray-900 border-b border-white/10 p-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-white">Detail Rekapitulasi</h3>
+                <h3 class="text-xl font-bold text-white">Detail Tutup Hari</h3>
                 <button onclick="closeReportDetail()" class="text-gray-400 hover:text-white transition-colors">
                     <i class="ri-close-line text-2xl"></i>
                 </button>
@@ -322,101 +546,7 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Quick date functions
-    function setToday() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('start_date').value = today;
-        document.getElementById('end_date').value = today;
-    }
 
-    function setThisMonth() {
-        const today = new Date();
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
-        document.getElementById('start_date').value = firstDay;
-        document.getElementById('end_date').value = lastDay;
-    }
-
-    function setLast7Days() {
-        const today = new Date();
-        const sevenDaysAgo = new Date(today);
-        sevenDaysAgo.setDate(today.getDate() - 6); // -6 karena hari ini juga dihitung
-        document.getElementById('start_date').value = sevenDaysAgo.toISOString().split('T')[0];
-        document.getElementById('end_date').value = today.toISOString().split('T')[0];
-    }
-
-    // Set default to today on page load
-    window.addEventListener('DOMContentLoaded', function() {
-        setToday();
-    });
-
-    // Handle form rekapitulasi
-    document.getElementById('recapForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const startDate = document.getElementById('start_date').value;
-        const endDate = document.getElementById('end_date').value;
-        
-        if (!startDate || !endDate) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Mohon isi tanggal mulai dan tanggal akhir',
-                confirmButtonColor: '#8b5cf6'
-            });
-            return;
-        }
-
-        Swal.fire({
-            title: 'Memproses Rekapitulasi...',
-            text: 'Mohon tunggu sebentar',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        try {
-            const response = await fetch('{{ route("admin.orders.recap") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    start_date: startDate,
-                    end_date: endDate
-                })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: result.message,
-                    confirmButtonColor: '#8b5cf6'
-                }).then(() => {
-                    location.reload();
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: result.message,
-                    confirmButtonColor: '#8b5cf6'
-                });
-            }
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Terjadi kesalahan saat membuat rekapitulasi',
-                confirmButtonColor: '#8b5cf6'
-            });
-        }
-    });
 
     let allOrdersData = []; // Simpan semua order data untuk filtering
 
@@ -451,7 +581,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Gagal memuat detail rekapitulasi',
+                    text: 'Gagal memuat detail tutup hari',
                     confirmButtonColor: '#8b5cf6'
                 });
             });
@@ -590,7 +720,7 @@
         allOrdersData = [];
     }
 
-    // Update rekapitulasi
+    // Update tutup hari
     function updateRecap(reportId, startDate, endDate) {
         document.getElementById('updateRecapId').value = reportId;
         document.getElementById('updateStartDate').value = startDate;
@@ -627,7 +757,7 @@
         }
 
         Swal.fire({
-            title: 'Memperbarui Rekapitulasi...',
+            title: 'Memperbarui Tutup Hari...',
             text: 'Mohon tunggu sebentar',
             allowOutsideClick: false,
             didOpen: () => {
@@ -672,13 +802,158 @@
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'Terjadi kesalahan saat memperbarui rekapitulasi',
+                text: 'Terjadi kesalahan saat memperbarui tutup hari',
                 confirmButtonColor: '#f97316'
             });
         }
     });
 
-    // Download rekapitulasi
+    // Download tutup hari
+    // Print tutup hari
+    function printRecap(reportId) {
+        const printContainer = document.getElementById('recap-' + reportId);
+        if (!printContainer) {
+            alert('Tutup hari tidak ditemukan');
+            return;
+        }
+
+        // Clone hanya receipt-content, tanpa action buttons
+        const receiptContent = printContainer.querySelector('.receipt-content');
+        if (!receiptContent) {
+            alert('Konten tutup hari tidak ditemukan');
+            return;
+        }
+
+        // Clone seluruh receipt content untuk mendapatkan HTML lengkap
+        const clonedContent = receiptContent.cloneNode(true);
+        
+        // Buat window baru untuk print
+        const printWindow = window.open('', '_blank');
+        
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Tutup Hari #${reportId}</title>
+                <meta charset="utf-8">
+                <style>
+                    @page {
+                        size: 80mm auto;
+                        margin: 5mm;
+                    }
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    html, body {
+                        width: 80mm;
+                        margin: 0 auto;
+                        font-family: 'Courier New', monospace;
+                        color: #000;
+                        background: white;
+                    }
+                    .receipt-content {
+                        border: none;
+                        padding: 15px;
+                        background: white;
+                        width: 100%;
+                    }
+                    .receipt-header {
+                        text-align: center;
+                        margin-bottom: 15px;
+                    }
+                    .receipt-title {
+                        font-size: 20px;
+                        font-weight: bold;
+                        margin: 0 0 5px 0;
+                        color: #000;
+                    }
+                    .receipt-address {
+                        font-size: 11px;
+                        margin: 5px 0;
+                        color: #000;
+                    }
+                    .receipt-id {
+                        font-size: 10px;
+                        margin: 5px 0;
+                        color: #000;
+                        letter-spacing: 1px;
+                    }
+                    .receipt-divider {
+                        border-top: 1px dashed #000;
+                        margin: 15px 0;
+                    }
+                    .receipt-info {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 15px;
+                        font-size: 11px;
+                    }
+                    .receipt-info-left {
+                        text-align: left;
+                    }
+                    .receipt-info-right {
+                        text-align: right;
+                    }
+                    .receipt-date,
+                    .receipt-time,
+                    .receipt-number,
+                    .receipt-staff {
+                        margin: 2px 0;
+                        color: #000;
+                    }
+                    .receipt-items {
+                        margin-bottom: 15px;
+                    }
+                    .receipt-item {
+                        margin-bottom: 8px;
+                        font-size: 11px;
+                    }
+                    .receipt-item-name {
+                        margin-bottom: 3px;
+                        color: #000;
+                    }
+                    .receipt-item-details {
+                        display: flex;
+                        justify-content: space-between;
+                        color: #000;
+                    }
+                    .receipt-summary {
+                        margin-bottom: 15px;
+                    }
+                    .receipt-summary-row {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 5px;
+                        font-size: 11px;
+                        color: #000;
+                    }
+                    .receipt-footer {
+                        text-align: center;
+                        font-size: 10px;
+                        margin-top: 15px;
+                        color: #000;
+                    }
+                    .receipt-footer p {
+                        margin: 3px 0;
+                    }
+                </style>
+            </head>
+            <body>
+                ${clonedContent.outerHTML}
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        
+        // Wait for content to load then print
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+        }, 500);
+    }
+
     function downloadRecap(reportId) {
         window.location.href = `{{ url('admin/orders/recap') }}/${reportId}/export`;
     }
@@ -686,7 +961,7 @@
     // Send recap email
     function sendRecapEmail(reportId) {
         Swal.fire({
-            title: 'Kirim Rekapitulasi ke Email',
+            title: 'Kirim Tutup Hari ke Email',
             html: `
                 <div class="text-left">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Email Tujuan</label>

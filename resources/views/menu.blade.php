@@ -53,23 +53,23 @@
                                 @else
                                     <div class="w-full h-full flex items-center justify-center bg-white/5">
                                         <i class="ri-image-line text-4xl text-gray-600"></i>
-                                    </div>
+                    </div>
                                 @endif
 
                                 {{-- Floating Price --}}
                                 <div class="absolute bottom-3 right-3">
                                     <div class="bg-[#fa9a08] text-black px-2.5 py-1 rounded text-[10px] font-black shadow-lg uppercase tracking-tighter">
                                         IDR {{ number_format($menu->price, 0, ',', '.') }}
-                                    </div>
-                                </div>
+                    </div>
+                </div>
 
                                 {{-- Category Label --}}
                                 <div class="absolute top-3 left-3">
                                     <span class="px-2 py-0.5 bg-black/60 backdrop-blur-md text-white text-[8px] font-bold uppercase tracking-[0.2em] rounded border border-white/10">
                                         {{ $category->name }}
                                     </span>
-                                </div>
-                            </div>
+                    </div>
+                </div>
 
                             {{-- Content Area: Text Focused --}}
                             <div class="py-4 space-y-2 flex-1 flex flex-col">
@@ -81,7 +81,7 @@
                                     @empty
                                         <span class="text-[8px] font-bold text-gray-600 uppercase tracking-widest">Regular</span>
                                     @endforelse
-                                </div>
+                    </div>
 
                                 {{-- Menu Name --}}
                                 <h3 class="text-sm font-bold text-white group-hover:text-[#fa9a08] transition-colors leading-tight">
@@ -108,8 +108,8 @@
                                             data-category="{{ $category->slug }}">
                                         <i class="ri-add-circle-line"></i> Tambah
                                     </button>
-                                </div>
-                            </div>
+                    </div>
+                </div>
                         </div>
                     @empty
                         <div class="col-span-full text-center py-20">
@@ -117,8 +117,8 @@
                             <p class="text-gray-400">Belum ada menu yang tersedia.</p>
                         </div>
                     @endforelse
-                </div>
-            </div>
+    </div>
+    </div>
    
             <!-- Order Panel -->
             <div class="order-panel" id="orderPanel">

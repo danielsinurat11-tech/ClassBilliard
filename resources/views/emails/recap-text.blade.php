@@ -1,10 +1,10 @@
-Rekapitulasi Laporan - Billiard Class
+Tutup Hari - Billiard Class
 
 Halo,
 
-Berikut adalah rekapitulasi laporan untuk periode: {{ $reportPeriod }}
+Berikut adalah tutup hari untuk periode: {{ $reportPeriod }}
 
-File Excel rekapitulasi terlampir dalam email ini. Silakan buka file tersebut untuk melihat detail lengkap.
+File Excel tutup hari terlampir dalam email ini. Silakan buka file tersebut untuk melihat detail lengkap.
 
 Catatan:
 - File terlampir dalam format Excel (.xlsx)

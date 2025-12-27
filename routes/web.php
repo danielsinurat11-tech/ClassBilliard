@@ -20,6 +20,7 @@ Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])
 Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
     Route::post('/reports/send-email', [App\Http\Controllers\OrderController::class, 'sendReportEmail'])->name('reports.send-email');
     Route::get('/test-email', [App\Http\Controllers\OrderController::class, 'testEmail'])->name('test.email');
+    Route::get('/notification-sounds/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('notification-sounds.active');
 });
 
 // Public order route (untuk customer membuat pesanan)
@@ -98,17 +99,28 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin']
         Route::get('/check-new', [App\Http\Controllers\OrderController::class, 'checkNewOrders'])->name('check-new');
         Route::post('/{id}/approve', [App\Http\Controllers\OrderController::class, 'approve'])->name('approve');
         Route::post('/{id}/reject', [App\Http\Controllers\OrderController::class, 'reject'])->name('reject');
+        Route::post('/{id}/rekap', [App\Http\Controllers\OrderController::class, 'rekapOrder'])->name('rekap');
         Route::delete('/{id}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('destroy');
         
-        // Rekapitulasi Laporan
+        // Tutup Hari
                 Route::get('/recap', [App\Http\Controllers\OrderController::class, 'recapIndex'])->name('recap.index');
                 Route::post('/recap', [App\Http\Controllers\OrderController::class, 'recap'])->name('recap');
                 Route::get('/recap/{id}', [App\Http\Controllers\OrderController::class, 'recapDetail'])->name('recap.detail');
                 Route::put('/recap/{id}', [App\Http\Controllers\OrderController::class, 'updateRecap'])->name('recap.update');
                 Route::get('/recap/{id}/export', [App\Http\Controllers\OrderController::class, 'exportRecap'])->name('recap.export');
-                Route::post('/recap/{id}/send-email', [App\Http\Controllers\OrderController::class, 'sendRecapEmail'])->name('recap.send-email');
     });
 
+    // Notification Sounds Management
+    Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
+        Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
+        Route::get('/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('active');
+        Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
+        Route::post('/{id}/set-active', [App\Http\Controllers\NotificationSoundController::class, 'setActive'])->name('set-active');
+        Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
+    });
+
+    // Tutup Hari Email
+    Route::post('/orders/recap/{id}/send-email', [App\Http\Controllers\OrderController::class, 'sendRecapEmail'])->name('orders.recap.send-email');
 
     // Profile Management
     Route::prefix('profile')->name('profile.')->group(function () {

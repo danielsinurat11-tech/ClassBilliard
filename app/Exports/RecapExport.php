@@ -156,6 +156,6 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
     public function title(): string
     {
-        return 'Rekapitulasi ' . Carbon::parse($this->report->start_date)->format('d-m-Y') . ' s/d ' . Carbon::parse($this->report->end_date)->format('d-m-Y');
+        return 'Tutup Hari ' . Carbon::parse($this->report->start_date)->format('d-m-Y') . ' s/d ' . Carbon::parse($this->report->end_date)->format('d-m-Y');
     }
 }

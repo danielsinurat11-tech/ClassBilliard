@@ -421,6 +421,8 @@ class OrderController extends Controller
                 'has_status_changes' => false,
                 'new_orders_count' => 0,
                 'status_changed_count' => 0,
+                'active_orders_count' => 0,
+                'has_active_orders' => false,
                 'latest_order_id' => 0,
                 'current_time' => Carbon::now('Asia/Jakarta')->toISOString()
             ]);
@@ -450,16 +452,54 @@ class OrderController extends Controller
             ->first();
         $latestOrderId = $latestOrder ? $latestOrder->id : 0;
         
+        // Check if there are any active orders (pending or processing)
+        $activeOrdersCount = orders::where('shift_id', $user->shift_id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->count();
+        
         // Check if there are any changes (new orders or status changes)
         $hasChanges = $newOrdersCount > 0 || $statusChangedCount > 0;
         
+        // Get new orders details if there are new orders
+        $newOrders = [];
+        if ($newOrdersCount > 0) {
+            $newOrders = orders::with('orderItems')
+                ->where('shift_id', $user->shift_id)
+                ->where('id', '>', $lastOrderId)
+                ->where('status', 'processing')
+                ->orderBy('id', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(function($order) {
+                    return [
+                        'id' => $order->id,
+                        'customer_name' => $order->customer_name,
+                        'table_number' => $order->table_number,
+                        'room' => $order->room,
+                        'total_price' => $order->total_price,
+                        'payment_method' => $order->payment_method,
+                        'created_at' => Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                        'order_items' => $order->orderItems->map(function($item) {
+                            return [
+                                'menu_name' => $item->menu_name,
+                                'price' => $item->price,
+                                'quantity' => $item->quantity,
+                            ];
+                        })
+                    ];
+                });
+        }
+
         return response()->json([
             'has_changes' => $hasChanges,
             'has_new_orders' => $newOrdersCount > 0,
             'has_status_changes' => $statusChangedCount > 0,
             'new_orders_count' => $newOrdersCount,
             'status_changed_count' => $statusChangedCount,
+            'active_orders_count' => $activeOrdersCount,
+            'has_active_orders' => $activeOrdersCount > 0,
             'latest_order_id' => $latestOrderId,
+            'new_orders' => $newOrders,
             'current_time' => Carbon::now('Asia/Jakarta')->toISOString()
         ]);
     }
@@ -1004,8 +1044,139 @@ class OrderController extends Controller
     }
 
     /**
-     * Rekapitulasi laporan - menggabungkan order yang sudah completed menjadi satu rekapan
-     * Setelah di-rekap, order akan dihapus dari histori
+     * Rekap order individual ke tutup hari
+     */
+    public function rekapOrder($id)
+    {
+        $user = Auth::user();
+        
+        if (!$user->shift_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
+            ], 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $order = orders::with('orderItems')->findOrFail($id);
+            
+            // Pastikan order sudah completed
+            if ($order->status !== 'completed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order harus berstatus completed untuk bisa di-rekap.'
+                ], 400);
+            }
+
+            // Pastikan order dari shift yang sama
+            if ($order->shift_id != $user->shift_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke order ini.'
+                ], 403);
+            }
+
+            // Cek apakah sudah ada tutup hari untuk hari ini
+            $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+            $report = Report::where('shift_id', $user->shift_id)
+                ->where('start_date', $today)
+                ->where('end_date', $today)
+                ->first();
+
+            // Buat order summary
+            $orderSummary = [
+                'id' => $order->id,
+                'customer_name' => $order->customer_name,
+                'table_number' => $order->table_number,
+                'room' => $order->room,
+                'total_price' => $order->total_price,
+                'payment_method' => $order->payment_method,
+                'created_at' => Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
+                'items' => $order->orderItems->map(function ($item) {
+                    return [
+                        'menu_name' => $item->menu_name,
+                        'price' => $item->price,
+                        'quantity' => $item->quantity,
+                    ];
+                })
+            ];
+
+            if ($report) {
+                // Update tutup hari yang sudah ada
+                $existingOrderIds = collect($report->order_summary)->pluck('id')->toArray();
+                
+                // Cek apakah order sudah ada di tutup hari
+                if (in_array($order->id, $existingOrderIds)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Order ini sudah di-rekap sebelumnya.'
+                    ], 400);
+                }
+
+                // Tambahkan order ke tutup hari
+                $orderSummaryArray = collect($report->order_summary)->toArray();
+                $orderSummaryArray[] = $orderSummary;
+
+                // Hitung ulang statistik
+                $totalOrders = count($orderSummaryArray);
+                $totalRevenue = collect($orderSummaryArray)->sum('total_price');
+                $cashRevenue = collect($orderSummaryArray)->where('payment_method', 'cash')->sum('total_price');
+                $qrisRevenue = collect($orderSummaryArray)->where('payment_method', 'qris')->sum('total_price');
+                $transferRevenue = collect($orderSummaryArray)->where('payment_method', 'transfer')->sum('total_price');
+
+                $report->update([
+                    'total_orders' => $totalOrders,
+                    'total_revenue' => $totalRevenue,
+                    'cash_revenue' => $cashRevenue,
+                    'qris_revenue' => $qrisRevenue,
+                    'transfer_revenue' => $transferRevenue,
+                    'order_summary' => $orderSummaryArray,
+                ]);
+            } else {
+                // Buat tutup hari baru untuk hari ini
+                $report = Report::create([
+                    'report_date' => Carbon::now('Asia/Jakarta'),
+                    'start_date' => $today,
+                    'end_date' => $today,
+                    'total_orders' => 1,
+                    'total_revenue' => $order->total_price,
+                    'cash_revenue' => $order->payment_method === 'cash' ? $order->total_price : 0,
+                    'qris_revenue' => $order->payment_method === 'qris' ? $order->total_price : 0,
+                    'transfer_revenue' => $order->payment_method === 'transfer' ? $order->total_price : 0,
+                    'order_summary' => [$orderSummary],
+                    'created_by' => $user->name ?? 'System',
+                    'shift_id' => $user->shift_id
+                ]);
+            }
+
+            // Hapus order dan order items
+            order_items::where('order_id', $order->id)->delete();
+            $order->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order berhasil di-rekap ke tutup hari.',
+                'report_id' => $report->id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error rekap order: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal rekap order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Tutup hari - menggabungkan order yang sudah completed menjadi satu laporan
+     * Setelah tutup hari, order akan dihapus dari histori
      */
     public function recap(Request $request)
     {
@@ -1027,12 +1198,15 @@ class OrderController extends Controller
             DB::beginTransaction();
 
             // Ambil semua order yang sudah completed dalam periode tertentu DAN sesuai shift user
+            $startDate = Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta')->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta')->endOfDay();
+            
             $orders = orders::with('orderItems')
                 ->where('status', 'completed')
                 ->where('shift_id', $user->shift_id) // Filter berdasarkan shift user
                 ->whereBetween('created_at', [
-                    Carbon::parse($request->start_date)->startOfDay(),
-                    Carbon::parse($request->end_date)->endOfDay()
+                    $startDate->utc(),
+                    $endDate->utc()
                 ])
                 ->get();
 
@@ -1049,10 +1223,10 @@ class OrderController extends Controller
             $qrisRevenue = $orders->where('payment_method', 'qris')->sum('total_price');
             $transferRevenue = $orders->where('payment_method', 'transfer')->sum('total_price');
 
-            // Cek apakah sudah ada rekapitulasi dengan periode yang sama DAN shift yang sama
+            // Cek apakah sudah ada tutup hari dengan periode yang sama DAN shift yang sama
             $existingReport = Report::where('shift_id', $user->shift_id)
-                ->where('start_date', Carbon::parse($request->start_date)->format('Y-m-d'))
-                ->where('end_date', Carbon::parse($request->end_date)->format('Y-m-d'))
+                ->where('start_date', Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta')->format('Y-m-d'))
+                ->where('end_date', Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta')->format('Y-m-d'))
                 ->first();
 
             // Buat ringkasan order (simpan detail order sebagai JSON)
@@ -1076,11 +1250,11 @@ class OrderController extends Controller
             })->toArray();
 
             if ($existingReport) {
-                // Jika sudah ada rekapitulasi dengan periode yang sama, gabungkan
+                // Jika sudah ada tutup hari dengan periode yang sama, gabungkan
                 $existingOrderIds = collect($existingReport->order_summary)->pluck('id')->toArray();
                 $existingOrders = collect($existingReport->order_summary);
                 
-                // Filter order baru yang belum ada di rekapitulasi
+                // Filter order baru yang belum ada di tutup hari
                 $newOrders = collect($orderSummary)->reject(function ($order) use ($existingOrderIds) {
                     return in_array($order['id'], $existingOrderIds);
                 })->toArray();
@@ -1095,7 +1269,7 @@ class OrderController extends Controller
                 $mergedQrisRevenue = collect($mergedOrderSummary)->where('payment_method', 'qris')->sum('total_price');
                 $mergedTransferRevenue = collect($mergedOrderSummary)->where('payment_method', 'transfer')->sum('total_price');
                 
-                // Update rekapitulasi yang sudah ada
+                // Update tutup hari yang sudah ada
                 $existingReport->update([
                     'total_orders' => $mergedTotalOrders,
                     'total_revenue' => $mergedTotalRevenue,
@@ -1106,13 +1280,13 @@ class OrderController extends Controller
                 ]);
                 
                 $report = $existingReport;
-                $message = 'Rekapitulasi berhasil digabung dengan rekapitulasi yang sudah ada. ' . count($newOrders) . ' order baru ditambahkan.';
+                $message = 'Tutup hari berhasil digabung dengan tutup hari yang sudah ada. ' . count($newOrders) . ' order baru ditambahkan.';
             } else {
-                // Buat rekapitulasi baru
+                // Buat tutup hari baru
                 $report = Report::create([
-                    'report_date' => Carbon::now(),
-                    'start_date' => Carbon::parse($request->start_date),
-                    'end_date' => Carbon::parse($request->end_date),
+                    'report_date' => Carbon::now('Asia/Jakarta'),
+                    'start_date' => Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta'),
+                    'end_date' => Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta'),
                     'total_orders' => $orders->count(),
                     'total_revenue' => $totalRevenue,
                     'cash_revenue' => $cashRevenue,
@@ -1122,7 +1296,7 @@ class OrderController extends Controller
                     'created_by' => Auth::user()->name ?? 'System',
                     'shift_id' => $user->shift_id
                 ]);
-                $message = 'Rekapitulasi berhasil dibuat. ' . $orders->count() . ' order telah di-rekap.';
+                $message = 'Tutup hari berhasil dibuat. ' . $orders->count() . ' order telah di-tutup hari.';
             }
 
             // Hapus order yang sudah di-rekap beserta order items-nya
@@ -1144,15 +1318,15 @@ class OrderController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membuat rekapitulasi: ' . $e->getMessage()
+                'message' => 'Gagal membuat tutup hari: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Tampilkan halaman rekapitulasi
+     * Tampilkan halaman tutup hari
      */
-    public function recapIndex()
+    public function recapIndex(Request $request)
     {
         $user = Auth::user();
         
@@ -1162,32 +1336,41 @@ class OrderController extends Controller
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
 
-        // Tampilkan rekapitulasi dari shift user yang login ATAU rekap lama yang shift_id-nya NULL
-        // (untuk backward compatibility dengan rekap yang dibuat sebelum sistem shift)
-        $reports = Report::where(function($query) use ($user) {
-                $query->where('shift_id', $user->shift_id)
-                      ->orWhereNull('shift_id'); // Tampilkan juga rekap lama yang belum punya shift_id
-            })
-            ->orderBy('report_date', 'desc')
+        // Query dasar untuk tutup hari
+        $query = Report::where(function($q) use ($user) {
+                $q->where('shift_id', $user->shift_id)
+                  ->orWhereNull('shift_id'); // Tampilkan juga rekap lama yang belum punya shift_id
+            });
+
+        // Filter berdasarkan tanggal - default ke tanggal hari ini jika tidak ada filter
+        $filterDate = $request->has('filter_date') && $request->filter_date 
+            ? Carbon::parse($request->filter_date)->setTimezone('Asia/Jakarta')->format('Y-m-d')
+            : Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        
+        $query->whereDate('report_date', $filterDate);
+
+        // Order dan paginate
+        $reports = $query->orderBy('report_date', 'desc')
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->appends($request->query());
 
         return view('admin.orders.recap', compact('reports'));
     }
 
     /**
-     * Get detail rekapitulasi untuk modal
+     * Get detail tutup hari untuk modal
      */
     public function recapDetail($id)
     {
         $user = Auth::user();
         $report = Report::findOrFail($id);
         
-        // Pastikan user hanya bisa melihat rekapitulasi shift mereka sendiri
+        // Pastikan user hanya bisa melihat tutup hari shift mereka sendiri
         if ($report->shift_id != $user->shift_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki akses ke rekapitulasi ini.'
+                'message' => 'Anda tidak memiliki akses ke tutup hari ini.'
             ], 403);
         }
         
@@ -1198,7 +1381,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Update rekapitulasi yang sudah ada
+     * Update tutup hari yang sudah ada
      */
     public function updateRecap(Request $request, $id)
     {
@@ -1212,7 +1395,7 @@ class OrderController extends Controller
 
             $report = Report::findOrFail($id);
 
-            // Cek apakah periode baru sama dengan rekapitulasi lain (selain yang sedang diupdate)
+            // Cek apakah periode baru sama dengan tutup hari lain (selain yang sedang diupdate)
             $existingReportWithSamePeriod = Report::where('id', '!=', $id)
                 ->where('start_date', Carbon::parse($request->start_date)->format('Y-m-d'))
                 ->where('end_date', Carbon::parse($request->end_date)->format('Y-m-d'))
@@ -1229,16 +1412,16 @@ class OrderController extends Controller
                 ])
                 ->get();
 
-            // Gabungkan dengan order yang sudah ada di rekapitulasi sebelumnya
+            // Gabungkan dengan order yang sudah ada di tutup hari sebelumnya
             $existingOrderIds = collect($report->order_summary)->pluck('id')->toArray();
             $existingOrders = collect($report->order_summary);
             
-            // Jika ada rekapitulasi lain dengan periode yang sama, gabungkan juga
+            // Jika ada tutup hari lain dengan periode yang sama, gabungkan juga
             if ($existingReportWithSamePeriod) {
                 $otherReportOrderIds = collect($existingReportWithSamePeriod->order_summary)->pluck('id')->toArray();
                 $otherReportOrders = collect($existingReportWithSamePeriod->order_summary);
                 
-                // Gabungkan order dari rekapitulasi lain (yang belum ada di rekapitulasi ini)
+                // Gabungkan order dari tutup hari lain (yang belum ada di tutup hari ini)
                 $otherOrdersToMerge = $otherReportOrders->reject(function ($order) use ($existingOrderIds) {
                     return in_array($order['id'], $existingOrderIds);
                 });
@@ -1248,7 +1431,7 @@ class OrderController extends Controller
                 $existingOrderIds = $existingOrders->pluck('id')->toArray();
             }
 
-            // Ambil order baru yang belum ada di rekapitulasi
+            // Ambil order baru yang belum ada di tutup hari
             $newOrders = $orders->reject(function ($order) use ($existingOrderIds) {
                 return in_array($order->id, $existingOrderIds);
             });
@@ -1267,7 +1450,7 @@ class OrderController extends Controller
                 ];
             })->toArray();
             
-            // Jika ada rekapitulasi lain dengan periode yang sama, hapus rekapitulasi tersebut setelah digabung
+            // Jika ada tutup hari lain dengan periode yang sama, hapus tutup hari tersebut setelah digabung
             if ($existingReportWithSamePeriod) {
                 $existingReportWithSamePeriod->delete();
             }
@@ -1308,7 +1491,7 @@ class OrderController extends Controller
             $qrisRevenue = collect($newOrderSummary)->where('payment_method', 'qris')->sum('total_price');
             $transferRevenue = collect($newOrderSummary)->where('payment_method', 'transfer')->sum('total_price');
 
-            // Update rekapitulasi
+            // Update tutup hari
             $report->update([
                 'start_date' => Carbon::parse($request->start_date),
                 'end_date' => Carbon::parse($request->end_date),
@@ -1320,7 +1503,7 @@ class OrderController extends Controller
                 'order_summary' => $newOrderSummary,
             ]);
 
-            // Hapus order baru yang sudah ditambahkan ke rekapitulasi
+            // Hapus order baru yang sudah ditambahkan ke tutup hari
             if ($newOrders->isNotEmpty()) {
                 $newOrderIds = $newOrders->pluck('id');
                 order_items::whereIn('order_id', $newOrderIds)->delete();
@@ -1329,11 +1512,11 @@ class OrderController extends Controller
 
             DB::commit();
 
-            $message = 'Rekapitulasi berhasil diperbarui.';
+            $message = 'Tutup hari berhasil diperbarui.';
             if ($newOrders->count() > 0) {
                 $message .= ' ' . $newOrders->count() . ' order baru ditambahkan.';
             } else {
-                $message .= ' Periode rekapitulasi telah diupdate.';
+                $message .= ' Periode tutup hari telah diupdate.';
             }
 
             return response()->json([
@@ -1348,33 +1531,33 @@ class OrderController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui rekapitulasi: ' . $e->getMessage()
+                'message' => 'Gagal memperbarui tutup hari: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Download rekapitulasi sebagai Excel
+     * Download tutup hari sebagai Excel
      */
     public function exportRecap($id)
     {
         $user = Auth::user();
         $report = Report::findOrFail($id);
         
-        // Pastikan user hanya bisa export rekapitulasi shift mereka sendiri
+        // Pastikan user hanya bisa export tutup hari shift mereka sendiri
         if ($report->shift_id != $user->shift_id) {
-            return back()->with('error', 'Anda tidak memiliki akses ke rekapitulasi ini.');
+            return back()->with('error', 'Anda tidak memiliki akses ke tutup hari ini.');
         }
         
         $startDate = Carbon::parse($report->start_date)->format('Y-m-d');
         $endDate = Carbon::parse($report->end_date)->format('Y-m-d');
-        $filename = 'Rekapitulasi_' . $startDate . '_s_d_' . $endDate . '.xlsx';
+        $filename = 'Tutup_Hari_' . $startDate . '_s_d_' . $endDate . '.xlsx';
 
         return Excel::download(new RecapExport($report), $filename);
     }
 
     /**
-     * Kirim rekapitulasi via email
+     * Kirim tutup hari via email
      */
     public function sendRecapEmail(Request $request, $id)
     {
@@ -1385,11 +1568,11 @@ class OrderController extends Controller
         $user = Auth::user();
         $report = Report::findOrFail($id);
         
-        // Pastikan user hanya bisa kirim rekapitulasi shift mereka sendiri
+        // Pastikan user hanya bisa kirim tutup hari shift mereka sendiri
         if ($report->shift_id != $user->shift_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki akses ke rekapitulasi ini.'
+                'message' => 'Anda tidak memiliki akses ke tutup hari ini.'
             ], 403);
         }
         
@@ -1397,12 +1580,12 @@ class OrderController extends Controller
         $endDate = Carbon::parse($report->end_date)->format('d M Y');
         $reportPeriod = $startDate . ' - ' . $endDate;
         
-        $filename = 'Rekapitulasi_' . Carbon::parse($report->start_date)->format('Y-m-d') . '_s_d_' . Carbon::parse($report->end_date)->format('Y-m-d') . '.xlsx';
+        $filename = 'Tutup_Hari_' . Carbon::parse($report->start_date)->format('Y-m-d') . '_s_d_' . Carbon::parse($report->end_date)->format('Y-m-d') . '.xlsx';
 
         try {
             // Check email configuration
             if (config('mail.default') === 'log') {
-                Log::info('Email rekapitulasi akan dikirim ke: ' . $request->email);
+                Log::info('Email tutup hari akan dikirim ke: ' . $request->email);
             }
 
             // Ensure temp directory exists
@@ -1431,7 +1614,7 @@ class OrderController extends Controller
             ]);
 
             // Send email with attachment
-            Mail::to($request->email)->send(new SendRecapEmail($fullPath, $filename, $reportPeriod));
+            Mail::to($request->email)->send(new SendRecapEmail($fullPath, $filename, $reportPeriod, $report));
 
             // Log after sending
             Log::info('Recap email sent successfully', [
@@ -1444,7 +1627,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Rekapitulasi berhasil dikirim ke ' . $request->email . '. Silakan cek kotak masuk dan folder Spam Anda.'
+                'message' => 'Tutup hari berhasil dikirim ke ' . $request->email . '. Silakan cek kotak masuk dan folder Spam Anda.'
             ]);
         } catch (\Exception $e) {
             // Delete temporary file if exists

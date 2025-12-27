@@ -1,11 +1,11 @@
 @php
     try {
-        $tentangKami = \App\Models\TentangKami::where('is_active', true)->first();
-        $bodyText = '';
-        if ($tentangKami) {
-            if (!empty($tentangKami->subtitle)) {
-                $bodyText = trim($tentangKami->subtitle);
-            }
+    $tentangKami = \App\Models\TentangKami::where('is_active', true)->first();
+    $bodyText = '';
+    if ($tentangKami) {
+        if (!empty($tentangKami->subtitle)) {
+            $bodyText = trim($tentangKami->subtitle);
+        }
         }
     } catch (\Exception $e) {
         $tentangKami = null;
@@ -306,52 +306,52 @@
         <div class="about-content-wrapper">
             @if($bodyText)
             <div class="about-text-card">
-                <div class="about-body">
-                    @foreach(preg_split('/\r?\n\r?\n/', $bodyText) as $para)
+            <div class="about-body">
+                @foreach(preg_split('/\r?\n\r?\n/', $bodyText) as $para)
                         <p>{{ trim($para) }}</p>
-                    @endforeach
+                @endforeach
                 </div>
             </div>
             @endif
 
-            @if(!empty($tentangKami->video_url))
-            @php
-                $videoSrc = $tentangKami->video_url;
-                $isYouTube = preg_match('/(youtube\.com|youtu\.be)/', $videoSrc);
-                if ($isYouTube) {
-                    $hasQuery = str_contains($videoSrc, '?');
+        @if(!empty($tentangKami->video_url))
+        @php
+            $videoSrc = $tentangKami->video_url;
+            $isYouTube = preg_match('/(youtube\.com|youtu\.be)/', $videoSrc);
+            if ($isYouTube) {
+                $hasQuery = str_contains($videoSrc, '?');
                     $params = 'autoplay=0&mute=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&vq=hd1080';
-                    $parts = parse_url($videoSrc);
-                    $id = null;
-                    if (!empty($parts['path'])) {
-                        if (preg_match('#/embed/([^/?]+)#', $parts['path'], $m)) { $id = $m[1]; }
-                    }
-                    $videoSrc = $hasQuery ? ($videoSrc . '&' . $params) : ($videoSrc . '?' . $params);
+                $parts = parse_url($videoSrc);
+                $id = null;
+                if (!empty($parts['path'])) {
+                    if (preg_match('#/embed/([^/?]+)#', $parts['path'], $m)) { $id = $m[1]; }
                 }
-            @endphp
+                $videoSrc = $hasQuery ? ($videoSrc . '&' . $params) : ($videoSrc . '?' . $params);
+            }
+        @endphp
             <div class="video-wrapper">
                 <div class="video-container">
                     <iframe id="profileVideoIframe" src="{{ $videoSrc }}" title="Video Profil" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                </div>
             </div>
-            @if($isYouTube)
-            <script src="https://www.youtube.com/iframe_api"></script>
-            <script>
-                var ytPlayer;
-                function onYouTubeIframeAPIReady(){
-                    ytPlayer = new YT.Player('profileVideoIframe', {
-                        events: {
-                            'onReady': function(ev){
-                                try {
-                                    ev.target.setPlaybackQuality('hd1080');
+        </div>
+        @if($isYouTube)
+        <script src="https://www.youtube.com/iframe_api"></script>
+        <script>
+            var ytPlayer;
+            function onYouTubeIframeAPIReady(){
+                ytPlayer = new YT.Player('profileVideoIframe', {
+                    events: {
+                        'onReady': function(ev){
+                            try {
+                                ev.target.setPlaybackQuality('hd1080');
                                 } catch(e) {}
-                            }
                         }
-                    });
-                }
-            </script>
-            @endif
-            @endif
+                    }
+                });
+            }
+        </script>
+        @endif
+        @endif
         </div>
     </div>
 </section>
