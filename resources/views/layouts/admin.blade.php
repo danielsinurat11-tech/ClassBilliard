@@ -243,6 +243,54 @@
         <!-- MAIN CONTENT -->
         <main class="flex-1 p-8 md:p-12">
             <div class="max-w-[1600px] mx-auto">
+                <!-- ALERTS -->
+                @if(session('error'))
+                    <div x-data="{ show: true }" x-show="show"
+                        class="mb-6 p-6 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <i class="ri-alert-fill text-red-500 text-2xl shrink-0 mt-0.5"></i>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-red-600 dark:text-red-400 mb-3">{{ session('error') }}</p>
+                            <div class="flex gap-2">
+                                <form action="{{ route('logout') }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-md transition-all">
+                                        <i class="ri-logout-box-r-line mr-1"></i> Logout Sekarang
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <button @click="show = false" class="text-red-500 hover:text-red-700 shrink-0">
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+                @endif
+
+                @if(session('warning'))
+                    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
+                        class="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <i class="ri-alert-line text-amber-500 text-xl shrink-0 mt-0.5"></i>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-amber-600 dark:text-amber-400">{{ session('warning') }}</p>
+                        </div>
+                        <button @click="show = false" class="text-amber-500 hover:text-amber-700 shrink-0">
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+                @endif
+
+                @if(session('success'))
+                    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+                        class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <i class="ri-checkbox-circle-fill text-emerald-500 text-xl shrink-0 mt-0.5"></i>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400">{{ session('success') }}</p>
+                        </div>
+                        <button @click="show = false" class="text-emerald-500 hover:text-emerald-700 shrink-0">
+                            <i class="ri-close-line"></i>
+                        </button>
+                    </div>
+                @endif
+
                 @yield('content')
             </div>
         </main>

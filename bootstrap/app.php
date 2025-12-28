@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'auth.custom' => \App\Http\Middleware\EnsureUserIsAuthenticated::class,
+            'check.shift.time' => \App\Http\Middleware\CheckShiftTime::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -3,17 +3,21 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryAdminController;
 use App\Http\Controllers\MenuAdminController;
+use App\Http\Controllers\LogoutController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('home');
 })->name('home');
 
+// Logout Route (accessible without shift time check)
+Route::post('/logout', [LogoutController::class, 'logout'])->name('logout')->middleware('auth.custom');
+
 
 Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name('menu');
 
 // Kitchen Routes (Hanya untuk role kitchen)
-Route::middleware(['auth.custom', 'role:kitchen'])->group(function () {
+Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(function () {
 Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
 Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
 Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
@@ -45,7 +49,18 @@ Route::delete('/orders/{id}/remove-item/{itemId}', [App\Http\Controllers\OrderCo
 Route::post('/orders/{id}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
 
 // Admin Routes (Hanya untuk role admin)
+
+// Profile Routes (NO SHIFT TIME CHECK - untuk logout, ganti password, dll)
 Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin'])->group(function () {
+    Route::controller(AdminController::class)->group(function () {
+        Route::get('/profile', 'profileEdit')->name('profile.edit');
+        Route::put('/profile/update', 'profileUpdate')->name('profile.update');
+        Route::put('/profile/password', 'profilePassword')->name('profile.password');
+    });
+});
+
+// Admin Dashboard Routes (WITH SHIFT TIME CHECK)
+Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin', 'check.shift.time'])->group(function () {
     Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
     
     // Hero Section
@@ -133,12 +148,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin']
 
     // Tutup Hari Email
     Route::post('/orders/recap/{id}/send-email', [App\Http\Controllers\OrderController::class, 'sendRecapEmail'])->name('orders.recap.send-email');
-
-    Route::controller(AdminController   ::class)->group(function () {
-        Route::get('/profile', 'profileEdit')->name('profile.edit');
-        Route::put('/profile/update', 'profileUpdate')->name('profile.update');
-        Route::put('/profile/password', 'profilePassword')->name('profile.password');
-    });
 
     // Menu Management (CRUD)
     Route::resource('menus', MenuAdminController::class)->names([

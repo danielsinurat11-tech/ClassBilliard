@@ -113,6 +113,46 @@
         @endif
 
         <main class="@if(!request()->routeIs('dapur') && !request()->routeIs('reports') && !request()->routeIs('pengaturan-audio'))pt-[73px] @endif bg-black">
+            <!-- ALERTS -->
+            @if(session('error'))
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+                    class="relative z-50 mx-4 mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <i class="ri-alert-fill text-red-500 text-xl shrink-0 mt-0.5"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-red-400">{{ session('error') }}</p>
+                    </div>
+                    <button @click="show = false" class="text-red-500 hover:text-red-700 shrink-0">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
+                    class="relative z-50 mx-4 mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <i class="ri-alert-line text-amber-500 text-xl shrink-0 mt-0.5"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-amber-400">{{ session('warning') }}</p>
+                    </div>
+                    <button @click="show = false" class="text-amber-500 hover:text-amber-700 shrink-0">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+            @endif
+
+            @if(session('success'))
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+                    class="relative z-50 mx-4 mt-4 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <i class="ri-checkbox-circle-fill text-emerald-500 text-xl shrink-0 mt-0.5"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-emerald-400">{{ session('success') }}</p>
+                    </div>
+                    <button @click="show = false" class="text-emerald-500 hover:text-emerald-700 shrink-0">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+            @endif
+
             @yield('content')
         </main>
 
