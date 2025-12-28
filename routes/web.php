@@ -22,6 +22,9 @@ Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::cla
 Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
     Route::post('/reports/send-email', [App\Http\Controllers\OrderController::class, 'sendReportEmail'])->name('reports.send-email');
     Route::get('/test-email', [App\Http\Controllers\OrderController::class, 'testEmail'])->name('test.email');
+    Route::get('/pengaturan-audio', function () {
+        return view('dapur.pengaturan-audio');
+    })->name('pengaturan-audio');
     Route::get('/notification-sounds/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('notification-sounds.active');
     
     // Notification Sounds Management untuk Kitchen

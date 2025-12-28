@@ -2,29 +2,49 @@
 
 @section('title', 'Dapur - Billiard Class')
 
+@php
+    $isDarkMode = request()->cookie('theme') === 'dark' || (!request()->cookie('theme') && isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark');
+@endphp
+
 @push('styles')
 <style>
     .sidebar {
         width: 280px;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
         position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
-        overflow-y: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
     .sidebar.collapsed {
         transform: translateX(-100%);
     }
+    .sidebar-desktop-collapsed {
+        width: 80px;
+    }
     .main-content {
         margin-left: 280px;
-        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         height: 100vh;
         overflow-y: auto;
+        overflow-x: hidden;
+    }
+    /* Hide scrollbar but keep functionality */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
     .main-content.expanded {
         margin-left: 0;
+    }
+    .main-content.desktop-collapsed {
+        margin-left: 80px;
     }
     .sidebar-menu-item {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -32,32 +52,21 @@
     }
     .sidebar-menu-item:hover {
         background-color: rgba(255, 255, 255, 0.05);
-        transform: translateX(4px);
     }
     .sidebar-menu-item.active {
-        background: linear-gradient(90deg, rgba(250, 154, 8, 0.15) 0%, rgba(250, 154, 8, 0.05) 100%);
-        border-left: 4px solid #fa9a08;
-        color: #fa9a08;
+        background-color: #fa9a08;
+        color: #000 !important;
         font-weight: 600;
     }
-    .sidebar-menu-item.active::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: linear-gradient(180deg, #fa9a08 0%, #ffb84d 100%);
-        border-radius: 0 4px 4px 0;
-    }
-    .sidebar-menu-item i {
-        transition: transform 0.2s ease;
-    }
-    .sidebar-menu-item:hover i {
-        transform: scale(1.1);
-    }
     .sidebar-menu-item.active i {
-        color: #fa9a08;
+        color: #000 !important;
+    }
+    .sidebar-menu-item.active span {
+        color: #000 !important;
+    }
+    .sidebar-menu-item {
+        display: flex;
+        align-items: center;
     }
     /* Responsive Styles for Tablet and Mobile */
     @media (max-width: 1024px) {
@@ -66,6 +75,7 @@
             z-index: 9999;
             height: 100vh;
             overflow-y: auto;
+            overflow-x: hidden;
             transform: translateX(-100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             width: 280px;
@@ -77,6 +87,7 @@
             margin-left: 0;
             height: 100vh;
             overflow-y: auto;
+            overflow-x: hidden;
         }
         .sidebar-overlay {
             display: none;
@@ -119,26 +130,6 @@
             padding: 1rem !important;
         }
 
-        /* Filter tabs mobile */
-        .filter-tab-btn {
-            padding: 0.75rem 1rem !important;
-            font-size: 0.85rem !important;
-        }
-
-        /* Filter inputs mobile */
-        .filter-input-group {
-            flex-direction: column;
-            align-items: flex-start !important;
-        }
-
-        .filter-input-group label {
-            min-width: auto !important;
-        }
-
-        .filter-input-group input {
-            width: 100% !important;
-            max-width: 100% !important;
-        }
 
         /* Reports summary mobile */
         #reportsSummary {
@@ -345,162 +336,58 @@
     {{-- Notification Container --}}
     <div id="notificationContainer" class="notification-container"></div>
 
-    <div class="flex min-h-screen bg-black">
+    <div class="flex min-h-screen bg-white dark:bg-[#050505]" x-data="themeManager()" x-init="initTheme()">
         {{-- Sidebar --}}
-        <aside id="sidebar" class="sidebar fixed lg:static top-0 left-0 h-screen bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f] border-r border-white/10 z-50 flex flex-col">
+        <aside id="sidebar" 
+            @mouseenter="if(sidebarCollapsed) sidebarHover = true" 
+            @mouseleave="sidebarHover = false"
+            class="sidebar fixed lg:static top-0 left-0 h-screen bg-gradient-to-b from-gray-50 to-white dark:from-[#0A0A0A] dark:to-[#050505] border-r border-gray-200 dark:border-white/10 z-50 flex flex-col shadow-sm dark:shadow-none"
+            :class="[
+                (sidebarCollapsed && !sidebarHover) ? 'sidebar-desktop-collapsed' : '',
+                (sidebarCollapsed && sidebarHover) ? 'shadow-[20px_0_50px_rgba(0,0,0,0.5)]' : ''
+            ]">
             {{-- Sidebar Header --}}
-            <div class="p-6 border-b border-white/10 bg-gradient-to-r from-[#1a1a1a] to-[#252525]">
+            <div class="p-6 border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-[#0A0A0A] dark:to-[#1a1a1a]">
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-[#fa9a08] to-[#ffb84d] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <div class="w-10 h-10 bg-gradient-to-br from-[#fa9a08] to-[#ffb84d] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 shrink-0">
                             <i class="ri-restaurant-line text-white text-xl"></i>
                         </div>
-                        <h2 class="text-xl font-bold text-white">Dashboard Dapur</h2>
+                        <h2 x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="text-xl font-bold text-gray-900 dark:text-slate-200 whitespace-nowrap">Dashboard Dapur</h2>
                     </div>
-                    <button id="sidebar-toggle" class="lg:hidden text-gray-400 hover:text-white transition-colors">
+                    <button id="sidebar-toggle" class="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                         <i class="ri-close-line text-2xl"></i>
                     </button>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms>
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <p class="text-gray-400 text-sm">Selamat datang, <span class="text-white font-medium">{{ Auth::user()->name ?? 'User' }}</span></p>
+                    <p class="text-gray-600 dark:text-gray-500 text-sm">Selamat datang, <span class="text-gray-900 dark:text-slate-200 font-medium">{{ Auth::user()->name ?? 'User' }}</span></p>
                 </div>
             </div>
 
             {{-- Sidebar Menu --}}
-            <nav class="flex-1 p-4 space-y-2 overflow-hidden">
-                <a href="#" id="menu-orders" class="sidebar-menu-item active flex items-center gap-4 px-4 py-3.5 rounded-xl text-white cursor-pointer group">
-                    <div class="w-10 h-10 flex items-center justify-center">
-                        <i class="ri-shopping-cart-2-line text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-base">Orderan</span>
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto overflow-x-hidden no-scrollbar">
+                <a href="{{ route('dapur') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('dapur') ? 'active' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                    <i class="ri-shopping-cart-2-line text-lg shrink-0"></i>
+                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="font-semibold text-sm whitespace-nowrap">Orderan</span>
                 </a>
-                <a href="#" id="menu-reports" class="sidebar-menu-item flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:text-white cursor-pointer group">
-                    <div class="w-10 h-10 flex items-center justify-center">
-                        <i class="ri-file-chart-2-line text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-base">Laporan</span>
+                <a href="{{ route('reports') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('reports') ? 'active' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                    <i class="ri-file-chart-2-line text-lg shrink-0"></i>
+                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="font-semibold text-sm whitespace-nowrap">Laporan</span>
+                </a>
+                <a href="{{ route('pengaturan-audio') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('pengaturan-audio') ? 'active' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                    <i class="ri-settings-3-line text-lg shrink-0"></i>
+                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="font-semibold text-sm whitespace-nowrap">Pengaturan Audio</span>
                 </a>
             </nav>
 
             {{-- Sidebar Footer --}}
-            <div class="p-4 border-t border-white/10 bg-[#0f0f0f] space-y-2">
-                {{-- Audio Settings Button --}}
-                <div x-data="kitchenNotification()">
-                    <button @click="openSettings = true" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98]">
-                        <i class="ri-settings-3-line text-lg"></i>
-                        <span>Pengaturan Audio</span>
+            <div class="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#050505]">
+                {{-- Sidebar Toggle Button --}}
+                <button @click="sidebarCollapsed = !sidebarCollapsed; sidebarHover = false" 
+                    class="w-full h-9 flex items-center justify-center rounded-md bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
+                    <i :class="sidebarCollapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line'" class="text-sm"></i>
                     </button>
-                    
-                    {{-- Audio Settings Modal --}}
-                    <div x-show="openSettings" @click.away="openSettings = false" x-cloak
-                        x-transition:enter="transition ease-out duration-300"
-                        x-transition:enter-start="opacity-0"
-                        x-transition:enter-end="opacity-100"
-                        x-transition:leave="transition ease-in duration-200"
-                        x-transition:leave-start="opacity-100"
-                        x-transition:leave-end="opacity-0"
-                        class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
-                        style="display: none;">
-                        <div @click.stop
-                            class="bg-[#1a1a1a] border border-white/10 rounded-xl shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-bold text-white">Pengaturan Audio Notifikasi</h3>
-                                <button @click="openSettings = false" class="text-gray-400 hover:text-white text-xl">
-                                    <i class="ri-close-line"></i>
-                                </button>
-                            </div>
-                        
-                        {{-- Audio Settings --}}
-                        <div class="mb-4">
-                            <label class="block text-xs font-medium text-gray-400 mb-2">Pilih Audio Notifikasi</label>
-                            
-                            {{-- Current Audio Display --}}
-                            <div x-show="selectedAudio" class="mb-2 p-2 bg-black/20 rounded-lg">
-                                <p class="text-xs text-gray-400">Audio Saat Ini:</p>
-                                <p class="text-xs font-medium text-white" x-text="getCurrentAudioName() || 'Tidak ada audio dipilih'"></p>
-                            </div>
-                            <div x-show="!selectedAudio" class="mb-2 p-2 bg-gray-500/10 border border-gray-500/20 rounded-lg">
-                                <p class="text-xs text-gray-400">Audio Saat Ini:</p>
-                                <p class="text-xs font-medium text-gray-500">Tidak ada audio</p>
-                            </div>
-                            
-                            {{-- File Picker untuk Pilih/Upload Audio --}}
-                            <div class="mb-2">
-                                <input type="file" @change="handleAudioFileSelect($event)" accept="audio/*" 
-                                    class="hidden" x-ref="audioFilePicker">
-                                <button @click="openFilePicker()" 
-                                    class="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all mb-2">
-                                    <i class="ri-file-music-line"></i> Pilih File Audio
-                                </button>
-                                
-                                {{-- Preview Selected File --}}
-                                <div x-show="previewFile" class="mb-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg">
-                                    <p class="text-xs text-green-400 mb-1">File Dipilih:</p>
-                                    <p class="text-xs text-white font-medium" x-text="previewFile.name"></p>
-                                    <p class="text-xs text-gray-400" x-text="formatFileSize(previewFile.size)"></p>
-                                </div>
-                                
-                                {{-- Options untuk File yang Dipilih --}}
-                                <div x-show="previewFile" class="space-y-2">
-                                    <input type="text" x-model="newAudioName" placeholder="Nama audio (opsional)" 
-                                        class="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50">
-                                    
-                                    <div class="flex gap-2">
-                                        <button @click="useAudioDirectly()" 
-                                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all">
-                                            <i class="ri-check-line"></i> Gunakan Langsung
-                                        </button>
-                                        <button @click="uploadAudioAsNew()" 
-                                            class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all">
-                                            <i class="ri-upload-cloud-line"></i> Simpan ke Daftar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {{-- Test Audio Button --}}
-                            <button x-show="selectedAudio" @click="testAudio()" 
-                                class="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-all mb-3">
-                                <i class="ri-play-line"></i> Test Audio
-                            </button>
-                            
-                            {{-- List of Saved Audios --}}
-                            <div class="mt-3 pt-3 border-t border-white/10">
-                                <label class="block text-xs font-medium text-gray-400 mb-2">Daftar Audio Tersimpan</label>
-                                <div class="max-h-32 overflow-y-auto">
-                                    <div x-show="availableSounds.length === 0" class="text-xs text-gray-500 text-center py-2">
-                                        Belum ada audio tersimpan
-                                    </div>
-                                    <template x-for="sound in availableSounds" :key="sound.id">
-                                        <div class="flex items-center justify-between bg-black/20 rounded-lg p-2 mb-1">
-                                            <span class="text-xs text-white" x-text="sound.name"></span>
-                                            <div class="flex items-center gap-2">
-                                                <button @click="selectAudioFromList(sound)" 
-                                                    class="text-xs text-blue-400 hover:text-blue-300" title="Gunakan audio ini">
-                                                    <i class="ri-check-line"></i>
-                                                </button>
-                                                <button @click="deleteSound(sound.id)" 
-                                                    class="text-xs text-red-400 hover:text-red-300" title="Hapus">
-                                                    <i class="ri-delete-bin-line"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                {{-- Logout Button --}}
-                <form action="{{ route('logout') }}" method="POST" class="w-full">
-                    @csrf
-                    <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-red-500/20 hover:shadow-red-500/30 hover:scale-[1.02] active:scale-[0.98]">
-                        <i class="ri-logout-box-r-line text-lg"></i>
-                        <span>Logout</span>
-                    </button>
-                </form>
             </div>
         </aside>
 
@@ -508,17 +395,49 @@
         <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
         {{-- Main Content --}}
-        <div class="main-content flex-1 w-full">
-            {{-- Mobile Header dengan Toggle --}}
-            <div class="lg:hidden bg-[#1a1a1a] p-4 border-b border-white/10 flex items-center justify-between">
-                <button id="mobile-sidebar-toggle" class="text-white">
+        <div class="main-content flex-1 w-full" :class="sidebarCollapsed ? 'desktop-collapsed' : ''">
+            {{-- Header dengan Profile dan Theme Toggle --}}
+            <header class="h-16 px-6 flex items-center justify-between sticky top-0 z-40 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10">
+                <div class="flex items-center gap-4">
+                    {{-- Mobile Sidebar Toggle --}}
+                    <button id="mobile-sidebar-toggle" class="lg:hidden text-gray-900 dark:text-slate-200">
                     <i class="ri-menu-line text-2xl"></i>
                 </button>
-                <h2 class="text-lg font-bold text-white">Dashboard Dapur</h2>
-                <div class="w-8"></div>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-slate-200 hidden lg:block">Dashboard Dapur</h2>
             </div>
 
-            <div class="p-6 max-md:p-4">
+                        <div class="flex items-center gap-4">
+                    {{-- Theme Switcher --}}
+                    <button @click="toggleTheme()"
+                        class="w-8 h-8 rounded-md border border-gray-300 dark:border-white/10 flex items-center justify-center hover:border-[#fa9a08] transition-all">
+                        <i x-show="!darkMode" class="ri-moon-line text-sm text-gray-900 dark:text-slate-200"></i>
+                        <i x-show="darkMode" class="ri-sun-line text-sm text-[#fa9a08]" x-cloak></i>
+                            </button>
+
+                    {{-- Profile Dropdown --}}
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center gap-2.5 group">
+                            <img class="w-8 h-8 rounded-md object-cover border border-white/10"
+                                src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()?->name) }}&background=fa9a08&color=000&bold=true"
+                                alt="">
+                            <div class="text-left hidden md:block">
+                                <p class="text-[11px] font-bold text-gray-900 dark:text-slate-200 leading-none group-hover:text-[#fa9a08] transition-colors">
+                                    {{ Auth::user()?->name }}</p>
+                        </div>
+                            </button>
+
+                        <div x-show="open" @click.away="open = false" x-cloak
+                            class="absolute right-0 mt-3 w-52 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-white/10 rounded-lg shadow-xl p-1 z-50">
+                            <button @click="handleLogout()"
+                                class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-bold text-red-400 hover:bg-red-500/10 transition-all text-left">
+                                <i class="ri-logout-box-r-line text-sm"></i> Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-6 max-md:p-4 bg-gray-50 dark:bg-transparent min-h-screen">
                 <div class="w-full" id="ordersSection">
             @if($orders->count() > 0)
                 <div class="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
@@ -547,78 +466,16 @@
                     @endforeach
                 </div>
             @else
-                <div class="text-center py-16 px-8 text-gray-400 text-lg">
+                <div class="text-center py-16 px-8 text-gray-600 dark:text-gray-500 text-lg">
                     <p>Belum ada pesanan</p>
                 </div>
             @endif
-        </div>
-
-        <div class="w-full hidden" id="reportsSection">
-            {{-- Grafik Laporan Order per Kategori --}}
-            <div class="bg-[#1a1a1a] p-6 rounded-2xl mb-6">
-                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                    <i class="ri-line-chart-line text-[#fa9a08]"></i>
-                    Laporan Order per Kategori
-                </h2>
-                
-                {{-- Filter Section --}}
-                <div class="bg-[#0f0f0f] rounded-xl p-6 mb-6">
-                    <div class="flex gap-2 mb-4">
-                        <button class="filter-tab-btn py-2 px-4 bg-[#2a2a2a] border-none text-white text-sm font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a] active:bg-[#fa9a08] active:text-white" data-filter-type="daily">Harian</button>
-                        <button class="filter-tab-btn py-2 px-4 bg-[#2a2a2a] border-none text-white text-sm font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a]" data-filter-type="monthly">Bulanan</button>
-                        <button class="filter-tab-btn py-2 px-4 bg-[#2a2a2a] border-none text-white text-sm font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a]" data-filter-type="yearly">Tahunan</button>
-                    </div>
-                    
-                    <div class="flex flex-col gap-4">
-                        {{-- Daily Filter --}}
-                        <div class="filter-input-group flex items-center gap-4 flex-wrap" id="dailyFilter">
-                            <label for="dailyDate" class="text-white font-medium min-w-[120px]">Pilih Tanggal:</label>
-                            <input type="date" id="dailyDate" class="py-2 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-sm flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" value="{{ date('Y-m-d') }}">
-                            <button class="load-chart-btn py-2 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="daily">Tampilkan</button>
-                        </div>
-                        
-                        {{-- Monthly Filter --}}
-                        <div class="filter-input-group items-center gap-4 flex-wrap hidden" id="monthlyFilter">
-                            <label for="monthlyDate" class="text-white font-medium min-w-[120px]">Pilih Bulan:</label>
-                            <input type="month" id="monthlyDate" class="py-2 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-sm flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" value="{{ date('Y-m') }}">
-                            <button class="load-chart-btn py-2 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="monthly">Tampilkan</button>
-                        </div>
-                        
-                        {{-- Yearly Filter --}}
-                        <div class="filter-input-group items-center gap-4 flex-wrap hidden" id="yearlyFilter">
-                            <label for="yearlyDate" class="text-white font-medium min-w-[120px]">Pilih Tahun:</label>
-                            <input type="number" id="yearlyDate" class="py-2 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-sm flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" min="2020" max="2099" value="{{ date('Y') }}">
-                            <button class="load-chart-btn py-2 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="yearly">Tampilkan</button>
-                        </div>
-                    </div>
-                </div>
-                
-                {{-- Chart Container --}}
-                <div class="bg-[#0f0f0f] rounded-xl p-6 mb-6">
-                    <canvas id="categoryChart" style="max-height: 400px;"></canvas>
-                </div>
-                
-                {{-- Detail Orderan per Kategori --}}
-                <div class="bg-[#0f0f0f] rounded-xl p-6 mb-6" id="categoryDetails">
-                    <h3 class="text-lg font-bold text-white mb-4">Detail Orderan</h3>
-                    <div id="categoryDetailsContent" class="space-y-4">
-                        <!-- Detail akan diisi via JavaScript -->
-                    </div>
-                </div>
-                
-                {{-- Summary Cards --}}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="categorySummary">
-                    <!-- Summary cards will be generated dynamically -->
-                </div>
-            </div>
         </div>
             </div>
         </div>
     </div>
 
     @push('scripts')
-    {{-- Chart.js --}}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="{{ asset('js/dapur.js') }}"></script>
     <script>
         // Sidebar Toggle
@@ -694,43 +551,6 @@
             }
         });
 
-        // Menu Navigation
-        const menuOrders = document.getElementById('menu-orders');
-        const menuReports = document.getElementById('menu-reports');
-        const ordersSection = document.getElementById('ordersSection');
-        const reportsSection = document.getElementById('reportsSection');
-
-        function switchSection(section) {
-            // Update menu active state
-            menuOrders.classList.remove('active');
-            menuReports.classList.remove('active');
-            
-            if (section === 'orders') {
-                menuOrders.classList.add('active');
-                ordersSection.classList.remove('hidden');
-                reportsSection.classList.add('hidden');
-            } else {
-                menuReports.classList.add('active');
-                ordersSection.classList.add('hidden');
-                reportsSection.classList.remove('hidden');
-            }
-
-            // Close sidebar on mobile after selection
-            if (window.innerWidth <= 768) {
-                sidebar.classList.add('collapsed');
-                sidebarOverlay.classList.remove('show');
-            }
-        }
-
-        menuOrders.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchSection('orders');
-        });
-
-        menuReports.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchSection('reports');
-        });
 
         // Notification and Sound Functions
         const notificationSound = document.getElementById('notificationSound');
@@ -869,10 +689,10 @@
                 const source = notificationSound.querySelector('#notificationSoundSource');
                 // Only play if source has a valid src
                 if (source && source.src && source.src !== '' && source.src !== window.location.href) {
-                    notificationSound.currentTime = 0;
-                    notificationSound.play().catch(err => {
-                        console.log('Sound play failed:', err);
-                    });
+                notificationSound.currentTime = 0;
+                notificationSound.play().catch(err => {
+                    console.log('Sound play failed:', err);
+                });
                 }
             }
         }
@@ -1045,7 +865,7 @@
                 // Update orders display only if we're in orders section
                 if (!ordersSection.classList.contains('hidden')) {
                     if (data.orders.length === 0) {
-                        ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-400 text-lg"><p>Belum ada pesanan</p></div>';
+                        ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-600 dark:text-gray-500 text-lg"><p>Belum ada pesanan</p></div>';
                     } else {
                         const ordersGrid = ordersSection.querySelector('.grid');
                         if (ordersGrid) {
@@ -1081,360 +901,7 @@
             }, 1000);
         })();
 
-        // Category Chart untuk Laporan
-        let categoryChart = null;
-        let currentFilterType = 'daily';
-        let currentFilterDate = new Date().toISOString().split('T')[0];
-        let currentFilterMonth = new Date().toISOString().slice(0, 7);
-        let currentFilterYear = new Date().getFullYear();
-
-        // Load category statistics and render chart
-        async function loadCategoryChart(type, date, month, year) {
-            try {
-                // Use provided parameters or current values
-                type = type || currentFilterType;
-                date = date || currentFilterDate;
-                month = month || currentFilterMonth;
-                year = year || currentFilterYear;
-
-                // Update current filter values
-                currentFilterType = type;
-                currentFilterDate = date;
-                currentFilterMonth = month;
-                currentFilterYear = year;
-
-                // Build query parameters
-                const params = new URLSearchParams({ type });
-                if (type === 'daily') {
-                    params.append('date', date);
-                } else if (type === 'monthly') {
-                    params.append('month', month);
-                } else if (type === 'yearly') {
-                    params.append('year', year);
-                }
-
-                const response = await fetch(`/reports/category-stats?${params}`);
-                const data = await response.json();
-
-                if (!data.success || !data.data) {
-                    console.error('Error loading category stats:', data.message);
-                    return;
-                }
-
-                const categoryData = data.data;
-                
-                // Render chart
-                renderCategoryChart(categoryData);
-                
-                // Render detail orderan
-                renderCategoryDetails(categoryData);
-                
-                // Render summary cards
-                renderCategorySummary(categoryData);
-            } catch (error) {
-                console.error('Error loading category chart:', error);
-            }
-        }
-
-        // Render category chart using Chart.js
-        function renderCategoryChart(data) {
-            const ctx = document.getElementById('categoryChart');
-            if (!ctx) return;
-
-            // Destroy existing chart if any
-            if (categoryChart) {
-                categoryChart.destroy();
-            }
-
-            const labels = data.map(item => item.name);
-            const quantities = data.map(item => item.total_quantity);
-            const revenues = data.map(item => item.total_revenue);
-
-            categoryChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Total Quantity',
-                            data: quantities,
-                            backgroundColor: 'rgba(250, 154, 8, 0.1)',
-                            borderColor: 'rgba(250, 154, 8, 1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 6,
-                            pointHoverRadius: 8,
-                            pointBackgroundColor: 'rgba(250, 154, 8, 1)',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointStyle: 'circle',
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Total Revenue (Rp)',
-                            data: revenues,
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderColor: 'rgba(59, 130, 246, 1)',
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 6,
-                            pointHoverRadius: 8,
-                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointStyle: 'circle',
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                color: '#fff',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                },
-                                padding: 15
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            borderColor: '#fa9a08',
-                            borderWidth: 1,
-                            padding: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.datasetIndex === 0) {
-                                        label += context.parsed.y + ' item';
-                                    } else {
-                                        label += 'Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#fff',
-                                font: {
-                                    size: 11,
-                                    weight: 'bold'
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            ticks: {
-                                color: '#fa9a08',
-                                font: {
-                                    size: 11
-                                },
-                                callback: function(value) {
-                                    return value + ' item';
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(250, 154, 8, 0.2)'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Total Quantity',
-                                color: '#fa9a08',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            ticks: {
-                                color: '#3b82f6',
-                                font: {
-                                    size: 11
-                                },
-                                callback: function(value) {
-                                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
-                                }
-                            },
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                            title: {
-                                display: true,
-                                text: 'Total Revenue',
-                                color: '#3b82f6',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Render category details (keterangan orderan)
-        function renderCategoryDetails(data) {
-            const container = document.getElementById('categoryDetailsContent');
-            if (!container) return;
-
-            container.innerHTML = '';
-
-            data.forEach(category => {
-                if (category.items && category.items.length > 0) {
-                    const detailCard = document.createElement('div');
-                    detailCard.className = 'bg-[#2a2a2a] rounded-lg p-4 border border-white/10';
-                    
-                    // Format items: "3x nasi goreng, 2x mie ayam, dll"
-                    const itemsText = category.items.map(item => 
-                        `${item.quantity}x ${item.name}`
-                    ).join(', ');
-                    
-                    detailCard.innerHTML = `
-                        <div class="flex items-start gap-3">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-[#fa9a08]/20 flex items-center justify-center mt-1">
-                                <i class="ri-restaurant-line text-[#fa9a08]"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="text-white font-bold mb-1">${category.name}</h4>
-                                <p class="text-gray-300 text-sm">${itemsText}</p>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(detailCard);
-                }
-            });
-
-            // Show container if there's content
-            const detailsContainer = document.getElementById('categoryDetails');
-            if (detailsContainer && container.children.length > 0) {
-                detailsContainer.classList.remove('hidden');
-            } else if (detailsContainer) {
-                detailsContainer.classList.add('hidden');
-            }
-        }
-
-        // Render category summary cards
-        function renderCategorySummary(data) {
-            const container = document.getElementById('categorySummary');
-            if (!container) return;
-
-            container.innerHTML = '';
-
-            data.forEach(category => {
-                const card = document.createElement('div');
-                card.className = 'bg-[#2a2a2a] rounded-xl p-6 border border-white/10';
-                card.innerHTML = `
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-white text-lg font-bold">${category.name}</h3>
-                        <div class="w-12 h-12 rounded-lg bg-[#fa9a08]/20 flex items-center justify-center">
-                            <i class="ri-bar-chart-box-line text-2xl text-[#fa9a08]"></i>
-                        </div>
-                    </div>
-                    <div class="space-y-3">
-                        <div>
-                            <p class="text-gray-400 text-xs mb-1">Total Quantity</p>
-                            <p class="text-white text-2xl font-bold">${category.total_quantity}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-400 text-xs mb-1">Total Revenue</p>
-                            <p class="text-white text-xl font-bold">Rp ${new Intl.NumberFormat('id-ID').format(category.total_revenue)}</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-400 text-xs mb-1">Total Order</p>
-                            <p class="text-white text-lg font-semibold">${category.order_count} order</p>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // Load chart when reports section is shown
-        const menuReportsBtn = document.getElementById('menu-reports');
-        if (menuReportsBtn) {
-            menuReportsBtn.addEventListener('click', function() {
-                setTimeout(() => {
-                    loadCategoryChart();
-                }, 100);
-            });
-        }
-
-        // Handle filter tab buttons
-        document.querySelectorAll('.filter-tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Update active state
-                document.querySelectorAll('.filter-tab-btn').forEach(b => {
-                    b.classList.remove('active:bg-[#fa9a08]', 'active:text-white');
-                    b.classList.add('bg-[#2a2a2a]');
-                });
-                this.classList.add('active:bg-[#fa9a08]', 'active:text-white');
-                this.classList.remove('bg-[#2a2a2a]');
-
-                const type = this.getAttribute('data-filter-type');
-                
-                // Hide all filter inputs
-                document.querySelectorAll('.filter-input-group').forEach(group => {
-                    group.classList.add('hidden');
-                });
-
-                // Show appropriate filter input
-                if (type === 'daily') {
-                    document.getElementById('dailyFilter').classList.remove('hidden');
-                } else if (type === 'monthly') {
-                    document.getElementById('monthlyFilter').classList.remove('hidden');
-                } else if (type === 'yearly') {
-                    document.getElementById('yearlyFilter').classList.remove('hidden');
-                }
-            });
-        });
-
-        // Handle load chart buttons
-        document.querySelectorAll('.load-chart-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const type = this.getAttribute('data-type');
-                let date = currentFilterDate;
-                let month = currentFilterMonth;
-                let year = currentFilterYear;
-
-                if (type === 'daily') {
-                    date = document.getElementById('dailyDate').value;
-                } else if (type === 'monthly') {
-                    month = document.getElementById('monthlyDate').value;
-                } else if (type === 'yearly') {
-                    year = document.getElementById('yearlyDate').value;
-                }
-
-                loadCategoryChart(type, date, month, year);
-            });
-        });
-
-        // Handle complete order - update reports table
+        // Handle complete order
         document.addEventListener('click', async (e) => {
             if (e.target.closest('button[data-order-id]')) {
                 const button = e.target.closest('button[data-order-id]');
@@ -1472,17 +939,11 @@
                                 const ordersSection = document.getElementById('ordersSection');
                                 const orderCards = ordersSection.querySelectorAll('[data-order-id]');
                                 if (orderCards.length === 0) {
-                                    ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-400 text-lg"><p>Belum ada pesanan</p></div>';
-                                    // Keep auto refresh running but slower (will be adjusted in fetchAndUpdateOrders)
+                                    ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-600 dark:text-gray-500 text-lg"><p>Belum ada pesanan</p></div>';
                                 }
                             }, 300);
                         }
 
-                        // Refresh chart if in reports section
-                        if (!reportsSection.classList.contains('hidden')) {
-                            loadCategoryChart(currentFilterType, currentFilterDate, currentFilterMonth, currentFilterYear);
-                        }
-                        
                         // Fetch latest orders to check if there are still active orders
                         fetchAndUpdateOrders();
                     }
@@ -1495,437 +956,79 @@
 
     </script>
 
-    {{-- Alpine.js untuk Pengaturan Audio --}}
+    {{-- Hidden Logout Form --}}
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
+
+    {{-- Theme Manager Script --}}
     <script>
-        // Ensure Alpine is loaded before defining data
-        if (typeof Alpine === 'undefined') {
-            console.error('Alpine.js is not loaded');
-        }
-        
         document.addEventListener('alpine:init', () => {
-            Alpine.data('kitchenNotification', () => ({
-                openSettings: false,
-                availableSounds: [],
-                selectedAudio: localStorage.getItem('kitchenNotificationAudio') || '',
-                audioElement: null,
-                newAudioName: '',
-                previewFile: null,
-                currentAudioName: '',
+            Alpine.data('themeManager', () => ({
+                sidebarCollapsed: false,
+                sidebarHover: false,
+                darkMode: false, // Will be set in initTheme()
 
-                openFilePicker() {
-                    const filePicker = this.$refs.audioFilePicker;
-                    if (filePicker) {
-                        filePicker.click();
-                    }
-                },
-
-                async init() {
-                    // Initialize audio element
-                    this.audioElement = document.getElementById('notificationSound');
+                initTheme() {
+                    // Set initial theme based on localStorage or system preference
+                    const savedTheme = localStorage.getItem('theme');
+                    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                     
-                    // Clear audio source initially
-                    const source = document.getElementById('notificationSoundSource');
-                    if (source) {
-                        source.src = '';
-                    }
-                    
-                    // Load available sounds from database
-                    await this.loadAvailableSounds();
-                    
-                    // Load audio preference
-                    const savedAudio = localStorage.getItem('kitchenNotificationAudio');
-                    const audioType = localStorage.getItem('kitchenNotificationAudioType');
-                    
-                    if (savedAudio && savedAudio !== '') {
-                        if (audioType === 'database' && this.availableSounds.find(s => s.filename === savedAudio)) {
-                            this.selectedAudio = savedAudio;
-                            const sound = this.availableSounds.find(s => s.filename === savedAudio);
-                            this.currentAudioName = sound ? sound.name : '';
-                            this.updateAudioSource();
-                        } else if (audioType === 'file') {
-                            // File was selected directly, user needs to reselect on page reload
-                            this.selectedAudio = '';
-                            this.currentAudioName = '';
-                            localStorage.removeItem('kitchenNotificationAudio');
-                            localStorage.removeItem('kitchenNotificationAudioType');
-                        }
+                    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                        this.darkMode = true;
+                        document.documentElement.classList.add('dark');
                     } else {
-                        // No audio available, clear selection
-                        this.selectedAudio = '';
-                        this.currentAudioName = '';
-                    }
-                },
-
-                async loadAvailableSounds() {
-                    try {
-                        const response = await fetch('/notification-sounds');
-                        this.availableSounds = await response.json();
-                    } catch (error) {
-                        console.error('Error loading sounds:', error);
-                    }
-                },
-
-                updateAudioSource() {
-                    const source = document.getElementById('notificationSoundSource');
-                    if (!source || !this.audioElement) return;
-                    
-                    // Clear audio source if no audio selected
-                    if (!this.selectedAudio || this.selectedAudio === '') {
-                        source.src = '';
-                        this.audioElement.pause();
-                        this.audioElement.currentTime = 0;
-                        return;
+                        this.darkMode = false;
+                        document.documentElement.classList.remove('dark');
                     }
                     
-                    // Check if selectedAudio is a file object (direct file)
-                    if (this.selectedAudio instanceof File) {
-                        source.src = URL.createObjectURL(this.selectedAudio);
+                    console.log('Theme initialized:', this.darkMode ? 'dark' : 'light', 'Saved:', savedTheme);
+                },
+
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
                     } else {
-                        // It's a filename from database
-                        const sound = this.availableSounds.find(s => s.filename === this.selectedAudio);
-                        if (sound) {
-                            // Use storage path if file exists in storage
-                            if (sound.file_path.startsWith('sounds/')) {
-                                source.src = '{{ asset("storage") }}/' + sound.file_path;
-                            } else {
-                                source.src = '{{ asset("assets/sounds") }}/' + sound.filename;
-                            }
-                        } else {
-                            // No sound found, clear source
-                            source.src = '';
-                            return;
-                        }
+                        document.documentElement.classList.remove('dark');
                     }
-                    
-                    if (this.audioElement) {
-                        this.audioElement.load();
-                    }
-                },
-
-                getCurrentAudioName() {
-                    if (this.selectedAudio instanceof File) {
-                        return this.selectedAudio.name;
-                    }
-                    const sound = this.availableSounds.find(s => s.filename === this.selectedAudio);
-                    return sound ? sound.name : 'Tidak ada audio';
-                },
-
-                formatFileSize(bytes) {
-                    if (bytes === 0) return '0 Bytes';
-                    const k = 1024;
-                    const sizes = ['Bytes', 'KB', 'MB'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-                },
-
-                handleAudioFileSelect(event) {
-                    const file = event.target?.files?.[0] || event?.files?.[0];
-                    if (!file) return;
-                    
-                    // Validate file type
-                    if (!file.type.startsWith('audio/')) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'File tidak valid',
-                            text: 'Harap pilih file audio (mp3, wav, ogg)',
-                            background: '#161616',
-                            color: '#fff'
-                        });
-                        return;
-                    }
-                    
-                    // Validate file size (max 2MB)
-                    if (file.size > 2 * 1024 * 1024) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'File terlalu besar',
-                            text: 'Ukuran file maksimal 2MB',
-                            background: '#161616',
-                            color: '#fff'
-                        });
-                        return;
-                    }
-                    
-                    this.previewFile = file;
-                    // Auto-generate name from filename if not provided
-                    if (!this.newAudioName) {
-                        this.newAudioName = file.name.replace(/\.[^/.]+$/, '');
-                    }
-                },
-
-                useAudioDirectly() {
-                    if (!this.previewFile) return;
-                    
-                    this.selectedAudio = this.previewFile;
-                    this.currentAudioName = this.previewFile.name;
-                    this.saveAudioPreference();
-                    
-                    // Clear preview
-                    this.previewFile = null;
-                    this.newAudioName = '';
-                    if (this.$refs.audioFilePicker) {
-                        this.$refs.audioFilePicker.value = '';
-                    }
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Audio berhasil dipilih',
-                        background: '#161616',
-                        color: '#fff',
-                        timer: 2000,
-                        showConfirmButton: false
+                    // Force re-render untuk memastikan perubahan terlihat
+                    this.$nextTick(() => {
+                        console.log('Theme toggled:', this.darkMode ? 'dark' : 'light');
                     });
                 },
 
-                async uploadAudioAsNew() {
-                    if (!this.previewFile) return;
-                    
-                    if (!this.newAudioName) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Nama audio diperlukan',
-                            text: 'Harap isi nama audio',
-                            background: '#161616',
-                            color: '#fff'
-                        });
-                        return;
-                    }
-
-                    const formData = new FormData();
-                    formData.append('name', this.newAudioName);
-                    formData.append('audio', this.previewFile);
-
-                    try {
-                        const response = await fetch('/notification-sounds', {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: formData
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil',
-                                text: 'Audio berhasil disimpan',
-                                background: '#161616',
-                                color: '#fff'
-                            });
-                            
-                            // Reload sounds
-                            await this.loadAvailableSounds();
-                            
-                            // Auto-select the newly uploaded sound
-                            if (data.sound) {
-                                this.selectedAudio = data.sound.filename;
-                                this.currentAudioName = data.sound.name;
-                                this.saveAudioPreference();
-                            }
-                            
-                            // Clear preview
-                            this.previewFile = null;
-                            this.newAudioName = '';
-                            if (this.$refs.audioFilePicker) {
-                                this.$refs.audioFilePicker.value = '';
-                            }
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal',
-                                text: data.message || 'Gagal upload audio',
-                                background: '#161616',
-                                color: '#fff'
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Error uploading audio:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Terjadi kesalahan saat upload audio',
-                            background: '#161616',
-                            color: '#fff'
-                        });
-                    }
-                },
-
-                async selectAudioFromList(sound) {
-                    this.selectedAudio = sound.filename;
-                    this.currentAudioName = sound.name;
-                    this.saveAudioPreference();
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Audio berhasil dipilih',
-                        background: '#161616',
-                        color: '#fff',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                },
-
-                saveAudioPreference() {
-                    // Save filename if it's from database, or save file name if it's a direct file
-                    if (this.selectedAudio instanceof File) {
-                        localStorage.setItem('kitchenNotificationAudio', this.selectedAudio.name);
-                        localStorage.setItem('kitchenNotificationAudioType', 'file');
+                updateTheme() {
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
                     } else {
-                        localStorage.setItem('kitchenNotificationAudio', this.selectedAudio);
-                        localStorage.setItem('kitchenNotificationAudioType', 'database');
-                    }
-                    this.updateAudioSource();
-                    
-                    // Update the notification sound source for current session
-                    const source = document.getElementById('notificationSoundSource');
-                    if (source && this.audioElement) {
-                        this.updateAudioSource();
+                        document.documentElement.classList.remove('dark');
                     }
                 },
 
-                testAudio() {
-                    if (!this.selectedAudio || this.selectedAudio === '') {
+                handleLogout() {
                         Swal.fire({
-                            icon: 'warning',
-                            title: 'Tidak ada audio',
-                            text: 'Harap pilih audio terlebih dahulu',
-                            background: '#161616',
-                            color: '#fff',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                        return;
-                    }
-                    
-                    // Ensure audio source is updated before testing
-                    this.updateAudioSource();
-                    
-                    // Wait a bit for audio to load
-                    setTimeout(() => {
-                        const source = document.getElementById('notificationSoundSource');
-                        if (!this.audioElement) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Audio element tidak ditemukan',
-                                background: '#161616',
-                                color: '#fff',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                            return;
-                        }
-                        
-                        if (!source || !source.src || source.src === '') {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Audio source tidak tersedia. Pastikan audio sudah dipilih dengan benar.',
-                                background: '#161616',
-                                color: '#fff',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                            return;
-                        }
-                        
-                        // Reset and play
-                        this.audioElement.currentTime = 0;
-                        this.audioElement.play().catch(err => {
-                            console.error('Audio test failed:', err);
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Gagal memutar audio',
-                                text: 'Pastikan file audio tersedia dan formatnya didukung (mp3, wav, ogg)',
-                                background: '#161616',
-                                color: '#fff',
-                                timer: 3000,
-                                showConfirmButton: false
-                            });
-                        });
-                    }, 100);
-                },
-
-                async deleteSound(soundId) {
-                    Swal.fire({
-                        title: 'Hapus Audio?',
-                        text: 'Audio yang dihapus tidak dapat dikembalikan',
+                        title: 'Confirm Logout',
+                        text: 'Are you sure you want to logout?',
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: '#ef4444',
-                        cancelButtonColor: '#6b7280',
-                        confirmButtonText: 'Ya, Hapus',
-                        cancelButtonText: 'Batal',
-                        background: '#161616',
-                        color: '#fff'
-                    }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            try {
-                                const response = await fetch(`/notification-sounds/${soundId}`, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Content-Type': 'application/json'
-                                    }
-                                });
-
-                                const data = await response.json();
-
-                                if (data.success) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Berhasil',
-                                        text: 'Audio berhasil dihapus',
-                                        background: '#161616',
-                                        color: '#fff'
-                                    });
-                                    
-                                    // Check if deleted sound was selected
-                                    const deletedSound = this.availableSounds.find(s => s.id === soundId);
-                                    if (deletedSound && this.selectedAudio === deletedSound.filename) {
-                                        this.selectedAudio = '';
-                                        this.currentAudioName = '';
-                                        localStorage.removeItem('kitchenNotificationAudio');
-                                        localStorage.removeItem('kitchenNotificationAudioType');
-                                        this.updateAudioSource();
-                                    }
-                                    
-                                    // Reload sounds after a short delay
-                                    setTimeout(async () => {
-                                        await this.loadAvailableSounds();
-                                    }, 300);
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Gagal',
-                                        text: data.message || 'Gagal menghapus audio',
-                                        background: '#161616',
-                                        color: '#fff'
-                                    });
-                                    
-                                    // Reload sounds anyway to refresh the list
-                                    await this.loadAvailableSounds();
-                                }
-                            } catch (error) {
-                                console.error('Error deleting sound:', error);
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: 'Terjadi kesalahan saat menghapus audio',
-                                    background: '#161616',
-                                    color: '#fff'
-                                });
-                            }
+                            confirmButtonColor: '#fa9a08',
+                        cancelButtonColor: '#1e1e1e',
+                        confirmButtonText: 'Yes, Sign Out',
+                        background: this.darkMode ? '#0A0A0A' : '#fff',
+                        color: this.darkMode ? '#fff' : '#000',
+                            customClass: {
+                            popup: 'rounded-lg border border-white/5',
                         }
-                    });
-                }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('logout-form').submit();
+                            }
+                        });
+                    }
             }));
         });
     </script>
+
     @endpush
 @endsection
 

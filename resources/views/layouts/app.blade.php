@@ -1,6 +1,22 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="">
     <head>
+        {{-- Initialize theme immediately before any content loads --}}
+        <script>
+            (function() {
+                try {
+                    const savedTheme = localStorage.getItem('theme');
+                    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                } catch(e) {
+                    console.error('Theme initialization error:', e);
+                }
+            })();
+        </script>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -27,10 +43,11 @@
         <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @stack('head')
         @stack('styles')
     </head>
     <body class="font-['Plus_Jakarta_Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] antialiased bg-black text-white">
-        @if(!request()->routeIs('dapur'))
+        @if(!request()->routeIs('dapur') && !request()->routeIs('reports') && !request()->routeIs('pengaturan-audio'))
         <header class="fixed top-0 left-0 right-0 w-full z-50 bg-[#1A1A1A]/95 backdrop-blur-md border-b border-white/10 shadow-lg">
             <div class="max-w-[1400px] mx-auto px-4 md:px-6">
                 <div class="flex items-center justify-between py-4 md:py-5">
@@ -83,7 +100,7 @@
         </header>
         @endif
 
-        <main class="@if(!request()->routeIs('dapur'))pt-[73px] @endif bg-black">
+        <main class="@if(!request()->routeIs('dapur') && !request()->routeIs('reports') && !request()->routeIs('pengaturan-audio'))pt-[73px] @endif bg-black">
             @yield('content')
         </main>
 

@@ -718,6 +718,12 @@ class OrderController extends Controller
 
     public function reports(Request $request)
     {
+        // Return view untuk laporan
+        return view('dapur.laporan');
+    }
+
+    public function reportsOld(Request $request)
+    {
         $type = $request->get('type', 'daily'); // daily, monthly, yearly
         $date = $request->get('date', Carbon::today()->format('Y-m-d'));
         $month = $request->get('month', Carbon::now()->format('Y-m'));
