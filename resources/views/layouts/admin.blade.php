@@ -7,12 +7,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin - Billiard Class')</title>
 
-    {{-- Include shift calculation PHP block --}}
-    @include('admin.partials.shift-calculation')
-    
-    {{-- Include shift meta tags --}}
-    @include('admin.partials.shift-meta')
-
     <!-- Typography: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,8 +21,45 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 
-    {{-- Include common styles --}}
-    @include('admin.partials.common-styles')
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        .theme-transition {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Standardized Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #1e1e1e;
+        }
+
+        /* Professional Link State */
+        .active-link {
+            background-color: #fa9a08;
+            color: #000 !important;
+        }
+
+        .submenu-active {
+            color: #fa9a08 !important;
+            font-weight: 700;
+        }
+
+        /* Sidebar Expansion Animation */
+        .sidebar-animate {
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s ease;
+        }
+    </style>
 </head>
 
 <body
@@ -71,9 +102,10 @@
                 </div>
             </div>
 
-            <!-- Group: Website CMS -->
+            <!-- Group: Website CMS (Super Admin & Admin only) -->
+            @if(auth()->user()->hasAnyRole(['super_admin', 'admin']))
             <div
-                x-data="{ open: {{ request()->routeIs('admin.hero', 'admin.tentang-kami', 'admin.about-founder', 'admin.portfolio-achievement', 'admin.tim-kami', 'admin.testimoni-pelanggan', 'admin.event', 'admin.footer') ? 'true' : 'false' }} }">
+                x-data="{ open: {{ request()->routeIs('admin.hero', 'admin.tentang-kami', 'admin.about-founder', 'admin.keunggulan-fasilitas', 'admin.portfolio-achievement', 'admin.tim-kami', 'admin.testimoni-pelanggan', 'admin.event', 'admin.footer') ? 'true' : 'false' }} }">
                 <p x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Content</p>
@@ -94,14 +126,15 @@
                     class="pl-12 space-y-1 mt-2 border-l border-slate-200 dark:border-white/5 ml-6">
                     @php
                         $cmsLinks = [
-                            ['r' => 'admin.hero', 'l' => 'Hero Section'],
-                            ['r' => 'admin.tentang-kami', 'l' => 'Tentang Kami'],
-                            ['r' => 'admin.about-founder', 'l' => 'About Founder'],
-                            ['r' => 'admin.portfolio-achievement', 'l' => 'Portfolio'],
-                            ['r' => 'admin.tim-kami', 'l' => 'Tim Kami'],
-                            ['r' => 'admin.testimoni-pelanggan', 'l' => 'Testimoni'],
-                            ['r' => 'admin.event', 'l' => 'Event'],
-                            ['r' => 'admin.footer', 'l' => 'Footer'],
+                            ['r' => 'admin.cms.hero', 'l' => 'Hero Section'],
+                            ['r' => 'admin.cms.tentang-kami', 'l' => 'Tentang Kami'],
+                            ['r' => 'admin.cms.about-founder', 'l' => 'About Founder'],
+                            ['r' => 'admin.cms.keunggulan-fasilitas', 'l' => 'Keunggulan'],
+                            ['r' => 'admin.cms.portfolio-achievement', 'l' => 'Portfolio'],
+                            ['r' => 'admin.cms.tim-kami', 'l' => 'Tim Kami'],
+                            ['r' => 'admin.cms.testimoni-pelanggan', 'l' => 'Testimoni'],
+                            ['r' => 'admin.cms.event', 'l' => 'Event'],
+                            ['r' => 'admin.cms.footer', 'l' => 'Footer'],
                         ];
                     @endphp
                     @foreach($cmsLinks as $m)
@@ -112,6 +145,7 @@
                     @endforeach
                 </div>
             </div>
+            @endif
 
             <!-- Group: Management -->
             <div>
@@ -119,36 +153,55 @@
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Management</p>
                 <div class="space-y-1">
-            <a href="{{ route('admin.manage-users.index') }}"
+                    {{-- User Management: Super Admin Only --}}
+                    @can('viewAny', App\Models\User::class)
+                    <a href="{{ route('admin.manage-users.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.manage-users.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-user-settings-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">User Access</span>
-            </a>
-            <a href="{{ route('admin.orders.index') }}"
+                    </a>
+                    @endcan
+
+                    {{-- Orders: Admin & Super Admin --}}
+                    @if(auth()->user()->hasAnyRole(['admin', 'super_admin']))
+                    <a href="{{ route('admin.orders.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.orders.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-shopping-cart-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">Orders</span>
-            </a>
-            <a href="{{ route('admin.categories.index') }}"
+                    </a>
+                    @endif
+
+                    {{-- Categories: Admin & Super Admin --}}
+                    @if(auth()->user()->hasAnyRole(['admin', 'super_admin']))
+                    <a href="{{ route('admin.categories.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.categories.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-price-tag-3-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">Categories</span>
-            </a>
-            <a href="{{ route('admin.menus.index') }}"
+                    </a>
+                    @endif
+
+                    {{-- Menus: Admin & Super Admin --}}
+                    @if(auth()->user()->hasAnyRole(['admin', 'super_admin']))
+                    <a href="{{ route('admin.menus.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.menus.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-restaurant-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">Menu Items</span>
-            </a>
-            <a href="{{ route('admin.tables.index') }}"
+                    </a>
+                    @endif
+
+                    {{-- Tables/Barcode: Admin & Super Admin --}}
+                    @if(auth()->user()->hasAnyRole(['admin', 'super_admin']))
+                    <a href="{{ route('admin.tables.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.tables.*') || request()->routeIs('admin.barcode.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-qr-code-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">Barcode</span>
-            </a>
+                    </a>
+                    @endif
                 </div>
             </div>
         </nav>
@@ -279,11 +332,80 @@
     <!-- Hidden Logout Form -->
     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
 
-    {{-- Include theme manager script --}}
-    @include('admin.partials.theme-manager')
-    
-    {{-- Include shift check script --}}
-    @include('admin.partials.shift-check-script')
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('themeManager', () => ({
+                darkMode: localStorage.getItem('theme') === 'dark' ||
+                    (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    const theme = this.darkMode ? 'dark' : 'light';
+                    
+                    // Set localStorage
+                    localStorage.setItem('theme', theme);
+                    
+                    // Set cookie untuk persist antar reload dan bisa dipakai server-side
+                    document.cookie = `theme=${theme}; path=/; max-age=31536000`;
+                    
+                    // Update DOM class
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+
+                handleLogout() {
+            Swal.fire({
+                        title: 'Confirm Logout',
+                        text: "Sesi administrasi akan diakhiri.",
+                icon: 'warning',
+                showCancelButton: true,
+                        background: this.darkMode ? '#0A0A0A' : '#fff',
+                        color: this.darkMode ? '#fff' : '#000',
+                confirmButtonColor: '#fa9a08',
+                        cancelButtonColor: '#1e1e1e',
+                        confirmButtonText: 'Yes, Sign Out',
+                customClass: {
+                            popup: 'rounded-lg border border-white/5',
+                            confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5',
+                            cancelButton: 'rounded-md text-xs font-bold px-5 py-2.5'
+                }
+            }).then((result) => {
+                        if (result.isConfirmed) document.getElementById('logout-form').submit();
+            });
+                }
+            }));
+
+        });
+
+        // Handle Flash Alert Messages
+        document.addEventListener('DOMContentLoaded', () => {
+            const alertType = "{{ session('alert_type') }}";
+            const alertTitle = "{{ session('alert_title') }}";
+            const alertMessage = "{{ session('alert_message') }}";
+            const alertIcon = "{{ session('alert_icon', 'info') }}";
+
+            if (alertType && alertTitle && alertMessage) {
+                const isDarkMode = document.documentElement.classList.contains('dark');
+                
+                Swal.fire({
+                    title: alertTitle,
+                    text: alertMessage,
+                    icon: alertIcon,
+                    background: isDarkMode ? '#0A0A0A' : '#fff',
+                    color: isDarkMode ? '#fff' : '#000',
+                    confirmButtonColor: '#fa9a08',
+                    confirmButtonText: 'Mengerti',
+                    customClass: {
+                        popup: 'rounded-lg border border-white/5',
+                        confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5'
+                    }
+                });
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 

@@ -213,6 +213,28 @@
                     }
                 });
             });
+
+            // Handle Flash Alert Messages
+            const alertType = "{{ session('alert_type') }}";
+            const alertTitle = "{{ session('alert_title') }}";
+            const alertMessage = "{{ session('alert_message') }}";
+            const alertIcon = "{{ session('alert_icon', 'info') }}";
+
+            if (alertType && alertTitle && alertMessage) {
+                Swal.fire({
+                    title: alertTitle,
+                    text: alertMessage,
+                    icon: alertIcon,
+                    background: '#1A1A1A',
+                    color: '#fff',
+                    confirmButtonColor: '#fa9a08',
+                    confirmButtonText: 'Mengerti',
+                    customClass: {
+                        popup: 'rounded-lg border border-white/10',
+                        confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5'
+                    }
+                });
+            }
         </script>
 
         @stack('scripts')

@@ -39,77 +39,13 @@ class OrderController extends Controller
             'items.*.image' => 'nullable|string',
         ]);
 
-        // Get active shift based on current time
-        $activeShift = Shift::getActiveShift();
-
-        // Cek apakah ada order duplicate dalam 15 detik terakhir
-        // Duplicate = customer_name, table_number, room yang sama dan status masih processing
-        $recentOrder = orders::where('customer_name', $request->customer_name)
-            ->where('table_number', $request->table_number)
-            ->where('room', $request->room)
-            ->where('status', 'processing')
-            ->where('shift_id', $activeShift ? $activeShift->id : null)
-            ->where('created_at', '>=', Carbon::now()->subSeconds(15))
-            ->with('orderItems')
-            ->first();
-
-        if ($recentOrder) {
-            // Jika ada order duplicate, gabungkan item baru ke order yang sudah ada
-            try {
-                DB::beginTransaction();
-
-                $totalPrice = $recentOrder->total_price;
-
-        foreach ($request->items as $item) {
-                    // Cek apakah item sudah ada di order
-                    $existingItem = order_items::where('order_id', $recentOrder->id)
-                        ->where('menu_name', $item['name'])
-                        ->first();
-
-                    if ($existingItem) {
-                        // Update quantity jika item sudah ada
-                        $existingItem->quantity += $item['quantity'];
-                        $existingItem->save();
-                    } else {
-                        // Tambah item baru
-                        order_items::create([
-                            'order_id' => $recentOrder->id,
-                            'menu_name' => $item['name'],
-                            'price' => $item['price'],
-                            'quantity' => $item['quantity'],
-                            'image' => $item['image'] ?? null
-                        ]);
-                    }
-
-            $totalPrice += $item['price'] * $item['quantity'];
-        }
-
-                // Update total price
-                $recentOrder->total_price = $totalPrice;
-                $recentOrder->save();
-
-                DB::commit();
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Item berhasil ditambahkan ke order yang sudah ada',
-                    'order_id' => $recentOrder->id,
-                    'is_duplicate' => true,
-                    'redirect_url' => route('orders.show', $recentOrder->id)
-                ]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('Error merging duplicate order: ' . $e->getMessage());
-                
-                // Jika gagal merge, lanjutkan buat order baru
-            }
-        }
-
-        // Jika tidak ada duplicate atau gagal merge, buat order baru
         $totalPrice = 0;
         foreach ($request->items as $item) {
             $totalPrice += $item['price'] * $item['quantity'];
         }
+
+        // Get active shift based on current time
+        $activeShift = Shift::getActiveShift();
 
         $order = orders::create([
             'customer_name' => $request->customer_name,
@@ -135,7 +71,6 @@ class OrderController extends Controller
             'success' => true,
             'message' => 'Order berhasil dibuat',
             'order_id' => $order->id,
-            'is_duplicate' => false,
             'redirect_url' => route('orders.show', $order->id)
         ]);
     }
@@ -413,58 +348,18 @@ class OrderController extends Controller
         // Get active shift based on time
         $activeShift = Shift::getActiveShift();
         
-        if (!$userShiftId) {
+        $query = orders::with('orderItems')
+            ->where('status', 'processing');
+        
+        // Filter by user's shift - WAJIB filter berdasarkan shift user
+        if ($userShiftId) {
+            $query->where('shift_id', $userShiftId);
+        } else {
             // Jika user belum di-assign shift, tampilkan kosong
             return view('dapur.dapur', [
                 'orders' => collect([]),
                 'activeShift' => $activeShift
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
-        }
-        
-        // Transfer order dari shift sebelumnya yang belum selesai ke shift aktif saat ini
-        if ($activeShift) {
-            // Cari semua shift yang bukan shift aktif saat ini
-            $previousShifts = Shift::where('is_active', true)
-                ->where('id', '!=', $activeShift->id)
-                ->get();
-            
-            // Transfer order yang belum selesai dari shift sebelumnya ke shift aktif
-            foreach ($previousShifts as $prevShift) {
-                $pendingOrders = orders::where('shift_id', $prevShift->id)
-                    ->whereIn('status', ['pending', 'processing'])
-                    ->get();
-                
-                if ($pendingOrders->count() > 0) {
-                    DB::beginTransaction();
-                    try {
-                        foreach ($pendingOrders as $order) {
-                            $order->shift_id = $activeShift->id;
-                            $order->save();
-                        }
-                        DB::commit();
-                        
-                        Log::info('Orders transferred from previous shift to active shift', [
-                            'from_shift' => $prevShift->id,
-                            'to_shift' => $activeShift->id,
-                            'order_count' => $pendingOrders->count()
-                        ]);
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        Log::error('Error transferring orders: ' . $e->getMessage());
-                    }
-                }
-            }
-        }
-        
-        $query = orders::with('orderItems')
-            ->whereIn('status', ['pending', 'processing']);
-        
-        // Filter by active shift (bukan user shift, karena order sudah ditransfer)
-        if ($activeShift) {
-            $query->where('shift_id', $activeShift->id);
-        } else {
-            // Fallback ke user shift jika tidak ada active shift
-            $query->where('shift_id', $userShiftId);
         }
         
         $orders = $query->orderBy('created_at', 'desc')->get();
@@ -474,27 +369,32 @@ class OrderController extends Controller
 
     /**
      * Admin: List all orders for management
+     * 
+     * Optimization:
+     * - Eager load orderItems (prevent N+1 queries)
+     * - Filter by shift_id with authorization check
+     * - Limit to 100 orders for performance
      */
     public function adminIndex()
     {
         $user = Auth::user();
         
-        // Filter orders berdasarkan shift user yang login
-        $query = orders::with('orderItems');
+        // Authorization check
+        $this->authorize('viewAny', orders::class);
         
-        if ($user->shift_id) {
-            // Hanya tampilkan order dari shift user yang login
-            $query->where('shift_id', $user->shift_id);
-        } else {
-            // Jika user belum di-assign shift, tampilkan pesan error
+        // Validation: User must be assigned to a shift
+        if (!$user->shift_id) {
             return view('admin.orders.index', [
                 'allOrders' => collect([]),
                 'tables' => collect([])
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
         
-        // Urutkan berdasarkan status dan waktu terbaru
-        $allOrders = $query->orderByRaw("CASE 
+        // Eager load orderItems to prevent N+1 queries
+        // Filter by user's shift and order by status priority
+        $allOrders = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->where('shift_id', $user->shift_id)
+            ->orderByRaw("CASE 
                 WHEN status = 'processing' THEN 1 
                 WHEN status = 'completed' THEN 2 
                 WHEN status = 'rejected' THEN 3 
@@ -502,11 +402,13 @@ class OrderController extends Controller
                 ELSE 5 
             END")
             ->orderBy('created_at', 'desc')
-            ->limit(100) // Limit untuk performa
+            ->limit(100)
             ->get();
 
-        // Ambil semua meja dari database
-        $tables = meja_billiard::orderBy('name', 'asc')->get();
+        // Eager load tables with select to minimize data transfer
+        $tables = meja_billiard::select('id', 'name', 'number', 'status')
+            ->orderBy('name', 'asc')
+            ->get();
 
         return view('admin.orders.index', compact('allOrders', 'tables'));
     }
@@ -613,46 +515,62 @@ class OrderController extends Controller
 
     /**
      * Admin: Approve order (change status from pending to processing)
+     * 
+     * Authorization:
+     * - Only approve orders from the user's own shift
+     * - Validation: Order status must be 'pending'
      */
     public function approve($id)
     {
         $user = Auth::user();
-        $order = orders::with('orderItems')->findOrFail($id);
+        $this->authorize('update', orders::class);
         
-        // Pastikan user hanya bisa approve order dari shift mereka sendiri
-        if ($order->shift_id != $user->shift_id) {
+        // Eager load to minimize queries
+        $order = orders::findOrFail($id);
+        
+        // Authorization: Check if order belongs to user's shift
+        if ($order->shift_id !== $user->shift_id) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
         
+        // Validation: Only pending orders can be approved
         if ($order->status !== 'pending') {
             return back()->with('error', 'Order ini tidak dapat diapprove karena statusnya bukan pending.');
         }
 
-        $order->status = 'processing';
-        $order->save();
+        // Update status
+        $order->update(['status' => 'processing']);
         
         return back()->with('success', 'Order berhasil diapprove dan akan muncul di dapur.');
     }
 
     /**
      * Admin: Reject order
+     * 
+     * Authorization:
+     * - Only reject orders from the user's own shift
+     * - Validation: Order status must be 'pending'
      */
     public function reject($id)
     {
         $user = Auth::user();
-        $order = orders::with('orderItems')->findOrFail($id);
+        $this->authorize('update', orders::class);
         
-        // Pastikan user hanya bisa reject order dari shift mereka sendiri
-        if ($order->shift_id != $user->shift_id) {
+        // Eager load to minimize queries
+        $order = orders::findOrFail($id);
+        
+        // Authorization: Check if order belongs to user's shift
+        if ($order->shift_id !== $user->shift_id) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
         
+        // Validation: Only pending orders can be rejected
         if ($order->status !== 'pending') {
             return back()->with('error', 'Order ini tidak dapat direject karena statusnya bukan pending.');
         }
 
-        $order->status = 'rejected';
-        $order->save();
+        // Update status
+        $order->update(['status' => 'rejected']);
         
         return back()->with('success', 'Order berhasil direject.');
     }
@@ -663,20 +581,26 @@ class OrderController extends Controller
      * PENTING: Hanya bisa menghapus order dengan status pending.
      * Order yang sudah completed, processing, atau rejected TIDAK BOLEH DIHAPUS
      * untuk mencegah kecurangan saat tutup buku akhir bulan/tahun.
-     * Data penjualan harus tersimpan permanen untuk keperluan audit dan laporan keuangan.
+     * 
+     * Authorization:
+     * - Only delete orders from the user's own shift
+     * - Only delete pending orders
      */
     public function destroy($id)
     {
         $user = Auth::user();
-        $order = orders::with('orderItems')->findOrFail($id);
+        $this->authorize('delete', orders::class);
         
-        // Pastikan user hanya bisa hapus order dari shift mereka sendiri
-        if ($order->shift_id != $user->shift_id) {
+        // Eager load orderItems for deletion
+        $order = orders::with('orderItems:id,order_id')->findOrFail($id);
+        
+        // Authorization: Check if order belongs to user's shift
+        if ($order->shift_id !== $user->shift_id) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
         
-        // Proteksi: Order yang sudah completed, processing, atau rejected tidak bisa dihapus
-        // Ini untuk mencegah kecurangan saat tutup buku akhir bulan/tahun
+        // Validation: Only pending orders can be deleted
+        // Orders yang sudah completed, processing, atau rejected tidak bisa dihapus
         if (!$order->canBeDeleted()) {
             $statusLabels = [
                 'completed' => 'SELESAI',
@@ -688,81 +612,53 @@ class OrderController extends Controller
             return back()->with('error', 'Order dengan status ' . $statusLabel . ' tidak dapat dihapus. Data penjualan harus tersimpan permanen untuk keperluan tutup buku dan audit.');
         }
         
-        // Hapus order items terlebih dahulu
+        // Delete order items first (cascade delete)
         $order->orderItems()->delete();
         
-        // Hapus order
+        // Delete order
         $order->delete();
 
         return back()->with('success', 'Order berhasil dihapus.');
     }
 
-    public function startCooking($id)
-    {
-        $user = Auth::user();
-        $order = orders::with('orderItems')->findOrFail($id);
-        
-        // Pastikan user hanya bisa start cooking order dari shift mereka sendiri
-        if ($order->shift_id != $user->shift_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak memiliki akses ke order ini.'
-            ], 403);
-        }
-        
-        // Hanya bisa start cooking jika status masih pending
-        if ($order->status !== 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order ini sudah diproses atau selesai.'
-            ], 400);
-        }
-        
-        $order->status = 'processing';
-        $order->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Order sedang diproses',
-            'order' => [
-                'id' => $order->id,
-                'status' => $order->status,
-                'created_at' => Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y H:i') . ' WIB',
-            ]
-        ]);
-    }
-
+    /**
+     * Mark order as completed
+     * 
+     * Actions:
+     * - Update order status to 'completed'
+     * - Save to kitchen_reports for persistence
+     * - Return order data for realtime update
+     * 
+     * Authorization:
+     * - Only complete orders from the user's own shift
+     */
     public function complete($id)
     {
         $user = Auth::user();
-        $order = orders::with('orderItems')->findOrFail($id);
+        $this->authorize('update', orders::class);
         
-        // Pastikan user hanya bisa complete order dari shift mereka sendiri
-        if ($order->shift_id != $user->shift_id) {
+        // Eager load orderItems for data manipulation
+        $order = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->findOrFail($id);
+        
+        // Authorization: Check if order belongs to user's shift
+        if ($order->shift_id !== $user->shift_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki akses ke order ini.'
             ], 403);
         }
         
-        // Hanya bisa complete jika status sudah processing
-        if ($order->status !== 'processing') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order harus diproses terlebih dahulu sebelum diselesaikan.'
-            ], 400);
-        }
-        
-        $order->status = 'completed';
-        $order->save();
+        // Update order status
+        $order->update(['status' => 'completed']);
 
-        // Simpan ke kitchen_reports agar tidak hilang saat logout
+        // Save to kitchen_reports for persistence (prevent data loss)
         try {
-            // Cek apakah sudah ada di kitchen_reports (untuk menghindari duplikasi)
+            // Check if already saved (prevent duplicates)
             $existingReport = KitchenReport::where('order_id', $order->id)->first();
             
             if (!$existingReport) {
-                // Simpan order items sebagai JSON
+                // Prepare order items data
                 $orderItems = $order->orderItems->map(function($item) {
                     return [
                         'menu_name' => $item->menu_name,
@@ -772,6 +668,7 @@ class OrderController extends Controller
                     ];
                 })->toArray();
 
+                // Create kitchen report
                 KitchenReport::create([
                     'order_id' => $order->id,
                     'customer_name' => $order->customer_name,
@@ -779,17 +676,20 @@ class OrderController extends Controller
                     'room' => $order->room,
                     'total_price' => $order->total_price,
                     'payment_method' => $order->payment_method,
-                    'order_items' => $orderItems,
-                    'order_date' => Carbon::parse($order->created_at)->format('Y-m-d'),
+                    'order_items' => json_encode($orderItems),
+                    'order_date' => $order->created_at->format('Y-m-d'),
                     'completed_at' => Carbon::now('Asia/Jakarta')
                 ]);
             }
         } catch (\Exception $e) {
-            // Log error tapi jangan gagalkan proses complete
-            Log::error('Error saving to kitchen_reports: ' . $e->getMessage());
+            // Log error but don't fail the operation
+            Log::error('Error saving to kitchen_reports', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
         }
 
-        // Return order data untuk realtime update
+        // Return order data for realtime update
         return response()->json([
             'success' => true,
             'message' => 'Order telah diselesaikan',
@@ -800,8 +700,8 @@ class OrderController extends Controller
                 'room' => $order->room,
                 'total_price' => $order->total_price,
                 'payment_method' => $order->payment_method,
-                'created_at' => Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y H:i') . ' WIB',
-                'updated_at' => Carbon::parse($order->updated_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y H:i') . ' WIB',
+                'created_at' => $order->created_at->format('d M Y H:i') . ' WIB',
+                'updated_at' => $order->updated_at->format('d M Y H:i') . ' WIB',
                 'order_items' => $order->orderItems->map(function($item) {
                     return [
                         'menu_name' => $item->menu_name,
@@ -814,72 +714,32 @@ class OrderController extends Controller
     }
 
     /**
-     * Get active (processing) orders for live refresh on kitchen page.
+     * Get active (processing) orders for live refresh on kitchen page
+     * 
+     * Optimization:
+     * - Eager load orderItems to prevent N+1 queries
+     * - Filter by user's shift and status = 'processing'
+     * - Select only needed columns
      */
     public function activeOrders()
     {
-        // Get current user's shift
         $user = Auth::user();
-        $userShiftId = $user->shift_id;
         
-        // Get active shift based on time
-        $activeShift = Shift::getActiveShift();
-        
-        if (!$userShiftId) {
-            // Jika user belum di-assign shift, return kosong
-            return response()->json([
-                'orders' => []
-            ]);
+        // Validation: User must be assigned to a shift
+        if (!$user->shift_id) {
+            return response()->json(['orders' => []]);
         }
         
-        // Transfer order dari shift sebelumnya yang belum selesai ke shift aktif saat ini
-        if ($activeShift) {
-            // Cari semua shift yang bukan shift aktif saat ini
-            $previousShifts = Shift::where('is_active', true)
-                ->where('id', '!=', $activeShift->id)
-                ->get();
-            
-            // Transfer order yang belum selesai dari shift sebelumnya ke shift aktif
-            foreach ($previousShifts as $prevShift) {
-                $pendingOrders = orders::where('shift_id', $prevShift->id)
-                    ->whereIn('status', ['pending', 'processing'])
-                    ->get();
-                
-                if ($pendingOrders->count() > 0) {
-                    DB::beginTransaction();
-                    try {
-                        foreach ($pendingOrders as $order) {
-                            $order->shift_id = $activeShift->id;
-                            $order->save();
-                        }
-                        DB::commit();
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        Log::error('Error transferring orders in activeOrders: ' . $e->getMessage());
-                    }
-                }
-            }
-        }
-        
-        $query = orders::with('orderItems')
-            ->whereIn('status', ['pending', 'processing']);
-        
-        // Filter by active shift (bukan user shift, karena order sudah ditransfer)
-        if ($activeShift) {
-            $query->where('shift_id', $activeShift->id);
-        } else {
-            // Fallback ke user shift jika tidak ada active shift
-            $query->where('shift_id', $userShiftId);
-        }
-        
-        $orders = $query->orderBy('created_at', 'desc')->get();
+        // Eager load orderItems with specific columns to prevent N+1
+        $orders = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->where('status', 'processing')
+            ->where('shift_id', $user->shift_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json([
             'orders' => $orders->map(function ($order) {
-                $createdAt = Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta');
-                $now = Carbon::now('Asia/Jakarta');
-                $minutesElapsed = $createdAt->diffInMinutes($now);
-                
                 return [
                     'id' => $order->id,
                     'customer_name' => $order->customer_name,
@@ -887,10 +747,8 @@ class OrderController extends Controller
                     'room' => $order->room,
                     'total_price' => $order->total_price,
                     'payment_method' => $order->payment_method,
-                    'status' => $order->status,
-                    'created_at' => $createdAt->toISOString(),
-                    'updated_at' => Carbon::parse($order->updated_at)->utc()->setTimezone('Asia/Jakarta')->toISOString(),
-                    'minutes_elapsed' => $minutesElapsed,
+                    'created_at' => $order->created_at->toIso8601String(),
+                    'updated_at' => $order->updated_at->toIso8601String(),
                     'order_items' => $order->orderItems->map(function ($item) {
                         return [
                             'menu_name' => $item->menu_name,
@@ -907,8 +765,7 @@ class OrderController extends Controller
     public function reports(Request $request)
     {
         // Return view untuk laporan
-        $activeShift = Shift::getActiveShift();
-        return view('dapur.laporan', compact('activeShift'));
+        return view('dapur.laporan');
     }
 
     public function reportsOld(Request $request)
@@ -1072,102 +929,14 @@ class OrderController extends Controller
         if ($type === 'daily') {
             $ordersQuery->whereDate('updated_at', $date);
         } elseif ($type === 'monthly') {
-            $monthCarbon = Carbon::parse($month);
-            $ordersQuery->whereBetween('updated_at', [
-                $monthCarbon->copy()->startOfMonth()->startOfDay(),
-                $monthCarbon->copy()->endOfMonth()->endOfDay()
-            ]);
+            $ordersQuery->whereYear('updated_at', Carbon::parse($month)->year)
+                  ->whereMonth('updated_at', Carbon::parse($month)->month);
         } elseif ($type === 'yearly') {
             $ordersQuery->whereYear('updated_at', $year);
         }
 
         $orders = $ordersQuery->get();
 
-        // Jika monthly atau yearly, langsung return data per periode (minggu/bulan) bukan per kategori
-        if ($type === 'monthly') {
-            // Group by week dalam bulan
-            $weekStats = [];
-            $monthStart = Carbon::parse($month)->startOfMonth()->startOfDay();
-            $monthEnd = Carbon::parse($month)->endOfMonth()->endOfDay();
-            
-            // Mulai dari awal bulan, bagi menjadi 4-5 minggu
-            $currentDate = $monthStart->copy();
-            $weekNumber = 1;
-            $daysInMonth = $monthStart->daysInMonth;
-            
-            // Bagi bulan menjadi minggu-minggu (7 hari per minggu)
-            while ($currentDate->lte($monthEnd)) {
-                $weekStart = $currentDate->copy();
-                $weekEnd = $currentDate->copy()->addDays(6)->endOfDay();
-                
-                // Pastikan tidak melebihi akhir bulan
-                if ($weekEnd->gt($monthEnd)) {
-                    $weekEnd = $monthEnd->copy()->endOfDay();
-                }
-                
-                // Filter orders untuk minggu ini
-                $weekOrders = $orders->filter(function($order) use ($weekStart, $weekEnd) {
-                    $orderDate = Carbon::parse($order->updated_at);
-                    // Pastikan order date dalam range minggu ini (termasuk tanggal awal dan akhir)
-                    return $orderDate->gte($weekStart) && $orderDate->lte($weekEnd);
-                });
-                
-                $weekStats[] = [
-                    'name' => 'Minggu ' . $weekNumber . ' (' . $weekStart->format('d M') . ' - ' . $weekEnd->format('d M') . ')',
-                    'period' => 'Minggu ' . $weekNumber,
-                    'total_quantity' => $weekOrders->sum(function($order) {
-                        return $order->orderItems->sum('quantity');
-                    }),
-                    'total_revenue' => $weekOrders->sum('total_price'),
-                    'order_count' => $weekOrders->count()
-                ];
-                
-                // Pindah ke minggu berikutnya (7 hari ke depan)
-                $currentDate->addDays(7);
-                $weekNumber++;
-                
-                // Pastikan tidak infinite loop
-                if ($weekNumber > 6) {
-                    break;
-                }
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $weekStats,
-                'type' => 'monthly'
-            ]);
-        } elseif ($type === 'yearly') {
-            // Group by month dalam tahun
-            $monthStats = [];
-            
-            for ($m = 1; $m <= 12; $m++) {
-                $monthOrders = $orders->filter(function($order) use ($year, $m) {
-                    $orderDate = Carbon::parse($order->updated_at);
-                    return $orderDate->year == $year && $orderDate->month == $m;
-                });
-                
-                $monthName = Carbon::create($year, $m, 1)->locale('id')->translatedFormat('M');
-                
-                $monthStats[] = [
-                    'name' => $monthName,
-                    'period' => $monthName,
-                    'total_quantity' => $monthOrders->sum(function($order) {
-                        return $order->orderItems->sum('quantity');
-                    }),
-                    'total_revenue' => $monthOrders->sum('total_price'),
-                    'order_count' => $monthOrders->count()
-                ];
-            }
-            
-            return response()->json([
-                'success' => true,
-                'data' => $monthStats,
-                'type' => 'yearly'
-            ]);
-        }
-
-        // Untuk daily, return data per kategori
         // Get all categories
         $categories = CategoryMenu::all();
         
@@ -1240,8 +1009,7 @@ class OrderController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $formattedStats,
-            'type' => 'daily'
+            'data' => $formattedStats
         ]);
     }
 
@@ -2040,284 +1808,6 @@ class OrderController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengirim email: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Display tutup hari page
-     */
-    public function tutupHari()
-    {
-        return view('dapur.tutup-hari');
-    }
-
-    /**
-     * Generate struk harian untuk tutup hari (dipisahkan per shift)
-     */
-    public function generateStrukHarian(Request $request)
-    {
-        $request->validate([
-            'tanggal' => 'nullable|date',
-        ]);
-
-        $user = Auth::user();
-        $tanggal = $request->tanggal ? Carbon::parse($request->tanggal) : Carbon::today();
-        
-        // Otomatis gunakan shift dari user yang login
-        $shiftId = $user->shift_id;
-        
-        if (!$shiftId) {
-            return redirect()->route('tutup-hari')
-                ->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
-        }
-        
-        // Query dasar untuk order yang completed pada tanggal tersebut dari shift user yang login
-        $orders = orders::whereDate('created_at', $tanggal->format('Y-m-d'))
-            ->where('status', 'completed')
-            ->where('shift_id', $shiftId) // Filter berdasarkan shift user yang login
-            ->with('orderItems')
-            ->orderBy('created_at', 'asc')
-            ->get();
-        
-        // Ambil informasi shift user yang login
-        $shift = Shift::find($shiftId);
-
-        // Hitung statistik
-        $totalOrder = $orders->count();
-        $totalPendapatan = $orders->sum('total_price');
-        
-        // Group by payment method
-        $pendapatanCash = $orders->where('payment_method', 'cash')->sum('total_price');
-        $pendapatanQris = $orders->where('payment_method', 'qris')->sum('total_price');
-        $pendapatanTransfer = $orders->where('payment_method', 'transfer')->sum('total_price');
-
-        // Group by room
-        $pendapatanPerRuangan = $orders->groupBy('room')->map(function ($roomOrders) {
-            return [
-                'jumlah_order' => $roomOrders->count(),
-                'total_pendapatan' => $roomOrders->sum('total_price')
-            ];
-        });
-
-        // Detail item yang terjual
-        $itemsSold = [];
-        foreach ($orders as $order) {
-            foreach ($order->orderItems as $item) {
-                $menuName = $item->menu_name;
-                if (!isset($itemsSold[$menuName])) {
-                    $itemsSold[$menuName] = [
-                        'name' => $menuName,
-                        'quantity' => 0,
-                        'total_price' => 0
-                    ];
-                }
-                $itemsSold[$menuName]['quantity'] += $item->quantity;
-                $itemsSold[$menuName]['total_price'] += $item->price * $item->quantity;
-            }
-        }
-
-        return view('dapur.struk-harian', [
-            'orders' => $orders,
-            'tanggal' => $tanggal,
-            'shift' => $shift,
-            'totalOrder' => $totalOrder,
-            'totalPendapatan' => $totalPendapatan,
-            'pendapatanCash' => $pendapatanCash,
-            'pendapatanQris' => $pendapatanQris,
-            'pendapatanTransfer' => $pendapatanTransfer,
-            'pendapatanPerRuangan' => $pendapatanPerRuangan,
-            'itemsSold' => $itemsSold,
-        ]);
-    }
-
-    /**
-     * Kirim struk harian via email (dipisahkan per shift)
-     */
-    public function sendStrukHarianEmail(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'tanggal' => 'nullable|date',
-        ]);
-
-        try {
-            $user = Auth::user();
-            $tanggal = $request->tanggal ? Carbon::parse($request->tanggal) : Carbon::today();
-            
-            // Otomatis gunakan shift dari user yang login
-            $shiftId = $user->shift_id;
-            
-            if (!$shiftId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
-                ], 400);
-            }
-            
-            // Query dasar untuk order yang completed pada tanggal tersebut dari shift user yang login
-            $orders = orders::whereDate('created_at', $tanggal->format('Y-m-d'))
-                ->where('status', 'completed')
-                ->where('shift_id', $shiftId) // Filter berdasarkan shift user yang login
-                ->with('orderItems')
-                ->orderBy('created_at', 'asc')
-                ->get();
-            
-            // Ambil informasi shift user yang login
-            $shift = Shift::find($shiftId);
-
-            // Hitung statistik
-            $totalOrder = $orders->count();
-            $totalPendapatan = $orders->sum('total_price');
-            
-            // Group by payment method
-            $pendapatanCash = $orders->where('payment_method', 'cash')->sum('total_price');
-            $pendapatanQris = $orders->where('payment_method', 'qris')->sum('total_price');
-            $pendapatanTransfer = $orders->where('payment_method', 'transfer')->sum('total_price');
-
-            // Group by room
-            $pendapatanPerRuangan = $orders->groupBy('room')->map(function ($roomOrders) {
-                return [
-                    'jumlah_order' => $roomOrders->count(),
-                    'total_pendapatan' => $roomOrders->sum('total_price')
-                ];
-            });
-
-            // Detail item yang terjual
-            $itemsSold = [];
-            foreach ($orders as $order) {
-                foreach ($order->orderItems as $item) {
-                    $menuName = $item->menu_name;
-                    if (!isset($itemsSold[$menuName])) {
-                        $itemsSold[$menuName] = [
-                            'name' => $menuName,
-                            'quantity' => 0,
-                            'total_price' => 0
-                        ];
-                    }
-                    $itemsSold[$menuName]['quantity'] += $item->quantity;
-                    $itemsSold[$menuName]['total_price'] += $item->price * $item->quantity;
-                }
-            }
-
-            // Prepare struk data
-            $strukData = [
-                'orders' => $orders,
-                'shift' => $shift,
-                'totalOrder' => $totalOrder,
-                'totalPendapatan' => $totalPendapatan,
-                'pendapatanCash' => $pendapatanCash,
-                'pendapatanQris' => $pendapatanQris,
-                'pendapatanTransfer' => $pendapatanTransfer,
-                'pendapatanPerRuangan' => $pendapatanPerRuangan,
-                'itemsSold' => $itemsSold,
-            ];
-
-            // Send email
-            Mail::to($request->email)->send(new \App\Mail\SendStrukHarianEmail($strukData, $tanggal));
-
-            Log::info('Struk harian email sent successfully', [
-                'to' => $request->email,
-                'tanggal' => $tanggal->format('Y-m-d'),
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Struk harian berhasil dikirim ke ' . $request->email . '. Silakan cek kotak masuk dan folder Spam Anda.'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Struk Harian Email Error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengirim email: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-    
-    /**
-     * Check if shift has ended and transfer pending orders to next shift
-     */
-    public function checkShiftEnd(Request $request)
-    {
-        try {
-            $user = Auth::user();
-            $activeShift = Shift::getActiveShift();
-            
-            // If no active shift, logout user
-            if (!$activeShift) {
-                return response()->json([
-                    'success' => false,
-                    'shift_ended' => true,
-                    'message' => 'Tidak ada shift aktif. Anda akan di-logout.'
-                ]);
-            }
-            
-            // Check if user's shift matches active shift
-            if ($user->shift_id != $activeShift->id) {
-                // User's shift has ended, transfer pending orders to next shift
-                $nextShift = Shift::getNextShift();
-                $ordersTransferred = 0;
-                
-                if ($nextShift) {
-                    // Transfer pending/processing orders to next shift
-                    $pendingOrders = orders::where('shift_id', $user->shift_id)
-                        ->whereIn('status', ['pending', 'processing'])
-                        ->get();
-                    
-                    if ($pendingOrders->count() > 0) {
-                        DB::beginTransaction();
-                        
-                        foreach ($pendingOrders as $order) {
-                            $order->shift_id = $nextShift->id;
-                            $order->save();
-                        }
-                        
-                        DB::commit();
-                        
-                        $ordersTransferred = $pendingOrders->count();
-                        
-                        Log::info('Orders transferred to next shift', [
-                            'from_shift' => $user->shift_id,
-                            'to_shift' => $nextShift->id,
-                            'order_count' => $ordersTransferred
-                        ]);
-                    }
-                }
-                
-                return response()->json([
-                    'success' => false,
-                    'shift_ended' => true,
-                    'message' => 'Shift Anda telah berakhir. Anda akan di-logout.',
-                    'orders_transferred' => $ordersTransferred
-                ]);
-            }
-            
-            // Calculate time until shift ends
-            $now = Carbon::now('Asia/Jakarta');
-            $shiftStart = Carbon::today('Asia/Jakarta')->setTimeFromTimeString($activeShift->start_time);
-            $shiftEnd = Carbon::today('Asia/Jakarta')->setTimeFromTimeString($activeShift->end_time);
-            
-            if ($shiftEnd->lt($shiftStart)) {
-                $shiftEnd->addDay();
-            }
-            
-            $secondsUntilEnd = $now->diffInSeconds($shiftEnd, false);
-            
-            return response()->json([
-                'success' => true,
-                'shift_ended' => false,
-                'seconds_until_end' => $secondsUntilEnd,
-                'shift_end_timestamp' => $shiftEnd->timestamp
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('Check shift end error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error checking shift: ' . $e->getMessage()
             ], 500);
         }
     }

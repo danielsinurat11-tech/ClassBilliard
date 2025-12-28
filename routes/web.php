@@ -6,8 +6,9 @@ use App\Http\Controllers\MenuAdminController;
 use App\Http\Controllers\LogoutController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::post('/testimonial/submit', [App\Http\Controllers\HomeController::class, 'submitTestimonial'])->name('testimonial.submit');
+Route::get('/', function () {
+    return view('home');
+})->name('home');
 
 // Logout Route (accessible without shift time check)
 Route::post('/logout', [LogoutController::class, 'logout'])->name('logout')->middleware('auth.custom');
@@ -18,7 +19,6 @@ Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name
 // Kitchen Routes (Hanya untuk role kitchen)
 Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(function () {
 Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
-    Route::post('/orders/{id}/start-cooking', [App\Http\Controllers\OrderController::class, 'startCooking'])->name('orders.start-cooking');
 Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
 Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
 Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
@@ -26,13 +26,8 @@ Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::cla
 Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
     Route::post('/reports/send-email', [App\Http\Controllers\OrderController::class, 'sendReportEmail'])->name('reports.send-email');
     Route::get('/test-email', [App\Http\Controllers\OrderController::class, 'testEmail'])->name('test.email');
-    Route::get('/tutup-hari', [App\Http\Controllers\OrderController::class, 'tutupHari'])->name('tutup-hari');
-    Route::get('/tutup-hari/struk', [App\Http\Controllers\OrderController::class, 'generateStrukHarian'])->name('tutup-hari.struk');
-    Route::post('/tutup-hari/kirim-email', [App\Http\Controllers\OrderController::class, 'sendStrukHarianEmail'])->name('tutup-hari.kirim-email');
-    Route::get('/shift/check', [App\Http\Controllers\OrderController::class, 'checkShiftEnd'])->name('shift.check');
     Route::get('/pengaturan-audio', function () {
-        $activeShift = \App\Models\Shift::getActiveShift();
-        return view('dapur.pengaturan-audio', compact('activeShift'));
+        return view('dapur.pengaturan-audio');
     })->name('pengaturan-audio');
     Route::get('/notification-sounds/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('notification-sounds.active');
     
@@ -53,74 +48,62 @@ Route::post('/orders/{id}/add-item', [App\Http\Controllers\OrderController::clas
 Route::delete('/orders/{id}/remove-item/{itemId}', [App\Http\Controllers\OrderController::class, 'removeItem'])->name('orders.remove-item');
 Route::post('/orders/{id}/cancel', [App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
 
-// Admin Routes (Hanya untuk role admin)
-
-// Profile Routes (NO SHIFT TIME CHECK - untuk logout, ganti password, dll)
-Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin'])->group(function () {
+// ========================================
+// SUPER_ADMIN + ADMIN ROUTES 
+// All admin and super_admin access /admin dashboard
+// Controllers/Policies control what each role can actually do
+// ========================================
+Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_admin|admin', 'check.shift.time'])->group(function () {
+    Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+    
+    // Profile routes (all roles)
     Route::controller(AdminController::class)->group(function () {
         Route::get('/profile', 'profileEdit')->name('profile.edit');
         Route::put('/profile/update', 'profileUpdate')->name('profile.update');
         Route::put('/profile/password', 'profilePassword')->name('profile.password');
     });
-});
-
-// Admin Dashboard Routes (WITH SHIFT TIME CHECK)
-Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin', 'check.shift.time'])->group(function () {
-    Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
     
-    // Hero Section
-    Route::get('/hero', [App\Http\Controllers\AdminController::class, 'heroIndex'])->name('hero');
-    Route::post('/hero', [App\Http\Controllers\AdminController::class, 'heroUpdate'])->name('hero.update');
-    
-    // Tentang Kami
-    Route::get('/tentang-kami', [App\Http\Controllers\AdminController::class, 'tentangKamiIndex'])->name('tentang-kami');
-    Route::post('/tentang-kami', [App\Http\Controllers\AdminController::class, 'tentangKamiUpdate'])->name('tentang-kami.update');
-    
-    // About Founder
-    Route::get('/about-founder', [App\Http\Controllers\AdminController::class, 'aboutFounderIndex'])->name('about-founder');
-    Route::post('/about-founder', [App\Http\Controllers\AdminController::class, 'aboutFounderUpdate'])->name('about-founder.update');
-    
-    
-    // Portfolio Achievement
-    Route::get('/portfolio-achievement', [App\Http\Controllers\AdminController::class, 'portfolioAchievementIndex'])->name('portfolio-achievement');
-    Route::post('/portfolio-achievement', [App\Http\Controllers\AdminController::class, 'portfolioAchievementStore'])->name('portfolio-achievement.store');
-    Route::post('/portfolio-achievement/{id}', [App\Http\Controllers\AdminController::class, 'portfolioAchievementUpdate'])->name('portfolio-achievement.update');
-    Route::delete('/portfolio-achievement/{id}', [App\Http\Controllers\AdminController::class, 'portfolioAchievementDestroy'])->name('portfolio-achievement.destroy');
-    
-    // Tim Kami
-    Route::get('/tim-kami', [App\Http\Controllers\AdminController::class, 'timKamiIndex'])->name('tim-kami');
-    Route::post('/tim-kami', [App\Http\Controllers\AdminController::class, 'timKamiStore'])->name('tim-kami.store');
-    Route::post('/tim-kami/{id}', [App\Http\Controllers\AdminController::class, 'timKamiUpdate'])->name('tim-kami.update');
-    Route::delete('/tim-kami/{id}', [App\Http\Controllers\AdminController::class, 'timKamiDestroy'])->name('tim-kami.destroy');
-    
-    // Testimoni Pelanggan
-    Route::get('/testimoni-pelanggan', [App\Http\Controllers\AdminController::class, 'testimoniPelangganIndex'])->name('testimoni-pelanggan');
-    Route::post('/testimoni-pelanggan', [App\Http\Controllers\AdminController::class, 'testimoniPelangganStore'])->name('testimoni-pelanggan.store');
-    Route::post('/testimoni-pelanggan/{id}', [App\Http\Controllers\AdminController::class, 'testimoniPelangganUpdate'])->name('testimoni-pelanggan.update');
-    Route::delete('/testimoni-pelanggan/{id}', [App\Http\Controllers\AdminController::class, 'testimoniPelangganDestroy'])->name('testimoni-pelanggan.destroy');
-    
-    // Event
-    Route::get('/event', [App\Http\Controllers\AdminController::class, 'eventIndex'])->name('event');
-    Route::post('/event', [App\Http\Controllers\AdminController::class, 'eventStore'])->name('event.store');
-    Route::post('/event/{id}', [App\Http\Controllers\AdminController::class, 'eventUpdate'])->name('event.update');
-    Route::delete('/event/{id}', [App\Http\Controllers\AdminController::class, 'eventDestroy'])->name('event.destroy');
-    
-    // Footer
-    Route::get('/footer', [App\Http\Controllers\AdminController::class, 'footerIndex'])->name('footer');
-    Route::post('/footer', [App\Http\Controllers\AdminController::class, 'footerUpdate'])->name('footer.update');
-
-    // User Management
-    Route::prefix('manage-users')->name('manage-users.')->group(function () {
-        Route::get('/', [App\Http\Controllers\UserController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\UserController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
-        Route::get('/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
-        Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
-        Route::patch('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
-        Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
+    // CMS Routes (super_admin & admin - add authorization in controller)
+    Route::prefix('cms')->name('cms.')->group(function () {
+        Route::get('/hero', [App\Http\Controllers\AdminController::class, 'heroIndex'])->name('hero');
+        Route::post('/hero', [App\Http\Controllers\AdminController::class, 'heroUpdate'])->name('hero.update');
+        
+        Route::get('/tentang-kami', [App\Http\Controllers\AdminController::class, 'tentangKamiIndex'])->name('tentang-kami');
+        Route::post('/tentang-kami', [App\Http\Controllers\AdminController::class, 'tentangKamiUpdate'])->name('tentang-kami.update');
+        
+        Route::get('/about-founder', [App\Http\Controllers\AdminController::class, 'aboutFounderIndex'])->name('about-founder');
+        Route::post('/about-founder', [App\Http\Controllers\AdminController::class, 'aboutFounderUpdate'])->name('about-founder.update');
+        
+        Route::get('/keunggulan-fasilitas', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasIndex'])->name('keunggulan-fasilitas');
+        Route::post('/keunggulan-fasilitas', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasStore'])->name('keunggulan-fasilitas.store');
+        Route::post('/keunggulan-fasilitas/{id}', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasUpdate'])->name('keunggulan-fasilitas.update');
+        Route::delete('/keunggulan-fasilitas/{id}', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasDestroy'])->name('keunggulan-fasilitas.destroy');
+        
+        Route::get('/portfolio-achievement', [App\Http\Controllers\AdminController::class, 'portfolioAchievementIndex'])->name('portfolio-achievement');
+        Route::post('/portfolio-achievement', [App\Http\Controllers\AdminController::class, 'portfolioAchievementStore'])->name('portfolio-achievement.store');
+        Route::post('/portfolio-achievement/{id}', [App\Http\Controllers\AdminController::class, 'portfolioAchievementUpdate'])->name('portfolio-achievement.update');
+        Route::delete('/portfolio-achievement/{id}', [App\Http\Controllers\AdminController::class, 'portfolioAchievementDestroy'])->name('portfolio-achievement.destroy');
+        
+        Route::get('/tim-kami', [App\Http\Controllers\AdminController::class, 'timKamiIndex'])->name('tim-kami');
+        Route::post('/tim-kami', [App\Http\Controllers\AdminController::class, 'timKamiStore'])->name('tim-kami.store');
+        Route::post('/tim-kami/{id}', [App\Http\Controllers\AdminController::class, 'timKamiUpdate'])->name('tim-kami.update');
+        Route::delete('/tim-kami/{id}', [App\Http\Controllers\AdminController::class, 'timKamiDestroy'])->name('tim-kami.destroy');
+        
+        Route::get('/testimoni-pelanggan', [App\Http\Controllers\AdminController::class, 'testimoniPelangganIndex'])->name('testimoni-pelanggan');
+        Route::post('/testimoni-pelanggan', [App\Http\Controllers\AdminController::class, 'testimoniPelangganStore'])->name('testimoni-pelanggan.store');
+        Route::post('/testimoni-pelanggan/{id}', [App\Http\Controllers\AdminController::class, 'testimoniPelangganUpdate'])->name('testimoni-pelanggan.update');
+        Route::delete('/testimoni-pelanggan/{id}', [App\Http\Controllers\AdminController::class, 'testimoniPelangganDestroy'])->name('testimoni-pelanggan.destroy');
+        
+        Route::get('/event', [App\Http\Controllers\AdminController::class, 'eventIndex'])->name('event');
+        Route::post('/event', [App\Http\Controllers\AdminController::class, 'eventStore'])->name('event.store');
+        Route::post('/event/{id}', [App\Http\Controllers\AdminController::class, 'eventUpdate'])->name('event.update');
+        Route::delete('/event/{id}', [App\Http\Controllers\AdminController::class, 'eventDestroy'])->name('event.destroy');
+        
+        Route::get('/footer', [App\Http\Controllers\AdminController::class, 'footerIndex'])->name('footer');
+        Route::post('/footer', [App\Http\Controllers\AdminController::class, 'footerUpdate'])->name('footer.update');
     });
 
-    // Order Management
+    // Order Management (super_admin, admin)
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [App\Http\Controllers\OrderController::class, 'adminIndex'])->name('index');
         Route::get('/check-new', [App\Http\Controllers\OrderController::class, 'checkNewOrders'])->name('check-new');
@@ -128,13 +111,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin',
         Route::post('/{id}/reject', [App\Http\Controllers\OrderController::class, 'reject'])->name('reject');
         Route::post('/{id}/rekap', [App\Http\Controllers\OrderController::class, 'rekapOrder'])->name('rekap');
         Route::delete('/{id}', [App\Http\Controllers\OrderController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/process-payment', [App\Http\Controllers\OrderController::class, 'processPayment'])->name('process-payment');
         
-        // Tutup Hari
-                Route::get('/recap', [App\Http\Controllers\OrderController::class, 'recapIndex'])->name('recap.index');
-                Route::post('/recap', [App\Http\Controllers\OrderController::class, 'recap'])->name('recap');
-                Route::get('/recap/{id}', [App\Http\Controllers\OrderController::class, 'recapDetail'])->name('recap.detail');
-                Route::put('/recap/{id}', [App\Http\Controllers\OrderController::class, 'updateRecap'])->name('recap.update');
-                Route::get('/recap/{id}/export', [App\Http\Controllers\OrderController::class, 'exportRecap'])->name('recap.export');
+        // Recap Orders
+        Route::get('/recap', [App\Http\Controllers\OrderController::class, 'recapIndex'])->name('recap.index');
+        Route::post('/recap', [App\Http\Controllers\OrderController::class, 'recap'])->name('recap');
+        Route::get('/recap/{id}', [App\Http\Controllers\OrderController::class, 'recapDetail'])->name('recap.detail');
+        Route::put('/recap/{id}', [App\Http\Controllers\OrderController::class, 'updateRecap'])->name('recap.update');
+        Route::get('/recap/{id}/export', [App\Http\Controllers\OrderController::class, 'exportRecap'])->name('recap.export');
+        Route::post('/recap/{id}/send-email', [App\Http\Controllers\OrderController::class, 'sendRecapEmail'])->name('recap.send-email');
     });
 
     // Notification Sounds Management
@@ -146,10 +131,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin',
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
     });
 
-    // Tutup Hari Email
-    Route::post('/orders/recap/{id}/send-email', [App\Http\Controllers\OrderController::class, 'sendRecapEmail'])->name('orders.recap.send-email');
-
-    // Menu Management (CRUD)
+    // Menu Management (super_admin & admin only)
     Route::resource('menus', MenuAdminController::class)->names([
         'index'   => 'menus.index',
         'create'  => 'menus.create',
@@ -159,7 +141,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin',
         'destroy' => 'menus.destroy',
     ]);
 
-    // Category Management (CRUD)
+    // Category Management (super_admin & admin only)
     Route::resource('categories', CategoryAdminController::class)->names([
         'index'   => 'categories.index',
         'create'  => 'categories.create',
@@ -169,7 +151,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin',
         'destroy' => 'categories.destroy',
     ]);
 
-    // Table Management (Meja Billiard) - Includes Barcode Management
+    // Table Management (super_admin, admin)
     Route::prefix('tables')->name('tables.')->group(function () {
         Route::get('/', [App\Http\Controllers\TableController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\TableController::class, 'create'])->name('create');
@@ -183,4 +165,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin',
     Route::get('/barcode', function () {
         return redirect()->route('admin.tables.index');
     })->name('barcode.index');
+
+    // User Management (super_admin only)
+    Route::prefix('manage-users')->name('manage-users.')->middleware('can:viewAny,App\Models\User')->group(function () {
+        Route::get('/', [App\Http\Controllers\UserController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\UserController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
+        Route::get('/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
+        Route::patch('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
+    });
 });

@@ -40,8 +40,17 @@
                         </div>
                     </td>
                     <td class="px-6 py-5">
-                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter {{ $user->role == 'admin' ? 'bg-orange-500/10 text-orange-500' : 'bg-blue-500/10 text-blue-500' }}">
-                            {{ $user->role }}
+                        @php
+                            $role = $user->getRoleNames()->first() ?? 'no-role';
+                            $roleColors = [
+                                'super_admin' => 'bg-red-500/10 text-red-500',
+                                'admin' => 'bg-orange-500/10 text-orange-500',
+                                'kitchen' => 'bg-blue-500/10 text-blue-500',
+                                'no-role' => 'bg-gray-500/10 text-gray-500',
+                            ];
+                        @endphp
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter {{ $roleColors[$role] ?? 'bg-gray-500/10 text-gray-500' }}">
+                            {{ ucfirst(str_replace('_', ' ', $role)) }}
                         </span>
                     </td>
                     <td class="px-6 py-5">

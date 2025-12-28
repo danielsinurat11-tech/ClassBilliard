@@ -17,7 +17,7 @@ class CheckShiftTime
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // Check if user is authenticated and has shift_id
         if (!$user || !$user->shift_id) {

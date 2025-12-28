@@ -11,10 +11,16 @@ class meja_billiard extends Model
     
     protected $fillable = [
         'name',
+        'number',
         'room',
         'slug',
-        'qrcode'
+        'qrcode',
+        'status'
     ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'    ];
 
     protected static function boot()
     {

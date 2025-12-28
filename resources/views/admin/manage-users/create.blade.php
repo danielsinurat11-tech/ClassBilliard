@@ -49,8 +49,9 @@
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Hak Akses (Role)</label>
                     <select name="role" class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all appearance-none">
-                        <option value="kitchen">Staff Dapur</option>
+                        <option value="kitchen">Kitchen Staff</option>
                         <option value="admin">Administrator</option>
+                        <option value="super_admin">Super Admin</option>
                     </select>
                 </div>
                 <div class="space-y-2">

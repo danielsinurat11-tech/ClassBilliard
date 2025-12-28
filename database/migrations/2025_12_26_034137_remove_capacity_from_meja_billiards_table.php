@@ -19,7 +19,12 @@ return new class extends Migration
     {
         Schema::table('meja_billiards', function (Blueprint $table) {
             if (!Schema::hasColumn('meja_billiards', 'capacity')) {
-                $table->integer('capacity')->default(4)->after('slug');
+                // Only add capacity if slug column exists, otherwise add it at the end
+                if (Schema::hasColumn('meja_billiards', 'slug')) {
+                    $table->integer('capacity')->default(4)->after('slug');
+                } else {
+                    $table->integer('capacity')->default(4);
+                }
             }
         });
     }

@@ -40,9 +40,12 @@
                     <p class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em] mt-1">
                         {{ $user->email }}</p>
 
+                    @php
+                        $role = $user->getRoleNames()->first() ?? 'no-role';
+                    @endphp
                     <div
                         class="mt-6 inline-flex items-center px-4 py-1.5 rounded-md bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-[#fa9a08] text-[9px] font-black uppercase tracking-widest">
-                        {{ $user->role }} ACCESS LEVEL
+                        {{ ucfirst(str_replace('_', ' ', $role)) }} ACCESS LEVEL
                     </div>
                 </div>
 

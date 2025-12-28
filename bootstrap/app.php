@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'auth.custom' => \App\Http\Middleware\EnsureUserIsAuthenticated::class,
             'check.shift.time' => \App\Http\Middleware\CheckShiftTime::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -25,5 +26,11 @@ return Application::configure(basePath: dirname(__DIR__))
             
             // Redirect ke halaman login
             return redirect('/login')->with('error', 'Silakan login terlebih dahulu.');
+        });
+
+        // Handle Authorization Exception (403 Forbidden)
+        $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, \Illuminate\Http\Request $request) {
+            // Return custom 403 view dengan SweetAlert notifikasi
+            return response()->view('errors.403', [], 403);
         });
     })->create();

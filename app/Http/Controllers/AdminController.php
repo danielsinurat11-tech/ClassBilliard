@@ -17,6 +17,17 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
+    /**
+     * Authorize only admin and super_admin for CMS content management
+     * CMS routes are for managing website content (not core business operations)
+     */
+    private function authorizeAdminOnly(): void
+    {
+        if (!auth()->user()->hasRole(['admin', 'super_admin'])) {
+            throw new \Illuminate\Auth\Access\AuthorizationException('Unauthorized action.');
+        }
+    }
+
     public function index()
     {
         return view('admin.dashboard');
@@ -25,12 +36,14 @@ class AdminController extends Controller
     // Hero Section
     public function heroIndex()
     {
+        $this->authorizeAdminOnly();
         $hero = HeroSection::first();
         return view('admin.manage-content.hero', compact('hero'));
     }
 
     public function heroUpdate(Request $request)
     {
+        $this->authorizeAdminOnly();
         $hero = HeroSection::firstOrNew();
         
         if ($request->hasFile('logo_image')) {
@@ -55,18 +68,20 @@ class AdminController extends Controller
         $hero->is_active = $request->has('is_active');
         $hero->save();
 
-        return redirect()->route('admin.hero')->with('success', 'Hero section updated successfully');
+        return redirect()->route('admin.cms.hero')->with('success', 'Hero section updated successfully');
     }
 
     // Tentang Kami
     public function tentangKamiIndex()
     {
+        $this->authorizeAdminOnly();
         $tentangKami = TentangKami::first();
         return view('admin.manage-content.tentang-kami', compact('tentangKami'));
     }
 
     public function tentangKamiUpdate(Request $request)
     {
+        $this->authorizeAdminOnly();
         $request->validate([
             'title' => 'nullable|string|max:255',
             'subtitle' => 'nullable|string',
@@ -105,7 +120,7 @@ class AdminController extends Controller
         $tentangKami->is_active = $request->has('is_active');
         $tentangKami->save();
 
-        return redirect()->route('admin.tentang-kami')->with('success', 'Tentang Kami updated successfully');
+        return redirect()->route('admin.cms.tentang-kami')->with('success', 'Tentang Kami updated successfully');
     }
 
     private function convertToEmbedUrl(?string $url): ?string
@@ -168,12 +183,14 @@ class AdminController extends Controller
     // About Founder
     public function aboutFounderIndex()
     {
+        $this->authorizeAdminOnly();
         $aboutFounder = AboutFounder::first();
         return view('admin.manage-content.about-founder', compact('aboutFounder'));
     }
 
     public function aboutFounderUpdate(Request $request)
     {
+        $this->authorizeAdminOnly();
         $aboutFounder = AboutFounder::firstOrNew();
         
         if ($request->hasFile('photo')) {
@@ -194,43 +211,48 @@ class AdminController extends Controller
         $aboutFounder->is_active = $request->has('is_active');
         $aboutFounder->save();
 
-        return redirect()->route('admin.about-founder')->with('success', 'About Founder updated successfully');
+        return redirect()->route('admin.cms.about-founder')->with('success', 'About Founder updated successfully');
     }
 
     // Keunggulan Fasilitas
     public function keunggulanFasilitasIndex()
     {
+        $this->authorizeAdminOnly();
         $keunggulanFasilitas = KeunggulanFasilitas::orderBy('order')->get();
         return view('admin.manage-content.keunggulan-fasilitas', compact('keunggulanFasilitas'));
     }
 
     public function keunggulanFasilitasStore(Request $request)
     {
+        $this->authorizeAdminOnly();
         $data = $request->only(['title', 'subtitle', 'icon', 'name', 'description', 'order']);
         $data['is_active'] = $request->has('is_active');
         KeunggulanFasilitas::create($data);
-        return redirect()->route('admin.keunggulan-fasilitas')->with('success', 'Fasilitas added successfully');
+        return redirect()->route('admin.cms.keunggulan-fasilitas')->with('success', 'Fasilitas added successfully');
     }
 
     public function keunggulanFasilitasUpdate(Request $request, $id)
     {
+        $this->authorizeAdminOnly();
         $fasilitas = KeunggulanFasilitas::findOrFail($id);
         $fasilitas->fill($request->only(['title', 'subtitle', 'icon', 'name', 'description', 'order']));
         $fasilitas->is_active = $request->has('is_active');
         $fasilitas->save();
 
-        return redirect()->route('admin.keunggulan-fasilitas')->with('success', 'Fasilitas updated successfully');
+        return redirect()->route('admin.cms.keunggulan-fasilitas')->with('success', 'Fasilitas updated successfully');
     }
 
     public function keunggulanFasilitasDestroy($id)
     {
+        $this->authorizeAdminOnly();
         KeunggulanFasilitas::findOrFail($id)->delete();
-        return redirect()->route('admin.keunggulan-fasilitas')->with('success', 'Fasilitas deleted successfully');
+        return redirect()->route('admin.cms.keunggulan-fasilitas')->with('success', 'Fasilitas deleted successfully');
     }
 
     // Portfolio Achievement
     public function portfolioAchievementIndex()
     {
+        $this->authorizeAdminOnly();
         // Semua achievements ditampilkan di dashboard tanpa filter type
         $allAchievements = PortfolioAchievement::orderBy('order')->get();
         return view('admin.manage-content.portfolio-achievement', compact('allAchievements'));
@@ -238,7 +260,8 @@ class AdminController extends Controller
 
     public function portfolioAchievementStore(Request $request)
     {
-        $data = $request->only(['title', 'description', 'order', 'type']);
+        $this->authorizeAdminOnly();
+        $data = $request->only(['title', 'description', 'order', 'type', 'subtitle', 'icon', 'number', 'label']);
         $data['is_active'] = $request->has('is_active');
         
         // Set type ke gallery karena dashboard hanya menampilkan items dengan image
@@ -249,7 +272,7 @@ class AdminController extends Controller
         }
         
         PortfolioAchievement::create($data);
-        return redirect()->route('admin.portfolio-achievement')->with('success', 'Achievement added successfully');
+        return redirect()->route('admin.cms.portfolio-achievement')->with('success', 'Item added successfully');
     }
 
     public function portfolioAchievementUpdate(Request $request, $id)
@@ -263,7 +286,7 @@ class AdminController extends Controller
             $item->image = $request->file('image')->store('portfolio', 'public');
         }
         
-        $data = $request->only(['title', 'description', 'order', 'type']);
+        $data = $request->only(['title', 'description', 'order', 'type', 'subtitle', 'icon', 'number', 'label']);
         
         // Pastikan type tetap gallery
         $data['type'] = 'gallery';
@@ -272,7 +295,7 @@ class AdminController extends Controller
         $item->is_active = $request->has('is_active');
         $item->save();
 
-        return redirect()->route('admin.portfolio-achievement')->with('success', 'Achievement updated successfully');
+        return redirect()->route('admin.cms.portfolio-achievement')->with('success', 'Item updated successfully');
     }
 
     public function portfolioAchievementDestroy($id)
@@ -282,18 +305,20 @@ class AdminController extends Controller
             Storage::disk('public')->delete($item->image);
         }
         $item->delete();
-        return redirect()->route('admin.portfolio-achievement')->with('success', 'Item deleted successfully');
+        return redirect()->route('admin.cms.portfolio-achievement')->with('success', 'Item deleted successfully');
     }
 
     // Tim Kami
     public function timKamiIndex()
     {
+        $this->authorizeAdminOnly();
         $timKami = TimKami::orderBy('order')->get();
         return view('admin.manage-content.tim-kami', compact('timKami'));
     }
 
     public function timKamiStore(Request $request)
     {
+        $this->authorizeAdminOnly();
         $data = $request->only(['title', 'subtitle', 'name', 'position', 'bio', 'facebook_url', 'instagram_url', 'linkedin_url', 'order']);
         $data['is_active'] = $request->has('is_active');
         
@@ -306,11 +331,12 @@ class AdminController extends Controller
         }
         
         TimKami::create($data);
-        return redirect()->route('admin.tim-kami')->with('success', 'Team member added successfully');
+        return redirect()->route('admin.cms.tim-kami')->with('success', 'Team member added successfully');
     }
 
     public function timKamiUpdate(Request $request, $id)
     {
+        $this->authorizeAdminOnly();
         $member = TimKami::findOrFail($id);
         
         if ($request->hasFile('photo')) {
@@ -331,28 +357,31 @@ class AdminController extends Controller
         $member->is_active = $request->has('is_active');
         $member->save();
 
-        return redirect()->route('admin.tim-kami')->with('success', 'Team member updated successfully');
+        return redirect()->route('admin.cms.tim-kami')->with('success', 'Team member updated successfully');
     }
 
     public function timKamiDestroy($id)
     {
+        $this->authorizeAdminOnly();
         $member = TimKami::findOrFail($id);
         if ($member->photo) {
             Storage::disk('public')->delete($member->photo);
         }
         $member->delete();
-        return redirect()->route('admin.tim-kami')->with('success', 'Team member deleted successfully');
+        return redirect()->route('admin.cms.tim-kami')->with('success', 'Team member deleted successfully');
     }
 
     // Testimoni Pelanggan
     public function testimoniPelangganIndex()
     {
+        $this->authorizeAdminOnly();
         $testimonis = TestimoniPelanggan::orderBy('order')->get();
         return view('admin.manage-content.testimoni-pelanggan', compact('testimonis'));
     }
 
     public function testimoniPelangganStore(Request $request)
     {
+        $this->authorizeAdminOnly();
         $data = $request->only(['title', 'subtitle', 'customer_name', 'name', 'customer_role', 'role', 'testimonial', 'rating', 'order']);
         $data['is_active'] = $request->has('is_active');
         
@@ -365,11 +394,12 @@ class AdminController extends Controller
         }
         
         TestimoniPelanggan::create($data);
-        return redirect()->route('admin.testimoni-pelanggan')->with('success', 'Testimoni added successfully');
+        return redirect()->route('admin.cms.testimoni-pelanggan')->with('success', 'Testimoni added successfully');
     }
 
     public function testimoniPelangganUpdate(Request $request, $id)
     {
+        $this->authorizeAdminOnly();
         $testimoni = TestimoniPelanggan::findOrFail($id);
         
         if ($request->hasFile('photo')) {
@@ -390,28 +420,31 @@ class AdminController extends Controller
         $testimoni->is_active = $request->has('is_active');
         $testimoni->save();
 
-        return redirect()->route('admin.testimoni-pelanggan')->with('success', 'Testimoni updated successfully');
+        return redirect()->route('admin.cms.testimoni-pelanggan')->with('success', 'Testimoni updated successfully');
     }
 
     public function testimoniPelangganDestroy($id)
     {
+        $this->authorizeAdminOnly();
         $testimoni = TestimoniPelanggan::findOrFail($id);
         if ($testimoni->photo) {
             Storage::disk('public')->delete($testimoni->photo);
         }
         $testimoni->delete();
-        return redirect()->route('admin.testimoni-pelanggan')->with('success', 'Testimoni deleted successfully');
+        return redirect()->route('admin.cms.testimoni-pelanggan')->with('success', 'Testimoni deleted successfully');
     }
 
     // Event
     public function eventIndex()
     {
+        $this->authorizeAdminOnly();
         $events = Event::orderBy('order')->get();
         return view('admin.manage-content.event', compact('events'));
     }
 
     public function eventStore(Request $request)
     {
+        $this->authorizeAdminOnly();
         $data = $request->only(['title', 'subtitle', 'event_title', 'event_description', 'description', 'category', 'event_date', 'link_url', 'order']);
         $data['is_active'] = $request->has('is_active');
         
@@ -420,11 +453,12 @@ class AdminController extends Controller
         }
         
         Event::create($data);
-        return redirect()->route('admin.event')->with('success', 'Event added successfully');
+        return redirect()->route('admin.cms.event')->with('success', 'Event added successfully');
     }
 
     public function eventUpdate(Request $request, $id)
     {
+        $this->authorizeAdminOnly();
         $event = Event::findOrFail($id);
         
         if ($request->hasFile('image')) {
@@ -438,28 +472,31 @@ class AdminController extends Controller
         $event->is_active = $request->has('is_active');
         $event->save();
 
-        return redirect()->route('admin.event')->with('success', 'Event updated successfully');
+        return redirect()->route('admin.cms.event')->with('success', 'Event updated successfully');
     }
 
     public function eventDestroy($id)
     {
+        $this->authorizeAdminOnly();
         $event = Event::findOrFail($id);
         if ($event->image) {
             Storage::disk('public')->delete($event->image);
         }
         $event->delete();
-        return redirect()->route('admin.event')->with('success', 'Event deleted successfully');
+        return redirect()->route('admin.cms.event')->with('success', 'Event deleted successfully');
     }
 
     // Footer
     public function footerIndex()
     {
+        $this->authorizeAdminOnly();
         $footer = Footer::first();
         return view('admin.manage-content.footer', compact('footer'));
     }
 
     public function footerUpdate(Request $request)
     {
+        $this->authorizeAdminOnly();
         $footer = Footer::firstOrNew();
         $footer->fill($request->only([
             'about_text',
@@ -482,7 +519,7 @@ class AdminController extends Controller
         $footer->is_active = $request->has('is_active');
         $footer->save();
 
-        return redirect()->route('admin.footer')->with('success', 'Footer updated successfully');
+        return redirect()->route('admin.cms.footer')->with('success', 'Footer updated successfully');
     }
 
     // Profile Management
@@ -522,3 +559,4 @@ class AdminController extends Controller
         return redirect()->route('admin.profile.edit')->with('success', 'Password berhasil diperbarui.');
     }
 }
+

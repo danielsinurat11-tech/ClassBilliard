@@ -67,14 +67,15 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'unique:users,email,' . $user->id],
-            'role'  => ['required', 'in:admin,kitchen'],
+            'role'  => ['required', 'in:admin,kitchen,super_admin'],
             'shift_id' => ['nullable', 'exists:shifts,id'],
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        $user->role = $validated['role'];
+        // Use spatie roles instead of column
+        $user->syncRoles([$validated['role']]);
         $user->shift_id = $validated['shift_id'] ?? null;
 
         if ($request->filled('password')) {

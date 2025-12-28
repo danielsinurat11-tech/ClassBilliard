@@ -74,9 +74,11 @@ class ShiftController extends Controller
 
         $user = User::findOrFail($request->user_id);
         
-        // Only allow admin and kitchen roles
-        if (!in_array($user->role, ['admin', 'kitchen'])) {
-            return back()->with('error', 'Hanya user dengan role admin atau kitchen yang bisa di-assign ke shift.');
+        // Only allow admin, kitchen, and super_admin roles (check spatie roles)
+        $allowedRoles = ['admin', 'kitchen', 'super_admin'];
+        $userRole = $user->getRoleNames()->first();
+        if (!in_array($userRole, $allowedRoles)) {
+            return back()->with('error', 'Hanya user dengan role admin, kitchen, atau super_admin yang bisa di-assign ke shift.');
         }
 
         $user->update([

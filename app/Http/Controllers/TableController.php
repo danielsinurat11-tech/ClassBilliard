@@ -15,44 +15,74 @@ use Endroid\QrCode\Writer\PngWriter;
 class TableController extends Controller
 {
     /**
-     * Menampilkan daftar semua meja
+     * Display list of all tables
+     * 
+     * Optimization:
+     * - Select only needed columns
+     * - Order by name for consistency
      */
     public function index()
     {
-        $tables = meja_billiard::orderBy('name', 'asc')->get();
+        $this->authorize('viewAny', meja_billiard::class);
+        
+        $tables = meja_billiard::select('id', 'name', 'room', 'qrcode', 'created_at')
+            ->orderBy('name', 'asc')
+            ->get();
+            
         return view('admin.tables.index', compact('tables'));
     }
 
     /**
-     * Menampilkan form tambah meja baru
+     * Show create table form
      */
     public function create()
     {
+        $this->authorize('create', meja_billiard::class);
         return view('admin.tables.create');
     }
 
     /**
-     * Menyimpan meja baru
+     * Store new table
+     * 
+     * Validation:
+     * - Name must be unique
+     * - Room is required
+     * 
+     * Actions:
+     * - Create QR code for table
+     * - Store QR code to storage
      */
     public function store(Request $request)
     {
+        $this->authorize('create', meja_billiard::class);
+        
+        // Validation with custom messages
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:meja_billiards,name',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:meja_billiards,name'
+            ],
             'room' => 'required|string|max:255',
+        ], [
+            'name.unique' => 'Nama meja sudah digunakan.',
+            'name.required' => 'Nama meja harus diisi.',
+            'room.required' => 'Ruangan harus dipilih.',
         ]);
 
         $slug = Str::slug($validated['name']);
         
-        // Extract nomor meja dari nama (misalnya "Meja 01" -> "01")
+        // Extract table number from name (e.g., "Meja 01" -> "01")
         $tableNumber = preg_replace('/[^0-9]/', '', $validated['name']);
         if (empty($tableNumber)) {
-            $tableNumber = $validated['name']; // Fallback ke nama jika tidak ada angka
+            $tableNumber = $validated['name']; // Fallback to name if no numbers
         }
         
-        // Generate URL untuk QR Code dengan parameter table (nomor saja) dan room
+        // Generate URL for QR Code
         $url = route('menu') . '?table=' . urlencode($tableNumber) . '&room=' . urlencode($validated['room']);
         
-        // Generate QR Code menggunakan package endroid/qr-code
+        // Generate QR Code
         $result = (new Builder(
             writer: new PngWriter(),
             writerOptions: [],
@@ -65,15 +95,18 @@ class TableController extends Controller
             roundBlockSizeMode: RoundBlockSizeMode::Margin
         ))->build();
         
-        // Simpan QR Code ke storage
+        // Store QR Code to storage
         $qrCodePath = 'qrcodes/' . $slug . '.png';
         Storage::disk('public')->put($qrCodePath, $result->getString());
         
+        // Create table
         $table = meja_billiard::create([
             'name' => $validated['name'],
             'room' => $validated['room'],
+            'number' => $tableNumber,
             'slug' => $slug,
             'qrcode' => $qrCodePath,
+            'status' => 'available'
         ]);
 
         return redirect()->route('admin.tables.index')
@@ -128,6 +161,9 @@ class TableController extends Controller
     {
         $table = meja_billiard::findOrFail($id);
         
+        // Authorize viewing the barcode
+        $this->authorize('view', $table);
+        
         // Extract nomor meja dari nama (misalnya "Meja 01" -> "01")
         $tableNumber = preg_replace('/[^0-9]/', '', $table->name);
         if (empty($tableNumber)) {
@@ -140,17 +176,24 @@ class TableController extends Controller
     }
 
     /**
-     * Hapus meja
+     * Delete table with authorization
+     * 
+     * Actions:
+     * - Delete QR Code file from storage
+     * - Delete table record
      */
     public function destroy($id)
     {
+        $this->authorize('delete', meja_billiard::class);
+        
         $table = meja_billiard::findOrFail($id);
         
-        // Hapus file QR Code jika ada
+        // Delete QR Code file if exists
         if ($table->qrcode && Storage::disk('public')->exists($table->qrcode)) {
             Storage::disk('public')->delete($table->qrcode);
         }
         
+        // Delete table record
         $table->delete();
         
         return redirect()->route('admin.tables.index')

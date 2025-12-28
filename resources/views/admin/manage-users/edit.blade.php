@@ -30,9 +30,13 @@
             </div>
             <div class="space-y-2">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Hak Akses (Role)</label>
+                @php
+                    $currentRole = $user->getRoleNames()->first();
+                @endphp
                 <select name="role" class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all appearance-none">
-                    <option value="kitchen" {{ $user->role == 'kitchen' ? 'selected' : '' }}>Staff Dapur</option>
-                    <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Administrator</option>
+                    <option value="admin" {{ $currentRole == 'admin' ? 'selected' : '' }}>Administrator</option>
+                    <option value="kitchen" {{ $currentRole == 'kitchen' ? 'selected' : '' }}>Kitchen Staff</option>
+                    <option value="super_admin" {{ $currentRole == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                 </select>
             </div>
         </div>

@@ -40,14 +40,15 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                 @php
                     $modules = [
-                        ['r' => 'admin.hero', 'i' => 'ri-image-2-line', 't' => 'Hero Section', 'd' => 'Konfigurasi visual utama dan headline halaman depan.'],
-                        ['r' => 'admin.tentang-kami', 'i' => 'ri-information-line', 'l' => 'Website CMS', 't' => 'Tentang Kami', 'd' => 'Visi, misi, dan manajemen video profil perusahaan.'],
-                        ['r' => 'admin.about-founder', 'i' => 'ri-user-star-line', 't' => 'About Founder', 'd' => 'Detail biografi dan profil profesional pendiri.'],
-                        ['r' => 'admin.portfolio-achievement', 'i' => 'ri-trophy-line', 't' => 'Portfolio', 'd' => 'Dokumentasi prestasi dan galeri pencapaian.'],
-                        ['r' => 'admin.tim-kami', 'i' => 'ri-team-line', 't' => 'Tim Kami', 'd' => 'Manajemen data instruktur dan staf operasional.'],
-                        ['r' => 'admin.testimoni-pelanggan', 'i' => 'ri-chat-quote-line', 't' => 'Testimoni', 'd' => 'Moderasi ulasan dan feedback dari pelanggan.'],
-                        ['r' => 'admin.event', 'i' => 'ri-calendar-event-line', 't' => 'Event & Promo', 'd' => 'Penjadwalan turnamen dan penawaran khusus.'],
-                        ['r' => 'admin.footer', 'i' => 'ri-layout-bottom-line', 't' => 'Footer Info', 'd' => 'Informasi kontak, media sosial, dan copyright.'],
+                        ['r' => 'admin.cms.hero', 'i' => 'ri-image-2-line', 't' => 'Hero Section', 'd' => 'Konfigurasi visual utama dan headline halaman depan.'],
+                        ['r' => 'admin.cms.tentang-kami', 'i' => 'ri-information-line', 'l' => 'Website CMS', 't' => 'Tentang Kami', 'd' => 'Visi, misi, dan manajemen video profil perusahaan.'],
+                        ['r' => 'admin.cms.about-founder', 'i' => 'ri-user-star-line', 't' => 'About Founder', 'd' => 'Detail biografi dan profil profesional pendiri.'],
+                        ['r' => 'admin.cms.keunggulan-fasilitas', 'i' => 'ri-medal-line', 't' => 'Keunggulan', 'd' => 'Daftar fasilitas pendukung dan nilai unik kelas.'],
+                        ['r' => 'admin.cms.portfolio-achievement', 'i' => 'ri-trophy-line', 't' => 'Portfolio', 'd' => 'Dokumentasi prestasi dan galeri pencapaian.'],
+                        ['r' => 'admin.cms.tim-kami', 'i' => 'ri-team-line', 't' => 'Tim Kami', 'd' => 'Manajemen data instruktur dan staf operasional.'],
+                        ['r' => 'admin.cms.testimoni-pelanggan', 'i' => 'ri-chat-quote-line', 't' => 'Testimoni', 'd' => 'Moderasi ulasan dan feedback dari pelanggan.'],
+                        ['r' => 'admin.cms.event', 'i' => 'ri-calendar-event-line', 't' => 'Event & Promo', 'd' => 'Penjadwalan turnamen dan penawaran khusus.'],
+                        ['r' => 'admin.cms.footer', 'i' => 'ri-layout-bottom-line', 't' => 'Footer Info', 'd' => 'Informasi kontak, media sosial, dan copyright.'],
                     ];
                 @endphp
 
