@@ -152,7 +152,14 @@ class NotificationSoundController extends Controller
     public function destroy($id)
     {
         try {
-            $sound = NotificationSound::findOrFail($id);
+            $sound = NotificationSound::find($id);
+            
+            if (!$sound) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Audio tidak ditemukan atau sudah dihapus'
+                ], 404);
+            }
 
             // Delete file from storage
             if (Storage::disk('public')->exists($sound->file_path)) {

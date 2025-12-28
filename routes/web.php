@@ -18,10 +18,18 @@ Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->na
 Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
 Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
 Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
+Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::class, 'getCategoryStats'])->name('reports.category-stats');
 Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
     Route::post('/reports/send-email', [App\Http\Controllers\OrderController::class, 'sendReportEmail'])->name('reports.send-email');
     Route::get('/test-email', [App\Http\Controllers\OrderController::class, 'testEmail'])->name('test.email');
     Route::get('/notification-sounds/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('notification-sounds.active');
+    
+    // Notification Sounds Management untuk Kitchen
+    Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
+        Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
+        Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // Public order route (untuk customer membuat pesanan)

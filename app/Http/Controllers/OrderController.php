@@ -8,6 +8,8 @@ use App\Models\Report;
 use App\Models\KitchenReport;
 use App\Models\Shift;
 use App\Models\meja_billiard;
+use App\Models\Menu;
+use App\Models\CategoryMenu;
 use App\Exports\OrdersExport;
 use App\Exports\RecapExport;
 use App\Mail\SendReportEmail;
@@ -843,6 +845,119 @@ class OrderController extends Controller
             'total_orders' => $totalOrders,
             'type' => $type,
             'shift_id' => $shiftId
+        ]);
+    }
+
+    /**
+     * Get order statistics by category for kitchen dashboard chart
+     */
+    public function getCategoryStats(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user->shift_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda belum di-assign ke shift.',
+                'data' => []
+            ], 400);
+        }
+
+        // Get filter parameters
+        $type = $request->get('type', 'daily'); // daily, monthly, yearly
+        $date = $request->get('date', Carbon::today('Asia/Jakarta')->format('Y-m-d'));
+        $month = $request->get('month', Carbon::now('Asia/Jakarta')->format('Y-m'));
+        $year = $request->get('year', Carbon::now('Asia/Jakarta')->format('Y'));
+
+        // Build query for completed orders
+        $ordersQuery = orders::with('orderItems')
+            ->where('shift_id', $user->shift_id)
+            ->where('status', 'completed');
+
+        // Apply date filter based on type
+        if ($type === 'daily') {
+            $ordersQuery->whereDate('updated_at', $date);
+        } elseif ($type === 'monthly') {
+            $ordersQuery->whereYear('updated_at', Carbon::parse($month)->year)
+                  ->whereMonth('updated_at', Carbon::parse($month)->month);
+        } elseif ($type === 'yearly') {
+            $ordersQuery->whereYear('updated_at', $year);
+        }
+
+        $orders = $ordersQuery->get();
+
+        // Get all categories
+        $categories = CategoryMenu::all();
+        
+        // Initialize stats
+        $categoryStats = [];
+        foreach ($categories as $category) {
+            $categoryStats[$category->slug] = [
+                'name' => $category->name,
+                'slug' => $category->slug,
+                'total_quantity' => 0,
+                'total_revenue' => 0,
+                'order_count' => 0,
+                'items' => [] // Store item details: ['name' => 'nasi goreng', 'quantity' => 3]
+            ];
+        }
+
+        // Process each order
+        foreach ($orders as $order) {
+            $orderCategories = []; // Track which categories this order belongs to
+            
+            foreach ($order->orderItems as $item) {
+                // Find menu by name to get category
+                $menu = Menu::where('name', $item->menu_name)->first();
+                
+                if ($menu && $menu->categoryMenu) {
+                    $categorySlug = $menu->categoryMenu->slug;
+                    
+                    if (isset($categoryStats[$categorySlug])) {
+                        $categoryStats[$categorySlug]['total_quantity'] += $item->quantity;
+                        $categoryStats[$categorySlug]['total_revenue'] += ($item->price * $item->quantity);
+                        
+                        // Add item detail
+                        $itemName = $item->menu_name;
+                        if (isset($categoryStats[$categorySlug]['items'][$itemName])) {
+                            $categoryStats[$categorySlug]['items'][$itemName] += $item->quantity;
+                        } else {
+                            $categoryStats[$categorySlug]['items'][$itemName] = $item->quantity;
+                        }
+                        
+                        // Track this category for this order
+                        if (!in_array($categorySlug, $orderCategories)) {
+                            $orderCategories[] = $categorySlug;
+                        }
+                    }
+                }
+            }
+            
+            // Count order once per category
+            foreach ($orderCategories as $categorySlug) {
+                if (isset($categoryStats[$categorySlug])) {
+                    $categoryStats[$categorySlug]['order_count']++;
+                }
+            }
+        }
+
+        // Format response - convert items array to list format
+        $formattedStats = [];
+        foreach ($categoryStats as $slug => $stats) {
+            // Convert items associative array to list of objects
+            $itemsList = [];
+            foreach ($stats['items'] as $itemName => $quantity) {
+                $itemsList[] = [
+                    'name' => $itemName,
+                    'quantity' => $quantity
+                ];
+            }
+            $stats['items'] = $itemsList;
+            $formattedStats[] = $stats;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $formattedStats
         ]);
     }
 

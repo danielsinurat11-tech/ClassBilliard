@@ -386,21 +386,30 @@
             {{-- Sidebar Footer --}}
             <div class="p-4 border-t border-white/10 bg-[#0f0f0f] space-y-2">
                 {{-- Audio Settings Button --}}
-                <div x-data="kitchenNotification()" class="relative">
-                    <button @click="openSettings = !openSettings" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98]">
+                <div x-data="kitchenNotification()">
+                    <button @click="openSettings = true" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98]">
                         <i class="ri-settings-3-line text-lg"></i>
                         <span>Pengaturan Audio</span>
                     </button>
                     
-                    {{-- Audio Settings Dropdown --}}
+                    {{-- Audio Settings Modal --}}
                     <div x-show="openSettings" @click.away="openSettings = false" x-cloak
-                        class="absolute bottom-full left-0 mb-2 w-80 bg-[#1a1a1a] border border-white/10 rounded-lg shadow-xl p-4 z-50">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-sm font-bold text-white">Pengaturan Audio Notifikasi</h3>
-                            <button @click="openSettings = false" class="text-gray-400 hover:text-white">
-                                <i class="ri-close-line"></i>
-                            </button>
-                        </div>
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0"
+                        x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100"
+                        x-transition:leave-end="opacity-0"
+                        class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+                        style="display: none;">
+                        <div @click.stop
+                            class="bg-[#1a1a1a] border border-white/10 rounded-xl shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-white">Pengaturan Audio Notifikasi</h3>
+                                <button @click="openSettings = false" class="text-gray-400 hover:text-white text-xl">
+                                    <i class="ri-close-line"></i>
+                                </button>
+                            </div>
                         
                         {{-- Audio Settings --}}
                         <div class="mb-4">
@@ -545,84 +554,61 @@
         </div>
 
         <div class="w-full hidden" id="reportsSection">
+            {{-- Grafik Laporan Order per Kategori --}}
             <div class="bg-[#1a1a1a] p-6 rounded-2xl mb-6">
-                <div class="flex gap-2 mb-6">
-                    <button class="filter-tab-btn py-3 px-6 bg-[#2a2a2a] border-none text-white text-[0.9rem] font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a] active:bg-[#fa9a08] active:text-white" data-filter-type="daily">Harian</button>
-                    <button class="filter-tab-btn py-3 px-6 bg-[#2a2a2a] border-none text-white text-[0.9rem] font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a]" data-filter-type="monthly">Bulanan</button>
-                    <button class="filter-tab-btn py-3 px-6 bg-[#2a2a2a] border-none text-white text-[0.9rem] font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a]" data-filter-type="yearly">Tahunan</button>
+                <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                    <i class="ri-line-chart-line text-[#fa9a08]"></i>
+                    Laporan Order per Kategori
+                </h2>
+                
+                {{-- Filter Section --}}
+                <div class="bg-[#0f0f0f] rounded-xl p-6 mb-6">
+                    <div class="flex gap-2 mb-4">
+                        <button class="filter-tab-btn py-2 px-4 bg-[#2a2a2a] border-none text-white text-sm font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a] active:bg-[#fa9a08] active:text-white" data-filter-type="daily">Harian</button>
+                        <button class="filter-tab-btn py-2 px-4 bg-[#2a2a2a] border-none text-white text-sm font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a]" data-filter-type="monthly">Bulanan</button>
+                        <button class="filter-tab-btn py-2 px-4 bg-[#2a2a2a] border-none text-white text-sm font-medium cursor-pointer rounded-lg transition-all duration-200 hover:bg-[#3a3a3a]" data-filter-type="yearly">Tahunan</button>
+                    </div>
+                    
+                    <div class="flex flex-col gap-4">
+                        {{-- Daily Filter --}}
+                        <div class="filter-input-group flex items-center gap-4 flex-wrap" id="dailyFilter">
+                            <label for="dailyDate" class="text-white font-medium min-w-[120px]">Pilih Tanggal:</label>
+                            <input type="date" id="dailyDate" class="py-2 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-sm flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" value="{{ date('Y-m-d') }}">
+                            <button class="load-chart-btn py-2 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="daily">Tampilkan</button>
+                        </div>
+                        
+                        {{-- Monthly Filter --}}
+                        <div class="filter-input-group items-center gap-4 flex-wrap hidden" id="monthlyFilter">
+                            <label for="monthlyDate" class="text-white font-medium min-w-[120px]">Pilih Bulan:</label>
+                            <input type="month" id="monthlyDate" class="py-2 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-sm flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" value="{{ date('Y-m') }}">
+                            <button class="load-chart-btn py-2 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="monthly">Tampilkan</button>
+                        </div>
+                        
+                        {{-- Yearly Filter --}}
+                        <div class="filter-input-group items-center gap-4 flex-wrap hidden" id="yearlyFilter">
+                            <label for="yearlyDate" class="text-white font-medium min-w-[120px]">Pilih Tahun:</label>
+                            <input type="number" id="yearlyDate" class="py-2 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-sm flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" min="2020" max="2099" value="{{ date('Y') }}">
+                            <button class="load-chart-btn py-2 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="yearly">Tampilkan</button>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="flex flex-col gap-4">
-                    <div class="filter-input-group flex items-center gap-4 flex-wrap" id="dailyFilter">
-                        <label for="dailyDate" class="text-white font-medium min-w-[120px]">Pilih Tanggal:</label>
-                        <input type="date" id="dailyDate" class="py-3 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-[0.95rem] flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" value="{{ date('Y-m-d') }}">
-                        <button class="load-reports-btn py-3 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="daily">Tampilkan</button>
-                    </div>
-                    
-                    <div class="filter-input-group items-center gap-4 flex-wrap hidden" id="monthlyFilter">
-                        <label for="monthlyDate" class="text-white font-medium min-w-[120px]">Pilih Bulan:</label>
-                        <input type="month" id="monthlyDate" class="py-3 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-[0.95rem] flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" value="{{ date('Y-m') }}">
-                        <button class="load-reports-btn py-3 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="monthly">Tampilkan</button>
-                    </div>
-                    
-                    <div class="filter-input-group items-center gap-4 flex-wrap hidden" id="yearlyFilter">
-                        <label for="yearlyDate" class="text-white font-medium min-w-[120px]">Pilih Tahun:</label>
-                        <input type="number" id="yearlyDate" class="py-3 px-3 bg-[#2a2a2a] border border-[#555] rounded-lg text-white text-[0.95rem] flex-1 max-w-[300px] focus:outline-none focus:border-[#fa9a08]" min="2020" max="2099" value="{{ date('Y') }}">
-                        <button class="load-reports-btn py-3 px-6 bg-[#fa9a08] text-white border-none rounded-lg text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 hover:bg-[#e19e2b]" data-type="yearly">Tampilkan</button>
+                {{-- Chart Container --}}
+                <div class="bg-[#0f0f0f] rounded-xl p-6 mb-6">
+                    <canvas id="categoryChart" style="max-height: 400px;"></canvas>
+                </div>
+                
+                {{-- Detail Orderan per Kategori --}}
+                <div class="bg-[#0f0f0f] rounded-xl p-6 mb-6" id="categoryDetails">
+                    <h3 class="text-lg font-bold text-white mb-4">Detail Orderan</h3>
+                    <div id="categoryDetailsContent" class="space-y-4">
+                        <!-- Detail akan diisi via JavaScript -->
                     </div>
                 </div>
-            </div>
-
-            <div class="gap-4 mb-6 items-center flex-wrap flex hidden" id="reportsSummary">
-                <div class="bg-[#fa9a08] p-6 rounded-xl flex-1 min-w-[200px]">
-                    <h3 class="text-white text-[0.9rem] font-medium m-0 mb-2">Total Pesanan</h3>
-                    <p id="totalOrders" class="text-white text-2xl font-bold m-0">0</p>
-                </div>
-                <div class="bg-[#fa9a08] p-6 rounded-xl flex-1 min-w-[200px]">
-                    <h3 class="text-white text-[0.9rem] font-medium m-0 mb-2">Total Pendapatan</h3>
-                    <p id="totalRevenue" class="text-white text-2xl font-bold m-0">Rp0</p>
-                </div>
-            </div>
-
-            {{-- Export Buttons - Always visible in reports section --}}
-            <div class="mb-6 hidden flex gap-4" id="exportExcelContainer">
-                <button class="send-report-btn py-3 px-6 bg-blue-500 text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 hover:bg-blue-600 flex items-center gap-2" id="sendReportBtn">
-                    <i class="ri-mail-line"></i>
-                    Kirim Laporan
-                </button>
-                <button class="download-report-btn py-3 px-6 bg-emerald-500 text-white border-none rounded-xl text-[0.95rem] font-semibold cursor-pointer transition-all duration-200 hover:bg-emerald-600 flex items-center gap-2" id="downloadReportBtn">
-                    <i class="ri-download-line"></i>
-                    Download Laporan
-                </button>
-            </div>
-
-            <div class="min-h-[200px] hidden" id="reportsContent">
-                <div class="text-center py-16 px-8 text-gray-400 text-lg">
-                    <p>Pilih filter dan klik "Tampilkan" untuk melihat laporan</p>
-                </div>
-            </div>
-
-            {{-- Tabel Laporan Realtime --}}
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden hidden mb-6" id="reportsTableContainer">
-                <div class="w-full overflow-hidden">
-                    <table id="reportsTable" class="w-full border-collapse" style="border: 1px solid #d1d5db; table-layout: fixed;">
-                        <thead>
-                            <tr>
-                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 5%;">No</th>
-                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 12%;">Waktu Pesan</th>
-                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 12%;">Waktu Selesai</th>
-                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 12%;">Nama Pemesan</th>
-                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 18%;">Pesanan</th>
-                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 8%;">No Meja</th>
-                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 8%;">Ruangan</th>
-                                <th class="px-2 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 10%;">Metode</th>
-                                <th class="px-2 py-2 text-right text-xs font-bold text-gray-700 uppercase tracking-wider border border-gray-300 bg-gray-100" style="background-color: #f3f4f6; border: 1px solid #d1d5db; width: 15%;">Total Harga</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reportsTableBody" class="bg-white">
-                            <!-- Data akan diisi via JavaScript -->
-                        </tbody>
-                    </table>
+                
+                {{-- Summary Cards --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="categorySummary">
+                    <!-- Summary cards will be generated dynamically -->
                 </div>
             </div>
         </div>
@@ -631,6 +617,8 @@
     </div>
 
     @push('scripts')
+    {{-- Chart.js --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="{{ asset('js/dapur.js') }}"></script>
     <script>
         // Sidebar Toggle
@@ -758,31 +746,62 @@
                 const savedAudio = localStorage.getItem('kitchenNotificationAudio');
                 const audioType = localStorage.getItem('kitchenNotificationAudioType');
                 
-                if (savedAudio && notificationSound) {
-                    const source = notificationSound.querySelector('#notificationSoundSource');
+                const source = notificationSound ? notificationSound.querySelector('#notificationSoundSource') : null;
+                
+                if (!savedAudio || !source) {
+                    // No audio selected, clear source
                     if (source) {
-                        if (audioType === 'database') {
-                            // Load from database
-                            const response = await fetch('/admin/notification-sounds');
-                            const sounds = await response.json();
-                            const sound = sounds.find(s => s.filename === savedAudio);
-                            if (sound) {
-                                if (sound.file_path.startsWith('sounds/')) {
-                                    source.src = '{{ asset("storage") }}/' + sound.file_path;
-                                } else {
-                                    source.src = '{{ asset("assets/sounds") }}/' + sound.filename;
-                                }
-                                notificationSound.load();
-                            }
-                        } else if (audioType === 'file') {
-                            // File was selected directly, but file object is not persistent
-                            // User needs to reselect on page reload
-                            source.src = '';
+                        source.src = '';
+                        if (notificationSound) {
+                            notificationSound.pause();
+                            notificationSound.currentTime = 0;
                         }
                     }
+                    return;
+                }
+                
+                if (audioType === 'database') {
+                    // Load from database
+                    const response = await fetch('/notification-sounds');
+                    const sounds = await response.json();
+                    const sound = sounds.find(s => s.filename === savedAudio);
+                    if (sound) {
+                        if (sound.file_path.startsWith('sounds/')) {
+                            source.src = '{{ asset("storage") }}/' + sound.file_path;
+                        } else {
+                            source.src = '{{ asset("assets/sounds") }}/' + sound.filename;
+                        }
+                        notificationSound.load();
+                    } else {
+                        // Sound not found in database, clear
+                        source.src = '';
+                        if (notificationSound) {
+                            notificationSound.pause();
+                            notificationSound.currentTime = 0;
+                        }
+                        // Clear invalid localStorage
+                        localStorage.removeItem('kitchenNotificationAudio');
+                        localStorage.removeItem('kitchenNotificationAudioType');
+                    }
+                } else if (audioType === 'file') {
+                    // File was selected directly, but file object is not persistent
+                    // User needs to reselect on page reload
+                    source.src = '';
+                    if (notificationSound) {
+                        notificationSound.pause();
+                        notificationSound.currentTime = 0;
+                    }
+                    // Clear invalid localStorage
+                    localStorage.removeItem('kitchenNotificationAudio');
+                    localStorage.removeItem('kitchenNotificationAudioType');
                 }
             } catch (error) {
                 console.error('Error loading active notification sound:', error);
+                // On error, clear audio source
+                const source = notificationSound ? notificationSound.querySelector('#notificationSoundSource') : null;
+                if (source) {
+                    source.src = '';
+                }
             }
         }
 
@@ -845,12 +864,16 @@
                 closeNotification(order.id);
             }, 8000);
             
-            // Play sound
+            // Play sound only if audio is selected
             if (notificationSound) {
-                notificationSound.currentTime = 0;
-                notificationSound.play().catch(err => {
-                    console.log('Sound play failed:', err);
-                });
+                const source = notificationSound.querySelector('#notificationSoundSource');
+                // Only play if source has a valid src
+                if (source && source.src && source.src !== '' && source.src !== window.location.href) {
+                    notificationSound.currentTime = 0;
+                    notificationSound.play().catch(err => {
+                        console.log('Sound play failed:', err);
+                    });
+                }
             }
         }
 
@@ -1058,152 +1081,358 @@
             }, 1000);
         })();
 
-        // Realtime Reports Table
-        let reportsData = [];
+        // Category Chart untuk Laporan
+        let categoryChart = null;
         let currentFilterType = 'daily';
         let currentFilterDate = new Date().toISOString().split('T')[0];
         let currentFilterMonth = new Date().toISOString().slice(0, 7);
         let currentFilterYear = new Date().getFullYear();
 
-        // Format currency
-        function formatCurrency(amount) {
-            return 'Rp' + new Intl.NumberFormat('id-ID').format(amount);
-        }
+        // Load category statistics and render chart
+        async function loadCategoryChart(type, date, month, year) {
+            try {
+                // Use provided parameters or current values
+                type = type || currentFilterType;
+                date = date || currentFilterDate;
+                month = month || currentFilterMonth;
+                year = year || currentFilterYear;
 
-        // Format payment method
-        function formatPaymentMethod(method) {
-            const methods = {
-                'cash': 'Tunai',
-                'qris': 'QRIS',
-                'transfer': 'Transfer'
-            };
-            return methods[method] || method;
-        }
+                // Update current filter values
+                currentFilterType = type;
+                currentFilterDate = date;
+                currentFilterMonth = month;
+                currentFilterYear = year;
 
-        // Add order to reports table
-        function addOrderToReportsTable(order) {
-            // Check if order matches current filter
-            const orderDate = new Date(order.created_at);
-            let shouldAdd = false;
+                // Build query parameters
+                const params = new URLSearchParams({ type });
+                if (type === 'daily') {
+                    params.append('date', date);
+                } else if (type === 'monthly') {
+                    params.append('month', month);
+                } else if (type === 'yearly') {
+                    params.append('year', year);
+                }
 
-            if (currentFilterType === 'daily') {
-                const filterDate = new Date(currentFilterDate);
-                shouldAdd = orderDate.toDateString() === filterDate.toDateString();
-            } else if (currentFilterType === 'monthly') {
-                const filterMonth = new Date(currentFilterMonth + '-01');
-                shouldAdd = orderDate.getFullYear() === filterMonth.getFullYear() && 
-                           orderDate.getMonth() === filterMonth.getMonth();
-            } else if (currentFilterType === 'yearly') {
-                shouldAdd = orderDate.getFullYear() === parseInt(currentFilterYear);
-            }
+                const response = await fetch(`/reports/category-stats?${params}`);
+                const data = await response.json();
 
-            if (shouldAdd) {
-                reportsData.unshift(order); // Add to beginning
-                renderReportsTable();
-                updateReportsSummary();
-            }
-        }
+                if (!data.success || !data.data) {
+                    console.error('Error loading category stats:', data.message);
+                    return;
+                }
 
-        // Render reports table
-        function renderReportsTable() {
-            const tbody = document.getElementById('reportsTableBody');
-            const container = document.getElementById('reportsTableContainer');
-            
-            if (!tbody || !container) return;
-
-            if (reportsData.length === 0) {
-                container.classList.add('hidden');
-                return;
-            }
-
-            container.classList.remove('hidden');
-            tbody.innerHTML = '';
-
-            reportsData.forEach((order, index) => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50 transition-colors';
+                const categoryData = data.data;
                 
-                const orderItemsText = order.order_items.map(item => 
-                    `${item.quantity}x ${item.menu_name}`
-                ).join(', ');
+                // Render chart
+                renderCategoryChart(categoryData);
+                
+                // Render detail orderan
+                renderCategoryDetails(categoryData);
+                
+                // Render summary cards
+                renderCategorySummary(categoryData);
+            } catch (error) {
+                console.error('Error loading category chart:', error);
+            }
+        }
 
-                // Format tanggal untuk tampilan lebih ringkas (WIB)
-                const formatDate = (dateString) => {
-                    const date = new Date(dateString);
-                    return date.toLocaleDateString('id-ID', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        timeZone: 'Asia/Jakarta'
-                    }).replace(',', '') + ' WIB';
-                };
+        // Render category chart using Chart.js
+        function renderCategoryChart(data) {
+            const ctx = document.getElementById('categoryChart');
+            if (!ctx) return;
 
-                row.innerHTML = `
-                    <td class="px-2 py-2 text-sm text-gray-900 border border-gray-300 text-center" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${index + 1}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${formatDate(order.created_at)}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${formatDate(order.updated_at)}</td>
-                    <td class="px-2 py-2 text-sm text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${order.customer_name}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; word-break: break-word; overflow: hidden;">${orderItemsText}</td>
-                    <td class="px-2 py-2 text-sm text-gray-900 border border-gray-300 text-center" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${order.table_number}</td>
-                    <td class="px-2 py-2 text-sm text-gray-900 border border-gray-300 text-center" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${order.room}</td>
-                    <td class="px-2 py-2 text-xs text-gray-900 border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${formatPaymentMethod(order.payment_method)}</td>
-                    <td class="px-2 py-2 text-sm text-gray-900 font-semibold text-right border border-gray-300" style="border: 1px solid #d1d5db; background-color: #ffffff; overflow: hidden; text-overflow: ellipsis;">${formatCurrency(order.total_price)}</td>
-                `;
-                tbody.appendChild(row);
+            // Destroy existing chart if any
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+
+            const labels = data.map(item => item.name);
+            const quantities = data.map(item => item.total_quantity);
+            const revenues = data.map(item => item.total_revenue);
+
+            categoryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Quantity',
+                            data: quantities,
+                            backgroundColor: 'rgba(250, 154, 8, 0.1)',
+                            borderColor: 'rgba(250, 154, 8, 1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointBackgroundColor: 'rgba(250, 154, 8, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointStyle: 'circle',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Total Revenue (Rp)',
+                            data: revenues,
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointStyle: 'circle',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                },
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#fa9a08',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.datasetIndex === 0) {
+                                        label += context.parsed.y + ' item';
+                                    } else {
+                                        label += 'Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#fff',
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: {
+                                color: '#fa9a08',
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return value + ' item';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(250, 154, 8, 0.2)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Total Quantity',
+                                color: '#fa9a08',
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: {
+                                color: '#3b82f6',
+                                font: {
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            title: {
+                                display: true,
+                                text: 'Total Revenue',
+                                color: '#3b82f6',
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
 
-        // Update reports summary
-        function updateReportsSummary() {
-            const totalOrders = reportsData.length;
-            const totalRevenue = reportsData.reduce((sum, order) => sum + parseFloat(order.total_price), 0);
-            
-            document.getElementById('totalOrders').textContent = totalOrders;
-            document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
-            
-            const summary = document.getElementById('reportsSummary');
-            if (summary) {
-                summary.classList.remove('hidden');
-                summary.classList.add('flex');
+        // Render category details (keterangan orderan)
+        function renderCategoryDetails(data) {
+            const container = document.getElementById('categoryDetailsContent');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            data.forEach(category => {
+                if (category.items && category.items.length > 0) {
+                    const detailCard = document.createElement('div');
+                    detailCard.className = 'bg-[#2a2a2a] rounded-lg p-4 border border-white/10';
+                    
+                    // Format items: "3x nasi goreng, 2x mie ayam, dll"
+                    const itemsText = category.items.map(item => 
+                        `${item.quantity}x ${item.name}`
+                    ).join(', ');
+                    
+                    detailCard.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-[#fa9a08]/20 flex items-center justify-center mt-1">
+                                <i class="ri-restaurant-line text-[#fa9a08]"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="text-white font-bold mb-1">${category.name}</h4>
+                                <p class="text-gray-300 text-sm">${itemsText}</p>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(detailCard);
+                }
+            });
+
+            // Show container if there's content
+            const detailsContainer = document.getElementById('categoryDetails');
+            if (detailsContainer && container.children.length > 0) {
+                detailsContainer.classList.remove('hidden');
+            } else if (detailsContainer) {
+                detailsContainer.classList.add('hidden');
             }
         }
 
-        // Load reports
-        async function loadReports(type, date, month, year) {
-            currentFilterType = type;
-            currentFilterDate = date;
-            currentFilterMonth = month;
-            currentFilterYear = year;
+        // Render category summary cards
+        function renderCategorySummary(data) {
+            const container = document.getElementById('categorySummary');
+            if (!container) return;
 
-            try {
-                const params = new URLSearchParams({ type, date, month, year });
-                const response = await fetch(`/reports?${params}`);
-                const data = await response.json();
+            container.innerHTML = '';
 
-                reportsData = data.orders || [];
-                
-                // Hide reportsContent (yang mungkin menampilkan gambar)
-                const reportsContent = document.getElementById('reportsContent');
-                if (reportsContent) {
-                    reportsContent.innerHTML = '';
-                    reportsContent.classList.add('hidden');
-                }
-                
-                // Show export Excel button
-                const exportExcelContainer = document.getElementById('exportExcelContainer');
-                if (exportExcelContainer) {
-                    exportExcelContainer.classList.remove('hidden');
-                }
-                
-                // Show table instead
-                renderReportsTable();
-                updateReportsSummary();
-            } catch (error) {
-                console.error('Error loading reports:', error);
-            }
+            data.forEach(category => {
+                const card = document.createElement('div');
+                card.className = 'bg-[#2a2a2a] rounded-xl p-6 border border-white/10';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-white text-lg font-bold">${category.name}</h3>
+                        <div class="w-12 h-12 rounded-lg bg-[#fa9a08]/20 flex items-center justify-center">
+                            <i class="ri-bar-chart-box-line text-2xl text-[#fa9a08]"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-gray-400 text-xs mb-1">Total Quantity</p>
+                            <p class="text-white text-2xl font-bold">${category.total_quantity}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs mb-1">Total Revenue</p>
+                            <p class="text-white text-xl font-bold">Rp ${new Intl.NumberFormat('id-ID').format(category.total_revenue)}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs mb-1">Total Order</p>
+                            <p class="text-white text-lg font-semibold">${category.order_count} order</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
+
+        // Load chart when reports section is shown
+        const menuReportsBtn = document.getElementById('menu-reports');
+        if (menuReportsBtn) {
+            menuReportsBtn.addEventListener('click', function() {
+                setTimeout(() => {
+                    loadCategoryChart();
+                }, 100);
+            });
+        }
+
+        // Handle filter tab buttons
+        document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.filter-tab-btn').forEach(b => {
+                    b.classList.remove('active:bg-[#fa9a08]', 'active:text-white');
+                    b.classList.add('bg-[#2a2a2a]');
+                });
+                this.classList.add('active:bg-[#fa9a08]', 'active:text-white');
+                this.classList.remove('bg-[#2a2a2a]');
+
+                const type = this.getAttribute('data-filter-type');
+                
+                // Hide all filter inputs
+                document.querySelectorAll('.filter-input-group').forEach(group => {
+                    group.classList.add('hidden');
+                });
+
+                // Show appropriate filter input
+                if (type === 'daily') {
+                    document.getElementById('dailyFilter').classList.remove('hidden');
+                } else if (type === 'monthly') {
+                    document.getElementById('monthlyFilter').classList.remove('hidden');
+                } else if (type === 'yearly') {
+                    document.getElementById('yearlyFilter').classList.remove('hidden');
+                }
+            });
+        });
+
+        // Handle load chart buttons
+        document.querySelectorAll('.load-chart-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                let date = currentFilterDate;
+                let month = currentFilterMonth;
+                let year = currentFilterYear;
+
+                if (type === 'daily') {
+                    date = document.getElementById('dailyDate').value;
+                } else if (type === 'monthly') {
+                    month = document.getElementById('monthlyDate').value;
+                } else if (type === 'yearly') {
+                    year = document.getElementById('yearlyDate').value;
+                }
+
+                loadCategoryChart(type, date, month, year);
+            });
+        });
 
         // Handle complete order - update reports table
         document.addEventListener('click', async (e) => {
@@ -1249,9 +1478,9 @@
                             }, 300);
                         }
 
-                        // Add to reports table if in reports section
-                        if (result.order && !reportsSection.classList.contains('hidden')) {
-                            addOrderToReportsTable(result.order);
+                        // Refresh chart if in reports section
+                        if (!reportsSection.classList.contains('hidden')) {
+                            loadCategoryChart(currentFilterType, currentFilterDate, currentFilterMonth, currentFilterYear);
                         }
                         
                         // Fetch latest orders to check if there are still active orders
@@ -1264,200 +1493,15 @@
             }
         });
 
-        // Handle filter buttons
-        document.querySelectorAll('.filter-tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-tab-btn').forEach(b => {
-                    b.classList.remove('active:bg-[#fa9a08]', 'active:text-white');
-                    b.classList.add('bg-[#2a2a2a]');
-                });
-                this.classList.add('active:bg-[#fa9a08]', 'active:text-white');
-                this.classList.remove('bg-[#2a2a2a]');
-
-                const type = this.getAttribute('data-filter-type');
-                document.querySelectorAll('.filter-input-group').forEach(group => {
-                    group.classList.add('hidden');
-                });
-
-                if (type === 'daily') {
-                    document.getElementById('dailyFilter').classList.remove('hidden');
-                } else if (type === 'monthly') {
-                    document.getElementById('monthlyFilter').classList.remove('hidden');
-                } else if (type === 'yearly') {
-                    document.getElementById('yearlyFilter').classList.remove('hidden');
-                }
-            });
-        });
-
-        // Handle load reports buttons
-        document.querySelectorAll('.load-reports-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const type = this.getAttribute('data-type');
-                let date = currentFilterDate;
-                let month = currentFilterMonth;
-                let year = currentFilterYear;
-
-                if (type === 'daily') {
-                    date = document.getElementById('dailyDate').value;
-                } else if (type === 'monthly') {
-                    month = document.getElementById('monthlyDate').value;
-                } else if (type === 'yearly') {
-                    year = document.getElementById('yearlyDate').value;
-                }
-
-                loadReports(type, date, month, year);
-            });
-        });
-
-        // Handle Kirim Laporan dengan popup email
-        document.getElementById('sendReportBtn')?.addEventListener('click', async function() {
-            // Tampilkan popup untuk input email
-            const { value: email } = await Swal.fire({
-                title: 'Kirim Laporan ke Email',
-                html: `
-                    <div style="text-align: left;">
-                        <label style="display: block; margin-bottom: 8px; color: #fff; font-weight: 500;">Masukkan Email Tujuan:</label>
-                        <input 
-                            id="swal-email-input" 
-                            type="email" 
-                            placeholder="contoh@email.com" 
-                            style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; font-size: 14px;"
-                            autofocus
-                        >
-                        <p style="margin-top: 12px; color: #999; font-size: 12px;">File Excel akan dikirim sebagai attachment ke email yang Anda masukkan.</p>
-                    </div>
-                `,
-                background: '#161616',
-                color: '#fff',
-                showCancelButton: true,
-                confirmButtonText: 'Kirim Email',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#fa9a08',
-                cancelButtonColor: '#666',
-                customClass: {
-                    popup: 'swal2-popup-custom',
-                    title: 'swal2-title-custom',
-                    confirmButton: 'swal2-confirm-custom',
-                    cancelButton: 'swal2-confirm-custom'
-                },
-                didOpen: () => {
-                    const input = document.getElementById('swal-email-input');
-                    input?.focus();
-                },
-                preConfirm: () => {
-                    const email = document.getElementById('swal-email-input')?.value;
-                    if (!email) {
-                        Swal.showValidationMessage('Email tidak boleh kosong');
-                        return false;
-                    }
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                        Swal.showValidationMessage('Format email tidak valid');
-                        return false;
-                    }
-                    return email;
-                }
-            });
-
-            if (email) {
-                // Tampilkan loading
-                Swal.fire({
-                    title: 'Mengirim Email...',
-                    html: '<p style="color: #999; font-size: 14px;">Sedang mengirim laporan Excel ke ' + email + '</p>',
-                    background: '#161616',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                try {
-                    // Kirim request ke endpoint
-                    const response = await fetch('/reports/send-email', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                        },
-                        body: JSON.stringify({
-                            email: email,
-                            type: currentFilterType,
-                            date: currentFilterDate,
-                            month: currentFilterMonth,
-                            year: currentFilterYear
-                        })
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok && result.success) {
-                        let tipsHtml = '';
-                        if (result.tips && result.tips.length > 0) {
-                            tipsHtml = '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);"><p style="color: #999; font-size: 12px; margin-bottom: 8px;"><strong>Tips:</strong></p><ul style="color: #999; font-size: 11px; text-align: left; padding-left: 20px;">';
-                            result.tips.forEach(tip => {
-                                tipsHtml += '<li style="margin-bottom: 5px;">' + tip + '</li>';
-                            });
-                            tipsHtml += '</ul></div>';
-                        }
-                        
-                        Swal.fire({
-                            icon: 'success',
-                            title: '<span class="text-white font-bold">EMAIL TERKIRIM</span>',
-                            html: '<p class="text-gray-400 text-sm">' + result.message + '</p>' + tipsHtml,
-                            background: '#161616',
-                            confirmButtonColor: '#fa9a08',
-                            customClass: {
-                                popup: 'swal2-popup-custom',
-                                title: 'swal2-title-custom',
-                                confirmButton: 'swal2-confirm-custom'
-                            }
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: '<span class="text-white font-bold">GAGAL MENGIRIM</span>',
-                            html: '<p class="text-red-400 text-sm">' + (result.message || 'Terjadi kesalahan saat mengirim email') + '</p>',
-                            background: '#161616',
-                            confirmButtonColor: '#ef4444',
-                            customClass: {
-                                popup: 'swal2-popup-custom',
-                                title: 'swal2-title-custom',
-                                confirmButton: 'swal2-confirm-custom'
-                            }
-                        });
-                    }
-                } catch (error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: '<span class="text-white font-bold">ERROR</span>',
-                        html: '<p class="text-red-400 text-sm">Terjadi kesalahan: ' + error.message + '</p>',
-                        background: '#161616',
-                        confirmButtonColor: '#ef4444',
-                        customClass: {
-                            popup: 'swal2-popup-custom',
-                            title: 'swal2-title-custom',
-                            confirmButton: 'swal2-confirm-custom'
-                        }
-                    });
-                }
-            }
-        });
-
-        // Handle Download Laporan - langsung download Excel
-        document.getElementById('downloadReportBtn')?.addEventListener('click', function() {
-            const params = new URLSearchParams({
-                type: currentFilterType,
-                date: currentFilterDate,
-                month: currentFilterMonth,
-                year: currentFilterYear
-            });
-
-            // Langsung download file Excel
-            window.location.href = `/reports/export?${params}`;
-        });
     </script>
 
     {{-- Alpine.js untuk Pengaturan Audio --}}
     <script>
+        // Ensure Alpine is loaded before defining data
+        if (typeof Alpine === 'undefined') {
+            console.error('Alpine.js is not loaded');
+        }
+        
         document.addEventListener('alpine:init', () => {
             Alpine.data('kitchenNotification', () => ({
                 openSettings: false,
@@ -1514,7 +1558,7 @@
 
                 async loadAvailableSounds() {
                     try {
-                        const response = await fetch('/admin/notification-sounds');
+                        const response = await fetch('/notification-sounds');
                         this.availableSounds = await response.json();
                     } catch (error) {
                         console.error('Error loading sounds:', error);
@@ -1653,7 +1697,7 @@
                     formData.append('audio', this.previewFile);
 
                     try {
-                        const response = await fetch('/admin/notification-sounds', {
+                        const response = await fetch('/notification-sounds', {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1757,21 +1801,53 @@
                         return;
                     }
                     
-                    if (this.audioElement && this.audioElement.src) {
-                        this.audioElement.currentTime = 0;
-                        this.audioElement.play().catch(err => {
-                            console.log('Audio test failed:', err);
+                    // Ensure audio source is updated before testing
+                    this.updateAudioSource();
+                    
+                    // Wait a bit for audio to load
+                    setTimeout(() => {
+                        const source = document.getElementById('notificationSoundSource');
+                        if (!this.audioElement) {
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Gagal memutar audio',
-                                text: 'Pastikan file audio tersedia',
+                                title: 'Error',
+                                text: 'Audio element tidak ditemukan',
                                 background: '#161616',
                                 color: '#fff',
                                 timer: 2000,
                                 showConfirmButton: false
                             });
+                            return;
+                        }
+                        
+                        if (!source || !source.src || source.src === '') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Audio source tidak tersedia. Pastikan audio sudah dipilih dengan benar.',
+                                background: '#161616',
+                                color: '#fff',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            return;
+                        }
+                        
+                        // Reset and play
+                        this.audioElement.currentTime = 0;
+                        this.audioElement.play().catch(err => {
+                            console.error('Audio test failed:', err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal memutar audio',
+                                text: 'Pastikan file audio tersedia dan formatnya didukung (mp3, wav, ogg)',
+                                background: '#161616',
+                                color: '#fff',
+                                timer: 3000,
+                                showConfirmButton: false
+                            });
                         });
-                    }
+                    }, 100);
                 },
 
                 async deleteSound(soundId) {
@@ -1789,7 +1865,7 @@
                     }).then(async (result) => {
                         if (result.isConfirmed) {
                             try {
-                                const response = await fetch(`/admin/notification-sounds/${soundId}`, {
+                                const response = await fetch(`/notification-sounds/${soundId}`, {
                                     method: 'DELETE',
                                     headers: {
                                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -1808,10 +1884,7 @@
                                         color: '#fff'
                                     });
                                     
-                                    // Reload sounds
-                                    await this.loadAvailableSounds();
-                                    
-                                    // If deleted sound was selected, clear selection
+                                    // Check if deleted sound was selected
                                     const deletedSound = this.availableSounds.find(s => s.id === soundId);
                                     if (deletedSound && this.selectedAudio === deletedSound.filename) {
                                         this.selectedAudio = '';
@@ -1820,6 +1893,11 @@
                                         localStorage.removeItem('kitchenNotificationAudioType');
                                         this.updateAudioSource();
                                     }
+                                    
+                                    // Reload sounds after a short delay
+                                    setTimeout(async () => {
+                                        await this.loadAvailableSounds();
+                                    }, 300);
                                 } else {
                                     Swal.fire({
                                         icon: 'error',
@@ -1828,6 +1906,9 @@
                                         background: '#161616',
                                         color: '#fff'
                                     });
+                                    
+                                    // Reload sounds anyway to refresh the list
+                                    await this.loadAvailableSounds();
                                 }
                             } catch (error) {
                                 console.error('Error deleting sound:', error);
