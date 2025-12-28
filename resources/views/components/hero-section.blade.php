@@ -69,7 +69,7 @@
                 <div
                     class="absolute inset-0 w-full h-full bg-gold-400/90 group-hover:bg-gold-500 transition duration-300">
                 </div>
-                <span class="relative text-white font-bold tracking-widest text-sm flex items-center gap-2">
+                <span class="relative text-black font-bold tracking-widest text-sm flex items-center gap-2">
                     {{ $ctaText1 }}
                     <svg xmlns="http://www.w3.org/2000/svg"
                         class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" fill="none"

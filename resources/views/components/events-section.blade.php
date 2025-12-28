@@ -22,9 +22,9 @@
                 <p class="text-gray-400 font-light tracking-[0.2em] text-sm uppercase">Join the excitement at Class
                     Billiard</p>
             </div>
-            <!-- Navigation Buttons (Visual only for now, can be hooked to JS) -->
+            <!-- Navigation Buttons -->
             <div class="flex gap-4">
-                <button
+                <button id="events-prev-btn"
                     class="w-12 h-12 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-gold-400 hover:text-black hover:border-gold-400 transition-all duration-300">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -32,7 +32,7 @@
                             d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <button
+                <button id="events-next-btn"
                     class="w-12 h-12 border border-white/20 rounded-full flex items-center justify-center text-white hover:bg-gold-400 hover:text-black hover:border-gold-400 transition-all duration-300">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -43,7 +43,7 @@
         </div>
 
         <!-- Events Slider (Horizontal Scroll) -->
-        <div class="flex overflow-x-auto gap-8 pb-12 snap-x snap-mandatory scrollbar-hide"
+        <div id="events-slider" class="flex overflow-x-auto gap-8 pb-12 snap-x snap-mandatory scrollbar-hide scroll-smooth"
             style="-ms-overflow-style: none; scrollbar-width: none;">
             @foreach($events as $index => $event)
             <div class="min-w-[320px] md:min-w-[400px] h-[550px] relative rounded-sm overflow-hidden group snap-center cursor-pointer"
@@ -110,5 +110,31 @@
         </div>
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('events-slider');
+        const prevBtn = document.getElementById('events-prev-btn');
+        const nextBtn = document.getElementById('events-next-btn');
+        
+        if (slider && prevBtn && nextBtn) {
+            const scrollAmount = 420; // Width of card + gap (400px + 32px gap)
+            
+            prevBtn.addEventListener('click', function() {
+                slider.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            });
+            
+            nextBtn.addEventListener('click', function() {
+                slider.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            });
+        }
+    });
+</script>
 @endif
 

@@ -1,6 +1,13 @@
 @import 'tailwindcss';
 @import 'remixicon/fonts/remixicon.css';
 
+@font-face {
+    font-family: 'Rumonds';
+    src: url('/fonts/rumonds.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -9,6 +16,10 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-rumonds: 'Rumonds', sans-serif;
+    --color-gold-400: #ffd700;
+    --color-gold-500: #e6c200;
+    --color-gold-600: #b39700;
 }
 
 /* Dark mode configuration - class-based untuk Tailwind v4 */
