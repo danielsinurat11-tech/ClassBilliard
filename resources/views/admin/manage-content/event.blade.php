@@ -42,7 +42,7 @@
             x-transition:enter-end="opacity-100 transform translate-y-0" class="mb-12">
             <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
                 <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Informasi Event Baru</h2>
-                <form action="{{ route('admin.event.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.cms.event.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <div class="space-y-2">
@@ -144,7 +144,7 @@
 
                         <!-- Content Section -->
                         <div class="flex-1 p-8">
-                            <form action="{{ route('admin.event.update', $event->id) }}" method="POST"
+                            <form action="{{ route('admin.cms.event.update', $event->id) }}" method="POST"
                                 enctype="multipart/form-data">
                                 @csrf
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -213,7 +213,7 @@
                                     </div>
                                 </div>
                             </form>
-                            <form id="delete-form-{{ $event->id }}" action="{{ route('admin.event.destroy', $event->id) }}"
+                            <form id="delete-form-{{ $event->id }}" action="{{ route('admin.cms.event.destroy', $event->id) }}"
                                 method="POST" class="hidden">
                                 @csrf
                                 @method('DELETE')

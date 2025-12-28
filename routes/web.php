@@ -4,11 +4,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryAdminController;
 use App\Http\Controllers\MenuAdminController;
 use App\Http\Controllers\LogoutController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/testimonial/submit', [HomeController::class, 'submitTestimonial'])->name('testimonial.submit');
 
 // Logout Route (accessible without shift time check)
 Route::post('/logout', [LogoutController::class, 'logout'])->name('logout')->middleware('auth.custom');
@@ -18,8 +18,11 @@ Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name
 
 // Kitchen Routes (Hanya untuk role kitchen)
 Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(function () {
-Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
-Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
+    Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
+    Route::get('/tutup-hari', [App\Http\Controllers\OrderController::class, 'tutupHari'])->name('tutup-hari');
+    Route::get('/tutup-hari/struk', [App\Http\Controllers\OrderController::class, 'generateStrukHarian'])->name('tutup-hari.struk');
+    Route::post('/tutup-hari/kirim-email', [App\Http\Controllers\OrderController::class, 'sendStrukHarianEmail'])->name('tutup-hari.kirim-email');
+    Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
 Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
 Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
 Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::class, 'getCategoryStats'])->name('reports.category-stats');

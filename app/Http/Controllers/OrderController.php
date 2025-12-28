@@ -1811,5 +1811,181 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Show tutup hari (close of day) page
+     * Allows kitchen staff to generate and send daily receipts
+     */
+    public function tutupHari()
+    {
+        // Get current user's shift
+        $user = Auth::user();
+        
+        if (!$user->shift_id) {
+            return redirect()->route('dapur')
+                ->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
+        }
+
+        $activeShift = Shift::getActiveShift();
+        
+        return view('dapur.tutup-hari', compact('activeShift'));
+    }
+
+    /**
+     * Generate struk harian (daily receipt) for printing
+     * Accepts tanggal parameter to filter orders by date
+     */
+    public function generateStrukHarian(Request $request)
+    {
+        $user = Auth::user();
+        $tanggalStr = $request->get('tanggal', Carbon::today()->format('Y-m-d'));
+        $tanggal = Carbon::parse($tanggalStr);
+        
+        if (!$user->shift_id) {
+            return response()->view('errors.404', [
+                'message' => 'Anda belum di-assign ke shift.'
+            ], 403);
+        }
+
+        // Get orders for the selected date and user's shift
+        $orders = orders::with('orderItems')
+            ->where('shift_id', $user->shift_id)
+            ->where('status', 'completed')
+            ->whereDate('created_at', $tanggalStr)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Calculate totals
+        $totalRevenue = $orders->sum(function($order) {
+            return $order->total_price ?? 0;
+        });
+
+        $shiftInfo = $user->shift;
+
+        // Return printable view
+        return view('dapur.struk-harian', [
+            'orders' => $orders,
+            'totalRevenue' => $totalRevenue,
+            'tanggal' => $tanggal,
+            'shift' => $shiftInfo,
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * Send struk harian via email
+     * POST endpoint that generates receipt and emails it
+     */
+    public function sendStrukHarianEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'tanggal' => 'required|date_format:Y-m-d'
+        ]);
+
+        $user = Auth::user();
+        $tanggalStr = $request->get('tanggal');
+        $tanggal = Carbon::parse($tanggalStr);
+
+        if (!$user->shift_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
+            ], 403);
+        }
+
+        // Get orders for the selected date and user's shift
+        $orders = orders::with('orderItems')
+            ->where('shift_id', $user->shift_id)
+            ->where('status', 'completed')
+            ->whereDate('created_at', $tanggalStr)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Calculate totals
+        $totalRevenue = $orders->sum(function($order) {
+            return $order->total_price ?? 0;
+        });
+
+        $shiftInfo = $user->shift;
+        $dateFormatted = $tanggal->format('d F Y');
+        $filename = 'Struk_Harian_' . $tanggal->format('Y-m-d') . '.xlsx';
+
+        try {
+            // Check email configuration
+            if (config('mail.default') === 'log') {
+                Log::info('Email struk harian akan dikirim ke: ' . $request->email);
+            }
+
+            // Ensure temp directory exists
+            $tempDir = storage_path('app/temp');
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Store Excel file temporarily
+            $filePath = 'temp/' . $filename;
+            Excel::store(new RecapExport((object)[
+                'orders' => $orders,
+                'totalRevenue' => $totalRevenue,
+                'tanggal' => $tanggal,
+                'dateFormatted' => $dateFormatted,
+                'shift' => $shiftInfo,
+                'user' => $user
+            ]), $filePath, 'local');
+
+            // Get full path for attachment
+            $fullPath = Storage::path($filePath);
+
+            // Check if file exists
+            if (!file_exists($fullPath)) {
+                throw new \Exception('File Excel tidak berhasil dibuat');
+            }
+
+            // Log before sending
+            Log::info('Attempting to send struk harian email', [
+                'to' => $request->email,
+                'file' => $filename,
+                'tanggal' => $tanggalStr,
+                'shift' => $shiftInfo->name ?? 'Unknown'
+            ]);
+
+            // Send email with attachment
+            Mail::to($request->email)->send(new SendRecapEmail($fullPath, $filename, 'Struk Harian ' . $dateFormatted, (object)[
+                'orders' => $orders,
+                'totalRevenue' => $totalRevenue,
+                'tanggal' => $tanggal,
+                'shift' => $shiftInfo,
+                'user' => $user
+            ]));
+
+            // Log after sending
+            Log::info('Struk harian email sent successfully', [
+                'to' => $request->email,
+                'tanggal' => $tanggalStr
+            ]);
+
+            // Delete temporary file after sending
+            Storage::delete($filePath);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Struk harian berhasil dikirim ke ' . $request->email . '. Silakan cek kotak masuk dan folder Spam Anda.'
+            ]);
+        } catch (\Exception $e) {
+            // Delete temporary file if exists
+            if (isset($filePath)) {
+                Storage::delete($filePath);
+            }
+
+            Log::error('Struk Harian Email Error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengirim email: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

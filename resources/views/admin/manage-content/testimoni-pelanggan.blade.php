@@ -82,7 +82,7 @@
 
                             <!-- Right: Edit Form -->
                             <div class="flex-1">
-                                <form action="{{ route('admin.testimoni-pelanggan.update', $testimoni->id) }}" method="POST"
+                                <form action="{{ route('admin.cms.testimoni-pelanggan.update', $testimoni->id) }}" method="POST"
                                     enctype="multipart/form-data">
                                     @csrf
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -172,7 +172,7 @@
                                     </div>
                                 </form>
                                 <form id="delete-form-{{ $testimoni->id }}"
-                                    action="{{ route('admin.testimoni-pelanggan.destroy', $testimoni->id) }}" method="POST"
+                                    action="{{ route('admin.cms.testimoni-pelanggan.destroy', $testimoni->id) }}" method="POST"
                                     class="hidden">
                                     @csrf @method('DELETE')
                                 </form>

@@ -46,7 +46,7 @@
             @endif
         </div>
 
-        <form action="{{ route('admin.tentang-kami.update') }}" method="POST" enctype="multipart/form-data" class="space-y-12">
+        <form action="{{ route('admin.cms.tentang-kami') }}" method="POST" enctype="multipart/form-data" class="space-y-12">
             @csrf
 
             <!-- SECTION 1: NARRATIVE CONTENT -->

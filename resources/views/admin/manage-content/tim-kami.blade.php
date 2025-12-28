@@ -43,7 +43,7 @@
             <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
                 <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Registrasi Personel Baru
                 </h2>
-                <form action="{{ route('admin.tim-kami.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.cms.tim-kami.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <div class="space-y-2">
@@ -156,7 +156,7 @@
 
                         <!-- Data Form Section -->
                         <div class="flex-1 p-8">
-                            <form action="{{ route('admin.tim-kami.update', $member->id) }}" method="POST"
+                            <form action="{{ route('admin.cms.tim-kami.update', $member->id) }}" method="POST"
                                 enctype="multipart/form-data">
                                 @csrf
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -248,7 +248,7 @@
                                     </div>
                                 </div>
                             </form>
-                            <form id="delete-form-{{ $member->id }}" action="{{ route('admin.tim-kami.destroy', $member->id) }}"
+                            <form id="delete-form-{{ $member->id }}" action="{{ route('admin.cms.tim-kami.destroy', $member->id) }}"
                                 method="POST" class="hidden">
                                 @csrf
                                 @method('DELETE')

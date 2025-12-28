@@ -25,7 +25,7 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.hero.update') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+    <form action="{{ route('admin.cms.hero') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-12">
         @csrf
 
         <!-- LEFT COLUMN: VISUAL ASSETS -->

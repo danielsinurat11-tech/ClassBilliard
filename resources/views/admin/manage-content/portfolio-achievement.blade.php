@@ -42,7 +42,7 @@
             x-transition:enter-end="opacity-100 transform translate-y-0" class="mb-12">
             <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
                 <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Add New Achievement</h2>
-                <form action="{{ route('admin.portfolio-achievement.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.cms.portfolio-achievement.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="type" value="gallery">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -136,7 +136,7 @@
                             
                             <!-- Form Content -->
                             <div class="p-6 space-y-4">
-                                <form action="{{ route('admin.portfolio-achievement.update', $item->id) }}" method="POST"
+                                <form action="{{ route('admin.cms.portfolio-achievement.update', $item->id) }}" method="POST"
                                     enctype="multipart/form-data" class="space-y-4">
                                     @csrf
                                     <input type="hidden" name="type" value="gallery">
@@ -190,7 +190,7 @@
                                     </div>
                                 </form>
                                 <form id="delete-form-{{ $item->id }}"
-                                    action="{{ route('admin.portfolio-achievement.destroy', $item->id) }}" method="POST"
+                                    action="{{ route('admin.cms.portfolio-achievement.destroy', $item->id) }}" method="POST"
                                     class="hidden">
                                     @csrf @method('DELETE')
                                 </form>

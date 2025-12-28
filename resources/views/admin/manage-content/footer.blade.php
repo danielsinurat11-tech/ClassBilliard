@@ -25,7 +25,7 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.footer.update') }}" method="POST" class="space-y-12">
+    <form action="{{ route('admin.cms.footer') }}" method="POST" class="space-y-12">
         @csrf
 
         <!-- SECTION 1: BRAND IDENTITY -->
