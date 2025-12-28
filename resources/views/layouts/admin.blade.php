@@ -6,34 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin - Billiard Class')</title>
+
+    {{-- Include shift calculation PHP block --}}
+    @include('admin.partials.shift-calculation')
     
-    @php
-        // Get shift_end from session untuk auto-logout real-time
-        $shiftEndTimestamp = session('shift_end');
-        $shiftEndDatetime = session('shift_end_datetime');
-        
-        // Jika belum ada di session, hitung dari active shift
-        if (!$shiftEndTimestamp) {
-            $activeShift = \App\Models\Shift::getActiveShift();
-            if ($activeShift) {
-                $now = \Carbon\Carbon::now('Asia/Jakarta');
-                $shiftStart = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($activeShift->start_time);
-                $shiftEnd = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($activeShift->end_time);
-                
-                if ($shiftEnd->lt($shiftStart)) {
-                    $shiftEnd->addDay();
-                }
-                
-                $shiftEndTimestamp = $shiftEnd->timestamp;
-                $shiftEndDatetime = $shiftEnd->toIso8601String();
-            }
-        }
-    @endphp
-    
-    @if($shiftEndTimestamp ?? false)
-    <meta name="shift-end" content="{{ $shiftEndDatetime }}">
-    <meta name="shift-end-timestamp" content="{{ $shiftEndTimestamp }}">
-    @endif
+    {{-- Include shift meta tags --}}
+    @include('admin.partials.shift-meta')
 
     <!-- Typography: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,45 +27,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 
-    <style>
-        [x-cloak] {
-            display: none !important;
-        }
-
-        .theme-transition {
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* Standardized Scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-
-        .dark ::-webkit-scrollbar-thumb {
-            background: #1e1e1e;
-        }
-
-        /* Professional Link State */
-        .active-link {
-            background-color: #fa9a08;
-            color: #000 !important;
-        }
-
-        .submenu-active {
-            color: #fa9a08 !important;
-            font-weight: 700;
-        }
-
-        /* Sidebar Expansion Animation */
-        .sidebar-animate {
-            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s ease;
-        }
-    </style>
+    {{-- Include common styles --}}
+    @include('admin.partials.common-styles')
 </head>
 
 <body
@@ -339,172 +280,11 @@
     <!-- Hidden Logout Form -->
     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
 
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('themeManager', () => ({
-                darkMode: localStorage.getItem('theme') === 'dark' ||
-                    (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
-
-                toggleTheme() {
-                    this.darkMode = !this.darkMode;
-                    const theme = this.darkMode ? 'dark' : 'light';
-                    
-                    // Set localStorage
-                    localStorage.setItem('theme', theme);
-                    
-                    // Set cookie untuk persist antar reload dan bisa dipakai server-side
-                    document.cookie = `theme=${theme}; path=/; max-age=31536000`;
-                    
-                    // Update DOM class
-                    if (this.darkMode) {
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                    }
-                },
-
-                handleLogout() {
-            Swal.fire({
-                        title: 'Confirm Logout',
-                        text: "Sesi administrasi akan diakhiri.",
-                icon: 'warning',
-                showCancelButton: true,
-                        background: this.darkMode ? '#0A0A0A' : '#fff',
-                        color: this.darkMode ? '#fff' : '#000',
-                confirmButtonColor: '#fa9a08',
-                        cancelButtonColor: '#1e1e1e',
-                        confirmButtonText: 'Yes, Sign Out',
-                customClass: {
-                            popup: 'rounded-lg border border-white/5',
-                            confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5',
-                            cancelButton: 'rounded-md text-xs font-bold px-5 py-2.5'
-                }
-            }).then((result) => {
-                        if (result.isConfirmed) performLogout();
-            });
-                }
-            }));
-
-        });
-        
-        // Check shift end and auto-logout (REAL-TIME dengan session shift_end)
-        function checkShiftEndRealTime() {
-            const shiftEndMeta = document.querySelector('meta[name="shift-end-timestamp"]');
-            
-            if (!shiftEndMeta) {
-                return; // Skip jika meta tidak ada
-            }
-            
-            const shiftEndTimestamp = parseInt(shiftEndMeta.getAttribute('content'));
-            const now = Math.floor(Date.now() / 1000);
-            
-            // Cek apakah shift sudah berakhir
-            if (now >= shiftEndTimestamp) {
-                // Shift telah berakhir - logout otomatis
-                let message = 'Shift Anda telah berakhir. Anda akan di-logout.';
-                
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Shift Berakhir',
-                        html: `<p class="text-lg mb-2">${message}</p>`,
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#fa9a08',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
-                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
-                    }).then(() => {
-                        performLogout();
-                    });
-                } else {
-                    performLogout();
-                }
-                return;
-            }
-            
-            // Cek apakah 5 menit sebelum shift berakhir untuk notifikasi
-            const minutesUntilEnd = Math.floor((shiftEndTimestamp - now) / 60);
-            if (minutesUntilEnd <= 5 && minutesUntilEnd >= 0) {
-                const lastNotification = localStorage.getItem('shiftWarningShown');
-                const currentMinute = Math.floor(now / 60);
-                
-                if (lastNotification !== String(currentMinute)) {
-                    // Show browser notification
-                    if ('Notification' in window && Notification.permission === 'granted') {
-                        new Notification('⏰ Peringatan Shift', {
-                            body: `Shift akan berakhir dalam ${minutesUntilEnd} menit!`,
-                            icon: '/logo.png',
-                            tag: 'shift-warning',
-                            requireInteraction: true
-                        });
-                    }
-                    
-                    // Show SweetAlert notification
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: '⏰ Peringatan!',
-                            html: `<p class="text-lg mb-2">Shift akan berakhir dalam <strong>${minutesUntilEnd} menit</strong>!</p>`,
-                            confirmButtonText: 'OK',
-                            confirmButtonColor: '#fa9a08',
-                            background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
-                            color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
-                        });
-                    }
-                    
-                    localStorage.setItem('shiftWarningShown', String(currentMinute));
-                }
-            }
-        }
-        
-        // Helper function untuk logout
-        function performLogout() {
-            const logoutForm = document.getElementById('logout-form');
-            if (logoutForm) {
-                logoutForm.submit();
-            } else {
-                // Fallback: create and submit form
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '{{ route("logout") }}';
-                const csrfToken = document.querySelector('meta[name="csrf-token"]');
-                if (csrfToken) {
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = csrfToken.getAttribute('content');
-                    form.appendChild(csrfInput);
-                }
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-        
-        // Wait for DOM to be ready before checking shift end
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                // Check shift end every 10 seconds untuk real-time auto-logout
-                setInterval(checkShiftEndRealTime, 10000);
-                checkShiftEndRealTime();
-                
-                // Request notification permission on page load
-                if ('Notification' in window && Notification.permission === 'default') {
-                    Notification.requestPermission();
-                }
-            });
-        } else {
-            // DOM is already ready
-            // Check shift end every 10 seconds untuk real-time auto-logout
-            setInterval(checkShiftEndRealTime, 10000);
-            checkShiftEndRealTime();
-            
-            // Request notification permission on page load
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-        }
-    </script>
+    {{-- Include theme manager script --}}
+    @include('admin.partials.theme-manager')
+    
+    {{-- Include shift check script --}}
+    @include('admin.partials.shift-check-script')
     @stack('scripts')
 </body>
 

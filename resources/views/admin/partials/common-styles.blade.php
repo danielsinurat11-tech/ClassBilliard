@@ -1,5 +1,4 @@
-{{-- Common Styles untuk semua halaman Dapur --}}
-@push('styles')
+{{-- Common Styles untuk Admin Layout --}}
 <style>
     [x-cloak] {
         display: none !important;
@@ -29,26 +28,14 @@
         color: #000 !important;
     }
 
+    .submenu-active {
+        color: #fa9a08 !important;
+        font-weight: 700;
+    }
+
     /* Sidebar Expansion Animation */
     .sidebar-animate {
         transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s ease;
     }
-
-    .sidebar-menu-item {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-    }
-    .sidebar-menu-item.active {
-        background-color: #fa9a08;
-        color: #000 !important;
-        font-weight: 600;
-    }
-    .sidebar-menu-item.active i {
-        color: #000 !important;
-    }
-    .sidebar-menu-item.active span {
-        color: #000 !important;
-    }
 </style>
-@endpush
 

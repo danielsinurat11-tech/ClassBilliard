@@ -2,7 +2,7 @@
 <aside id="sidebar" 
     @mouseenter="if(sidebarCollapsed) sidebarHover = true" 
     @mouseleave="sidebarHover = false"
-    class="sidebar fixed lg:static top-0 left-0 h-screen theme-transition border-r border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0A] z-50 flex flex-col sidebar-animate"
+    class="sidebar theme-transition border-r border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0A] flex flex-col sidebar-animate"
     :class="[
         (sidebarCollapsed && !sidebarHover) ? 'sidebar-desktop-collapsed' : '',
         (sidebarCollapsed && sidebarHover) ? 'shadow-[20px_0_50px_rgba(0,0,0,0.2)] dark:shadow-[20px_0_50px_rgba(0,0,0,0.5)]' : ''

@@ -18,13 +18,13 @@ Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name
 
 // Kitchen Routes (Hanya untuk role kitchen)
 Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(function () {
-    Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
+Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
     Route::post('/orders/{id}/start-cooking', [App\Http\Controllers\OrderController::class, 'startCooking'])->name('orders.start-cooking');
-    Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
-    Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
-    Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
-    Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::class, 'getCategoryStats'])->name('reports.category-stats');
-    Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
+Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
+Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
+Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
+Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::class, 'getCategoryStats'])->name('reports.category-stats');
+Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
     Route::post('/reports/send-email', [App\Http\Controllers\OrderController::class, 'sendReportEmail'])->name('reports.send-email');
     Route::get('/test-email', [App\Http\Controllers\OrderController::class, 'testEmail'])->name('test.email');
     Route::get('/tutup-hari', [App\Http\Controllers\OrderController::class, 'tutupHari'])->name('tutup-hari');

@@ -14,6 +14,9 @@
 {{-- Include common styles --}}
 @include('dapur.partials.common-styles')
 
+{{-- Include sidebar & main content styles --}}
+@include('dapur.partials.sidebar-main-styles')
+
 @push('styles')
 <style>
     /* Filter tabs mobile */

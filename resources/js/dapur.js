@@ -63,9 +63,11 @@ function initSidebarToggle() {
         }
     }
 
-    // Initialize sidebar as collapsed on mobile
+    // Initialize sidebar as collapsed on mobile, visible on desktop
     if (window.innerWidth <= 1024) {
         sidebar.classList.add('collapsed');
+    } else {
+        sidebar.classList.remove('collapsed');
     }
 
     if (sidebarToggle) {

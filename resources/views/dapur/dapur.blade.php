@@ -11,121 +11,19 @@
 {{-- Include common styles --}}
 @include('dapur.partials.common-styles')
 
+{{-- Include sidebar & main content styles --}}
+@include('dapur.partials.sidebar-main-styles')
+
+{{-- Include order card styles --}}
+@include('dapur.partials.order-card-styles')
+
+{{-- Include notification styles --}}
+@include('dapur.partials.notification-styles')
+
 @push('styles')
 <style>
-
-    /* Modern Order Card Styles */
-    .order-card-modern {
-        position: relative;
-        backdrop-filter: blur(10px);
-    }
-
-    .order-card-modern::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .order-card-modern:hover::before {
-        opacity: 1;
-    }
-
-    .order-card-modern:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(250, 154, 8, 0.3);
-    }
-
-    .complete-order-btn {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .complete-order-btn::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(250, 154, 8, 0.2);
-        transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
-    }
-
-    .complete-order-btn:hover::before {
-        width: 300px;
-        height: 300px;
-    }
-
-    .complete-order-btn span {
-        position: relative;
-        z-index: 1;
-    }
-
-    .complete-order-btn i {
-        position: relative;
-        z-index: 1;
-    }
-
-    .sidebar {
-        width: 280px;
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    .sidebar.collapsed {
-        transform: translateX(-100%);
-    }
-    .sidebar-desktop-collapsed {
-        width: 80px;
-    }
-    .main-content {
-        margin-left: 280px;
-        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        height: 100vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    /* Hide scrollbar but keep functionality */
-    .no-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-    .main-content.expanded {
-        margin-left: 0;
-    }
-    .main-content.desktop-collapsed {
-        margin-left: 80px;
-    }
-    /* Order cards responsive */
-    @media (max-width: 1024px) {
-        .grid.grid-cols-\[repeat\(auto-fill\,minmax\(350px\,1fr\)\)\] {
-            grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
-        }
-    }
-
+    /* Reports specific responsive styles */
     @media (max-width: 768px) {
-
-        /* Order card mobile */
-        .bg-\[#fa9a08\] {
-            padding: 1rem !important;
-        }
-
-
         /* Reports summary mobile */
         #reportsSummary {
             flex-direction: column;
@@ -157,11 +55,6 @@
     }
 
     @media (min-width: 769px) and (max-width: 1024px) {
-        /* Tablet styles */
-        .grid.grid-cols-\[repeat\(auto-fill\,minmax\(350px\,1fr\)\)\] {
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        }
-
         .filter-input-group {
             flex-wrap: wrap;
         }
@@ -173,147 +66,6 @@
         #reportsSummary > div {
             flex: 1 1 calc(50% - 0.5rem);
             min-width: 200px;
-        }
-    }
-    
-    /* Notification Styles */
-    .notification-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        max-width: 400px;
-    }
-    
-    .notification-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        z-index: 9998;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-        visibility: hidden;
-    }
-    
-    .notification-overlay.show {
-        opacity: 1;
-        pointer-events: auto;
-        visibility: visible;
-    }
-    
-    @media (min-width: 1024px) {
-        .notification-overlay {
-            display: none;
-        }
-    }
-    
-    .notification {
-        background: linear-gradient(135deg, #fa9a08 0%, #ffb84d 100%);
-        color: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(250, 154, 8, 0.4);
-        margin-bottom: 15px;
-        animation: slideInRight 0.5s ease-out;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        min-width: 300px;
-        position: relative;
-        z-index: 9999;
-    }
-    
-    @media (max-width: 640px) {
-        .notification-container {
-            top: 10px;
-            right: 10px;
-            left: 10px;
-            max-width: none;
-        }
-        
-        .notification {
-            min-width: auto;
-            width: 100%;
-            padding: 16px;
-        }
-    }
-    
-    .notification.hide {
-        animation: slideOutRight 0.5s ease-out forwards;
-    }
-    
-    .notification-icon {
-        font-size: 32px;
-        animation: pulse 1s infinite;
-    }
-    
-    .notification-content {
-        flex: 1;
-    }
-    
-    .notification-title {
-        font-weight: 700;
-        font-size: 18px;
-        margin-bottom: 5px;
-    }
-    
-    .notification-message {
-        font-size: 14px;
-        opacity: 0.95;
-    }
-    
-    .notification-close {
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        color: white;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.2s;
-    }
-    
-    .notification-close:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-    
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-    
-    @keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.1);
         }
     }
 </style>
@@ -358,15 +110,15 @@
                             {{-- Card Header --}}
                             <div class="relative px-6 pt-6 pb-4 border-b border-white/20">
                                 <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3">
                                         <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
-                                            <i class="ri-restaurant-line text-white text-xl"></i>
-                                        </div>
+                            <i class="ri-restaurant-line text-white text-xl"></i>
+                        </div>
                                         <div>
                                             <p class="text-white font-bold text-sm">Order #{{ $order->id }}</p>
                                             <p class="text-white/80 text-xs">{{ \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB</p>
-                                        </div>
-                                    </div>
+                    </div>
+                </div>
                                     <div class="flex items-center gap-2">
                                         @php
                                             $minutesElapsed = \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->diffInMinutes(\Carbon\Carbon::now('Asia/Jakarta'));
@@ -384,9 +136,9 @@
                                         <div class="px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
                                             <span class="text-white text-xs font-bold uppercase tracking-wider">{{ $order->room }}</span>
                                         </div>
-                                    </div>
-                                </div>
-                                
+                </div>
+            </div>
+
                                 {{-- Time Indicator --}}
                                 @php
                                     $minutesElapsed = \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->diffInMinutes(\Carbon\Carbon::now('Asia/Jakarta'));
@@ -398,12 +150,12 @@
                                 <div class="flex items-center gap-2 mb-3">
                                     <div class="flex-1 h-1.5 rounded-full {{ $isWarning ? 'bg-red-500/50' : 'bg-white/20' }}">
                                         <div class="h-full rounded-full {{ $isWarning ? 'bg-red-500' : 'bg-white/40' }}" style="width: {{ min(100, ($minutesElapsed / 30) * 100) }}%"></div>
-                                    </div>
+            </div>
                                     <span class="text-white/70 text-xs font-medium {{ $isWarning ? 'text-red-300 font-bold' : '' }} stopwatch-timer" data-order-id="{{ $order->id }}" data-start-time="{{ \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->timestamp }}">
                                         ⏱ <span class="stopwatch-display">{{ str_pad($stopwatchMinutes, 2, '0', STR_PAD_LEFT) }}:{{ str_pad($stopwatchSeconds, 2, '0', STR_PAD_LEFT) }}</span>
                                     </span>
                                 </div>
-                                
+
                                 {{-- Menu Items Preview --}}
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($order->orderItems->take(4) as $item)
@@ -421,15 +173,15 @@
                             </div>
                                     @endif
                             </div>
-                            </div>
-                            
+            </div>
+
                             {{-- Card Body --}}
                             <div class="relative px-6 py-5 bg-white/5 backdrop-blur-sm">
                                 <div class="space-y-3">
                                     <div class="flex items-start gap-3">
                                         <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
                                             <i class="ri-user-line text-white text-sm"></i>
-                                        </div>
+                        </div>
                                         <div class="flex-1">
                                             <p class="text-white/70 text-xs font-medium mb-0.5">Nama Pemesan</p>
                                             <p class="text-white font-bold text-sm">{{ $order->customer_name }}</p>
@@ -439,13 +191,13 @@
                                     <div class="flex items-start gap-3">
                                         <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
                                             <i class="ri-table-line text-white text-sm"></i>
-                                        </div>
+                        </div>
                                         <div class="flex-1">
                                             <p class="text-white/70 text-xs font-medium mb-0.5">Meja</p>
                                             <p class="text-white font-bold text-sm">Meja {{ $order->table_number }}</p>
-                                        </div>
-                                    </div>
-                                    
+                    </div>
+                </div>
+
                                     <div class="flex items-start gap-3">
                                         <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
                                             <i class="ri-shopping-bag-line text-white text-sm"></i>
@@ -453,13 +205,13 @@
                                         <div class="flex-1">
                                             <p class="text-white/70 text-xs font-medium mb-1">Pesanan</p>
                                             <div class="flex flex-wrap gap-1.5">
-                                                @foreach($order->orderItems as $item)
+                                @foreach($order->orderItems as $item)
                                                     <span class="inline-block bg-white/20 backdrop-blur-sm px-2 py-1 rounded-md border border-white/30 text-white text-xs font-medium">
                                                         {{ $item->quantity }}x {{ $item->menu_name }}
                                                     </span>
-                                                @endforeach
-                                            </div>
-                                        </div>
+                                @endforeach
+                            </div>
+                            </div>
                                     </div>
                                 </div>
                             </div>
@@ -596,7 +348,7 @@
         // Function to show notification
         function showNotification(order) {
             const notification = document.createElement('div');
-            notification.className = 'notification';
+            notification.className = 'notification bg-gradient-to-br from-[#fa9a08] to-[#ffb84d] text-white p-5 rounded-xl shadow-[0_8px_24px_rgba(250,154,8,0.4)] mb-4 flex items-center gap-4 min-w-[300px] relative z-[9999] animate-[slideInRight_0.5s_ease-out] sm:min-w-0 sm:w-full sm:p-4';
             notification.id = `notification-${order.id}`;
             
             const itemsText = order.order_items.map(item => 
@@ -1010,7 +762,7 @@
         
         {{-- Include shift check script --}}
         @include('dapur.partials.shift-check-script')
-        
+
         // Initialize order IDs on page load
         (function() {
             const initialOrders = @json($orders);
