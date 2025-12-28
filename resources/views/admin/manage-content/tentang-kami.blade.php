@@ -3,69 +3,146 @@
 @section('title', 'Edit Tentang Kami - Admin')
 
 @section('content')
-<div class="min-h-screen bg-black py-12">
-    <div class="max-w-4xl mx-auto px-4">
-        <div class="mb-6">
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 text-[#fa9a08] hover:text-amber-400 transition-colors">
-                <i class="ri-arrow-left-line"></i>
-                <span>Kembali ke Dashboard</span>
-            </a>
+    <div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10 transition-colors duration-300">
+
+        <!-- HEADER STANDARD -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
+            <div class="space-y-1">
+                <a href="{{ route('admin.dashboard') }}"
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Back to Dashboard
+                </a>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Tentang <span
+                        class="text-[#fa9a08]">Kami</span></h1>
+                <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Manajemen narasi utama, visi perusahaan,
+                    dan integrasi media video.</p>
+            </div>
         </div>
 
-        <h1 class="text-4xl font-bold text-white mb-8">Edit Tentang Kami</h1>
+        <!-- FEEDBACK MESSAGES (Alpine.js) -->
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 5000)">
+            @if(session('success'))
+                <div x-show="show" x-transition
+                    class="mb-8 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 rounded-md">
+                    <i class="ri-checkbox-circle-fill text-emerald-500"></i>
+                    <span
+                        class="text-[11px] font-black uppercase tracking-widest text-emerald-500">{{ session('success') }}</span>
+                </div>
+            @endif
 
-        @if(session('success'))
-            <div class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-3 rounded-lg mb-6">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if($errors->any())
-            <div class="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-6">
-                <ul class="list-disc pl-5">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+            @if($errors->any())
+                <div x-show="show" x-transition class="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-md">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="ri-error-warning-fill text-red-500"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-red-500">Koreksi Diperlukan</span>
+                    </div>
+                    <ul class="space-y-1">
+                        @foreach($errors->all() as $error)
+                            <li class="text-[11px] text-red-400 font-medium tracking-tight">— {{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
 
-        <form action="{{ route('admin.tentang-kami.update') }}" method="POST" class="bg-[#1a1a1a] p-8 rounded-xl border border-[#fa9a08]/20">
+        <form action="{{ route('admin.tentang-kami.update') }}" method="POST" class="space-y-12">
             @csrf
 
-            <div class="mb-6">
-                <label class="block text-white mb-2">Title</label>
-                <input type="text" name="title" value="{{ $tentangKami->title ?? 'Tentang Kami' }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
+            <!-- SECTION 1: NARRATIVE CONTENT -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div class="lg:col-span-4">
+                    <h2 class="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">Brand Narrative
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-gray-500 mt-2 leading-relaxed">Pengaturan judul dan deskripsi
+                        filosofis perusahaan yang akan tampil di halaman utama.</p>
+                </div>
+                <div
+                    class="lg:col-span-8 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 space-y-8">
+                    <div class="space-y-2">
+                        <label
+                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Section
+                            Title</label>
+                        <input type="text" name="title" value="{{ $tentangKami->title ?? 'Tentang Kami' }}"
+                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all duration-300">
+                    </div>
+                    <div class="space-y-2">
+                        <label
+                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Narrative
+                            Subtitle</label>
+                        <textarea name="subtitle" rows="3"
+                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $tentangKami->subtitle ?? '' }}</textarea>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-6">
-                <label class="block text-white mb-2">Subtitle</label>
-                <textarea name="subtitle" rows="2" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">{{ $tentangKami->subtitle ?? '' }}</textarea>
+            <!-- SECTION 2: VIDEO INTEGRATION -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <div class="lg:col-span-4">
+                    <h2 class="text-sm font-black uppercase tracking-[0.2em] text-[#fa9a08]">Video Production</h2>
+                    <p class="text-xs text-slate-500 dark:text-gray-500 mt-2 leading-relaxed">Sematkan profil video untuk
+                        memberikan impresi visual yang lebih mendalam kepada pengunjung.</p>
+                </div>
+                <div
+                    class="lg:col-span-8 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 space-y-8">
+                    <div class="space-y-2">
+                        <label
+                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">YouTube
+                            Source URL</label>
+                        <div class="relative">
+                            <input type="url" name="video_url" value="{{ $tentangKami->video_url ?? '' }}"
+                                placeholder="e.g. https://youtu.be/..."
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md pl-12 pr-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                            <i
+                                class="ri-youtube-fill absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-slate-300 dark:text-white/10"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label
+                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Production
+                            Description</label>
+                        <textarea name="video_description" rows="2"
+                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $tentangKami->video_description ?? '' }}</textarea>
+                    </div>
+
+                    <!-- MODULE STATUS -->
+                    <div class="pt-8 border-t border-slate-100 dark:border-white/5">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_active" value="1" {{ ($tentangKami && $tentangKami->is_active) ? 'checked' : '' }} class="sr-only peer">
+                            <div
+                                class="w-11 h-6 bg-slate-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]">
+                            </div>
+                            <span
+                                class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 italic">Publish
+                                Module to Frontend</span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
-            
-
-            <div class="mb-6">
-                <label class="block text-white mb-2">Video URL (YouTube)</label>
-                <input type="url" name="video_url" value="{{ $tentangKami->video_url ?? '' }}" placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/..." class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
+            <!-- STICKY ACTION AREA -->
+            <div class="pt-10 border-t border-slate-200 dark:border-white/5 flex justify-end">
+                <button type="submit"
+                    class="w-full md:w-auto bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-4 px-16 rounded-md transition-all shadow-lg shadow-orange-500/10 active:scale-95 flex items-center justify-center gap-3">
+                    <i class="ri-save-3-line text-lg"></i>
+                    Simpan Konfigurasi
+                </button>
             </div>
-
-            <div class="mb-6">
-                <label class="block text-white mb-2">Video Description</label>
-                <textarea name="video_description" rows="2" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">{{ $tentangKami->video_description ?? '' }}</textarea>
-            </div>
-
-            <div class="mb-6">
-                <label class="flex items-center gap-2 text-white">
-                    <input type="checkbox" name="is_active" {{ ($tentangKami && $tentangKami->is_active) ? 'checked' : '' }} class="w-4 h-4 text-[#fa9a08] bg-[#2a2a2a] border-[#fa9a08]/20 rounded">
-                    <span>Active</span>
-                </label>
-            </div>
-
-            <button type="submit" class="w-full bg-[#fa9a08] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#e19e2b] transition-colors">
-                Simpan Perubahan
-            </button>
         </form>
     </div>
-</div>
-@endsection
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Focus Standard per Manifesto */
+        input:focus,
+        textarea:focus {
+            border-color: #fa9a08 !important;
+            box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
+        }
+    </style>
+@endsection

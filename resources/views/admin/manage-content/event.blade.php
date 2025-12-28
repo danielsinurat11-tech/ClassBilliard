@@ -1,118 +1,228 @@
 @extends('layouts.admin')
 
-@section('title', 'Edit Event - Admin')
+@section('title', 'Event Management - Admin')
 
 @section('content')
-<div class="min-h-screen bg-black py-12">
-    <div class="max-w-6xl mx-auto px-4">
-        <div class="mb-6">
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 text-[#fa9a08] hover:text-amber-400 transition-colors">
-                <i class="ri-arrow-left-line"></i>
-                <span>Kembali ke Dashboard</span>
-            </a>
+    <div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10 transition-colors duration-300"
+        x-data="{ showCreate: false }">
+
+        <!-- HEADER STANDARD -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
+            <div class="space-y-1">
+                <a href="{{ route('admin.dashboard') }}"
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Kembali ke Dashboard
+                </a>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Management <span
+                        class="text-[#fa9a08]">Events</span></h1>
+                <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Atur jadwal, publikasi, dan dokumentasi
+                    event operasional.</p>
+            </div>
+
+            <button @click="showCreate = !showCreate"
+                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95">
+                <i :class="showCreate ? 'ri-close-line' : 'ri-add-line'" class="text-lg"></i>
+                <span x-text="showCreate ? 'Batalkan' : 'Tambah Event Baru'"></span>
+            </button>
         </div>
 
-        <h1 class="text-4xl font-bold text-white mb-8">Edit Event</h1>
-
+        <!-- FLASH MESSAGE -->
         @if(session('success'))
-            <div class="bg-green-500/20 border border-green-500 text-green-400 px-4 py-3 rounded-lg mb-6">
-                {{ session('success') }}
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+                class="mb-8 flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 rounded-md animate-in fade-in slide-in-from-top-4 duration-300">
+                <i class="ri-checkbox-circle-fill text-emerald-500"></i>
+                <span class="text-[11px] font-black uppercase tracking-widest text-emerald-500">{{ session('success') }}</span>
             </div>
         @endif
 
-        <div class="bg-[#1a1a1a] p-8 rounded-xl border border-[#fa9a08]/20 mb-8">
-            <h2 class="text-2xl font-bold text-white mb-6">Tambah Event</h2>
-            <form action="{{ route('admin.event.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-white mb-2">Event Title</label>
-                        <input type="text" name="event_title" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-                    </div>
-                    <div>
-                        <label class="block text-white mb-2">Event Date</label>
-                        <input type="date" name="event_date" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-white mb-2">Event Description</label>
-                        <textarea name="event_description" rows="3" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-white mb-2">Image</label>
-                        <input type="file" name="image" accept="image/*" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-                    </div>
-                    <div>
-                        <label class="block text-white mb-2">Link URL</label>
-                        <input type="url" name="link_url" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-                    </div>
-                    <div>
-                        <label class="block text-white mb-2">Order</label>
-                        <input type="number" name="order" value="0" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-                    </div>
-                    <div class="flex items-center">
-                        <label class="flex items-center gap-2 text-white">
-                            <input type="checkbox" name="is_active" checked class="w-4 h-4 text-[#fa9a08] bg-[#2a2a2a] border-[#fa9a08]/20 rounded">
-                            <span>Active</span>
-                        </label>
-                    </div>
-                </div>
-                <button type="submit" class="mt-4 bg-[#fa9a08] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#e19e2b] transition-colors">
-                    Tambah Event
-                </button>
-            </form>
-        </div>
-
-        <div class="space-y-4">
-            @foreach($events as $event)
-            <div class="bg-[#1a1a1a] p-6 rounded-xl border border-[#fa9a08]/20">
-                @if($event->image)
-                <div class="mb-4">
-                    <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->event_title }}" class="w-full max-w-md rounded-lg">
-                </div>
-                @endif
-                <form action="{{ route('admin.event.update', $event->id) }}" method="POST" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-4">
+        <!-- CREATION MODULE (Alpine.js Toggle) -->
+        <div x-show="showCreate" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform -translate-y-4"
+            x-transition:enter-end="opacity-100 transform translate-y-0" class="mb-12">
+            <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
+                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Informasi Event Baru</h2>
+                <form action="{{ route('admin.event.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div>
-                        <label class="block text-white mb-2">Event Title</label>
-                        <input type="text" name="event_title" value="{{ $event->event_title }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
+                                Title</label>
+                            <input type="text" name="event_title" required
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
+                                Date</label>
+                            <input type="date" name="event_date"
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort
+                                Order</label>
+                            <input type="number" name="order" value="0"
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                        </div>
+                        <div class="md:col-span-2 lg:col-span-3 space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
+                                Description</label>
+                            <textarea name="event_description" rows="3"
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"></textarea>
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Poster
+                                / Image</label>
+                            <input type="file" name="image" accept="image/*"
+                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-[#fa9a08] file:text-black hover:file:bg-orange-600">
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Link
+                                URL (Optional)</label>
+                            <input type="url" name="link_url"
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                        </div>
+                        <div class="flex items-center pt-6">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="is_active" checked value="1" class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]">
+                                </div>
+                                <span class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Aktifkan
+                                    Sekarang</span>
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-white mb-2">Event Date</label>
-                        <input type="date" name="event_date" value="{{ $event->event_date ? $event->event_date->format('Y-m-d') : '' }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
+                    <div class="mt-10 flex justify-end">
+                        <button type="submit"
+                            class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-4 px-12 rounded-md transition-all active:scale-95 shadow-lg shadow-orange-500/10">
+                            Publish Event
+                        </button>
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-white mb-2">Event Description</label>
-                        <textarea name="event_description" rows="3" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">{{ $event->event_description }}</textarea>
-                    </div>
-                    <div>
-                        <label class="block text-white mb-2">Image</label>
-                        <input type="file" name="image" accept="image/*" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-                    </div>
-                    <div>
-                        <label class="block text-white mb-2">Link URL</label>
-                        <input type="url" name="link_url" value="{{ $event->link_url }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-                    </div>
-                    <div>
-                        <label class="block text-white mb-2">Order</label>
-                        <input type="number" name="order" value="{{ $event->order }}" class="w-full px-4 py-2 bg-[#2a2a2a] border border-[#fa9a08]/20 rounded-lg text-white">
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <label class="flex items-center gap-2 text-white">
-                            <input type="checkbox" name="is_active" {{ $event->is_active ? 'checked' : '' }} class="w-4 h-4 text-[#fa9a08] bg-[#2a2a2a] border-[#fa9a08]/20 rounded">
-                            <span>Active</span>
-                        </label>
-                        <button type="submit" class="bg-[#fa9a08] text-white px-4 py-2 rounded-lg hover:bg-[#e19e2b] transition-colors">Update</button>
-                        <a href="{{ route('admin.event.destroy', $event->id) }}" onclick="event.preventDefault(); if(confirm('Yakin hapus?')) document.getElementById('delete-form-{{ $event->id }}').submit();" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">Hapus</a>
-                    </div>
-                </form>
-                <form id="delete-form-{{ $event->id }}" action="{{ route('admin.event.destroy', $event->id) }}" method="POST" class="hidden">
-                    @csrf
-                    @method('DELETE')
                 </form>
             </div>
-            @endforeach
+        </div>
+
+        <!-- EXISTING EVENTS LIST -->
+        <div class="space-y-6">
+            <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500 mb-6">Existing
+                Events Library</h2>
+
+            <div class="grid grid-cols-1 gap-6">
+                @foreach($events as $event)
+                    <div
+                        class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden flex flex-col lg:flex-row group hover:border-[#fa9a08]/50 transition-all duration-300">
+
+                        <!-- Image Section -->
+                        <div class="w-full lg:w-72 h-48 lg:h-auto bg-slate-100 dark:bg-white/5 relative overflow-hidden">
+                            @if($event->image)
+                                <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->event_title }}"
+                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-slate-300 dark:text-white/5">
+                                    <i class="ri-image-line text-4xl"></i>
+                                </div>
+                            @endif
+                            <div class="absolute top-4 left-4">
+                                <span
+                                    class="bg-black/60 backdrop-blur-md text-white text-[8px] font-black px-2 py-1 rounded uppercase tracking-widest border border-white/10">
+                                    Order: {{ $event->order }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Content Section -->
+                        <div class="flex-1 p-8">
+                            <form action="{{ route('admin.event.update', $event->id) }}" method="POST"
+                                enctype="multipart/form-data">
+                                @csrf
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
+                                            Title</label>
+                                        <input type="text" name="event_title" value="{{ $event->event_title }}"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
+                                            Date</label>
+                                        <input type="date" name="event_date"
+                                            value="{{ $event->event_date ? $event->event_date->format('Y-m-d') : '' }}"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                    </div>
+                                    <div class="md:col-span-2 space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
+                                            Description</label>
+                                        <textarea name="event_description" rows="2"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">{{ $event->event_description }}</textarea>
+                                    </div>
+
+                                    <div
+                                        class="md:col-span-2 flex flex-wrap items-center justify-between gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
+                                        <div class="flex items-center gap-6">
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" name="is_active" {{ $event->is_active ? 'checked' : '' }}
+                                                    value="1" class="sr-only peer">
+                                                <div
+                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#fa9a08]">
+                                                </div>
+                                                <span
+                                                    class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Active</span>
+                                            </label>
+
+                                            <div class="flex items-center gap-2">
+                                                <i class="ri-link text-slate-400"></i>
+                                                <input type="url" name="link_url" value="{{ $event->link_url }}"
+                                                    class="bg-transparent border-none p-0 text-[11px] text-[#fa9a08] focus:ring-0 w-48 truncate"
+                                                    placeholder="No link set">
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-3">
+                                            <button type="submit"
+                                                class="bg-slate-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md hover:bg-slate-800 dark:hover:bg-slate-200 transition-all active:scale-95">
+                                                Save Changes
+                                            </button>
+                                            <button type="button"
+                                                onclick="if(confirm('Data event akan dihapus permanen. Lanjutkan?')) document.getElementById('delete-form-{{ $event->id }}').submit();"
+                                                class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md hover:bg-red-500 hover:text-white transition-all active:scale-95">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <form id="delete-form-{{ $event->id }}" action="{{ route('admin.event.destroy', $event->id) }}"
+                                method="POST" class="hidden">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
     </div>
-</div>
-@endsection
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #fa9a08 !important;
+            box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
+        }
+    </style>
+@endsection
