@@ -645,6 +645,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
 
                 if (response.ok && result.success) {
+                    // Tampilkan pesan jika order duplicate
+                    if (result.is_duplicate) {
+                        alert('Pesanan Anda telah ditambahkan ke order yang sudah ada. Silakan cek detail order Anda.');
+                    }
+                    
                     // Redirect ke halaman order detail
                     if (result.redirect_url) {
                         window.location.href = result.redirect_url;

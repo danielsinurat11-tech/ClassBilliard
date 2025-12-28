@@ -6,6 +6,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin - Billiard Class')</title>
+    
+    @php
+        // Get shift_end from session untuk auto-logout real-time
+        $shiftEndTimestamp = session('shift_end');
+        $shiftEndDatetime = session('shift_end_datetime');
+        
+        // Jika belum ada di session, hitung dari active shift
+        if (!$shiftEndTimestamp) {
+            $activeShift = \App\Models\Shift::getActiveShift();
+            if ($activeShift) {
+                $now = \Carbon\Carbon::now('Asia/Jakarta');
+                $shiftStart = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($activeShift->start_time);
+                $shiftEnd = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($activeShift->end_time);
+                
+                if ($shiftEnd->lt($shiftStart)) {
+                    $shiftEnd->addDay();
+                }
+                
+                $shiftEndTimestamp = $shiftEnd->timestamp;
+                $shiftEndDatetime = $shiftEnd->toIso8601String();
+            }
+        }
+    @endphp
+    
+    @if($shiftEndTimestamp ?? false)
+    <meta name="shift-end" content="{{ $shiftEndDatetime }}">
+    <meta name="shift-end-timestamp" content="{{ $shiftEndTimestamp }}">
+    @endif
 
     <!-- Typography: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -352,12 +380,130 @@
                             cancelButton: 'rounded-md text-xs font-bold px-5 py-2.5'
                 }
             }).then((result) => {
-                        if (result.isConfirmed) document.getElementById('logout-form').submit();
+                        if (result.isConfirmed) performLogout();
             });
                 }
             }));
 
         });
+        
+        // Check shift end and auto-logout (REAL-TIME dengan session shift_end)
+        function checkShiftEndRealTime() {
+            const shiftEndMeta = document.querySelector('meta[name="shift-end-timestamp"]');
+            
+            if (!shiftEndMeta) {
+                return; // Skip jika meta tidak ada
+            }
+            
+            const shiftEndTimestamp = parseInt(shiftEndMeta.getAttribute('content'));
+            const now = Math.floor(Date.now() / 1000);
+            
+            // Cek apakah shift sudah berakhir
+            if (now >= shiftEndTimestamp) {
+                // Shift telah berakhir - logout otomatis
+                let message = 'Shift Anda telah berakhir. Anda akan di-logout.';
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Shift Berakhir',
+                        html: `<p class="text-lg mb-2">${message}</p>`,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#fa9a08',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    }).then(() => {
+                        performLogout();
+                    });
+                } else {
+                    performLogout();
+                }
+                return;
+            }
+            
+            // Cek apakah 5 menit sebelum shift berakhir untuk notifikasi
+            const minutesUntilEnd = Math.floor((shiftEndTimestamp - now) / 60);
+            if (minutesUntilEnd <= 5 && minutesUntilEnd >= 0) {
+                const lastNotification = localStorage.getItem('shiftWarningShown');
+                const currentMinute = Math.floor(now / 60);
+                
+                if (lastNotification !== String(currentMinute)) {
+                    // Show browser notification
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('⏰ Peringatan Shift', {
+                            body: `Shift akan berakhir dalam ${minutesUntilEnd} menit!`,
+                            icon: '/logo.png',
+                            tag: 'shift-warning',
+                            requireInteraction: true
+                        });
+                    }
+                    
+                    // Show SweetAlert notification
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '⏰ Peringatan!',
+                            html: `<p class="text-lg mb-2">Shift akan berakhir dalam <strong>${minutesUntilEnd} menit</strong>!</p>`,
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#fa9a08',
+                            background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
+                            color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                        });
+                    }
+                    
+                    localStorage.setItem('shiftWarningShown', String(currentMinute));
+                }
+            }
+        }
+        
+        // Helper function untuk logout
+        function performLogout() {
+            const logoutForm = document.getElementById('logout-form');
+            if (logoutForm) {
+                logoutForm.submit();
+            } else {
+                // Fallback: create and submit form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route("logout") }}';
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken.getAttribute('content');
+                    form.appendChild(csrfInput);
+                }
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Wait for DOM to be ready before checking shift end
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                // Check shift end every 10 seconds untuk real-time auto-logout
+                setInterval(checkShiftEndRealTime, 10000);
+                checkShiftEndRealTime();
+                
+                // Request notification permission on page load
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            });
+        } else {
+            // DOM is already ready
+            // Check shift end every 10 seconds untuk real-time auto-logout
+            setInterval(checkShiftEndRealTime, 10000);
+            checkShiftEndRealTime();
+            
+            // Request notification permission on page load
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
     </script>
     @stack('scripts')
 </body>

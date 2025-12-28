@@ -2,169 +2,22 @@
 
 @section('title', 'Laporan - Billiard Class')
 
-@push('head')
-    {{-- Initialize theme immediately in head --}}
-    <script>
-        (function() {
-            try {
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            } catch(e) {
-                console.error('Theme initialization error:', e);
-            }
-        })();
-    </script>
-@endpush
+{{-- Include shift calculation PHP block --}}
+@include('dapur.partials.shift-calculation')
+
+{{-- Include shift meta tags --}}
+@include('dapur.partials.shift-meta')
+
+{{-- Include theme initialization script --}}
+@include('dapur.partials.theme-manager')
+
+{{-- Include common styles --}}
+@include('dapur.partials.common-styles')
 
 @push('styles')
 <style>
-    [x-cloak] {
-        display: none !important;
-    }
-
-    .theme-transition {
-        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* Standardized Scrollbar */
-    ::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-
-    .dark ::-webkit-scrollbar-thumb {
-        background: #1e1e1e;
-    }
-
-    /* Professional Link State */
-    .active-link {
-        background-color: #fa9a08;
-        color: #000 !important;
-    }
-
-    /* Sidebar Expansion Animation */
-    .sidebar-animate {
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s ease;
-    }
-
-    .sidebar {
-        width: 280px;
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    .sidebar.collapsed {
-        transform: translateX(-100%);
-    }
-    .sidebar-desktop-collapsed {
-        width: 80px;
-    }
-    .main-content {
-        margin-left: 280px;
-        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        height: 100vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    /* Hide scrollbar but keep functionality */
-    .no-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-    .main-content.expanded {
-        margin-left: 0;
-    }
-    .main-content.desktop-collapsed {
-        margin-left: 80px;
-    }
-    .sidebar-menu-item {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-    }
-    .sidebar-menu-item.active {
-        background-color: #fa9a08;
-        color: #000 !important;
-        font-weight: 600;
-    }
-    .sidebar-menu-item.active i {
-        color: #000 !important;
-    }
-    .sidebar-menu-item.active span {
-        color: #000 !important;
-    }
-    .sidebar-menu-item {
-        display: flex;
-        align-items: center;
-    }
-    /* Responsive Styles for Tablet and Mobile */
-    @media (max-width: 1024px) {
-        .sidebar {
-            position: fixed;
-            z-index: 9999;
-            height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 280px;
-        }
-        .sidebar:not(.collapsed) {
-            transform: translateX(0);
-        }
-        .main-content {
-            margin-left: 0;
-            height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9998;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        .sidebar-overlay.show {
-            display: block;
-            opacity: 1;
-            pointer-events: auto;
-        }
-    }
-
+    /* Filter tabs mobile */
     @media (max-width: 768px) {
-        .sidebar {
-            width: 260px;
-        }
-
-        .main-content {
-            padding: 0.75rem;
-        }
-
-        /* Filter tabs mobile */
         .filter-tab-btn {
             padding: 0.75rem 1rem !important;
             font-size: 0.85rem !important;
@@ -189,113 +42,17 @@
 @endpush
 
 @section('content')
-    {{-- Initialize theme before Alpine.js loads --}}
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        })();
-    </script>
+    {{-- Logout Form --}}
+    @include('dapur.partials.logout-form')
 
     <div class="flex min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200" x-data="themeManager()" x-init="initTheme()">
         {{-- Sidebar --}}
-        <aside id="sidebar" 
-            @mouseenter="if(sidebarCollapsed) sidebarHover = true" 
-            @mouseleave="sidebarHover = false"
-            class="sidebar fixed lg:static top-0 left-0 h-screen theme-transition border-r border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0A] z-50 flex flex-col sidebar-animate"
-            :class="[
-                (sidebarCollapsed && !sidebarHover) ? 'sidebar-desktop-collapsed' : '',
-                (sidebarCollapsed && sidebarHover) ? 'shadow-[20px_0_50px_rgba(0,0,0,0.2)] dark:shadow-[20px_0_50px_rgba(0,0,0,0.5)]' : ''
-            ]">
-            {{-- Sidebar Header --}}
-            <div class="h-20 flex items-center px-6 shrink-0 border-b border-gray-100 dark:border-white/5 overflow-hidden">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-[#fa9a08] rounded-lg flex items-center justify-center shrink-0">
-                        <i class="ri-restaurant-line text-black text-lg"></i>
-                    </div>
-                    <div x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="flex flex-col whitespace-nowrap">
-                        <span class="font-bold text-sm tracking-tight text-black dark:text-white uppercase leading-none">Dashboard Dapur</span>
-                        <span class="text-[9px] font-bold text-gray-600 dark:text-gray-600 uppercase tracking-widest mt-1">Kitchen System</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Sidebar Menu --}}
-            <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-1 no-scrollbar">
-                <a href="{{ route('dapur') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('dapur') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-shopping-cart-2-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Orderan</span>
-                </a>
-                <a href="{{ route('reports') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('reports') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-file-chart-2-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Laporan</span>
-                </a>
-                <a href="{{ route('pengaturan-audio') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('pengaturan-audio') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-settings-3-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Pengaturan Audio</span>
-                </a>
-            </nav>
-
-            {{-- Sidebar Footer --}}
-            <div class="p-4 border-t border-gray-100 dark:border-white/5">
-                {{-- Sidebar Toggle Button --}}
-                <button @click="sidebarCollapsed = !sidebarCollapsed; sidebarHover = false" 
-                    class="w-full h-9 flex items-center justify-center rounded-md bg-gray-100 dark:bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
-                    <i :class="sidebarCollapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line'" class="text-sm"></i>
-                </button>
-            </div>
-        </aside>
-
-        {{-- Sidebar Overlay untuk Mobile --}}
-        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        @include('dapur.partials.sidebar')
 
         {{-- Main Content --}}
         <div class="main-content flex-1 w-full" :class="sidebarCollapsed ? 'desktop-collapsed' : ''">
-            {{-- Header dengan Profile dan Theme Toggle --}}
-            <header class="h-16 px-8 flex items-center justify-between sticky top-0 z-40 bg-white/90 dark:bg-[#050505]/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
-                <div class="flex items-center gap-4">
-                    {{-- Mobile Sidebar Toggle --}}
-                    <button id="mobile-sidebar-toggle" class="lg:hidden text-black dark:text-slate-200">
-                        <i class="ri-menu-line text-2xl"></i>
-                    </button>
-                    <h1 class="text-sm font-bold text-black dark:text-white tracking-tight hidden lg:block">Laporan</h1>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    {{-- Theme Switcher --}}
-                    <button @click="toggleTheme()"
-                        class="w-8 h-8 rounded-md border border-gray-200 dark:border-white/10 flex items-center justify-center hover:border-[#fa9a08] transition-all bg-white dark:bg-transparent">
-                        <i x-show="!darkMode" class="ri-moon-line text-sm text-black"></i>
-                        <i x-show="darkMode" class="ri-sun-line text-sm text-[#fa9a08]" x-cloak></i>
-                    </button>
-
-                    {{-- Profile Dropdown --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="flex items-center gap-2.5 group">
-                            <img class="w-8 h-8 rounded-md object-cover border border-gray-200 dark:border-white/10"
-                                src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()?->name) }}&background=fa9a08&color=000&bold=true"
-                                alt="">
-                            <div class="text-left hidden md:block">
-                                <p class="text-[11px] font-bold text-black dark:text-white leading-none group-hover:text-[#fa9a08] transition-colors">
-                                    {{ Auth::user()?->name }}</p>
-                            </div>
-                        </button>
-
-                        <div x-show="open" @click.away="open = false" x-cloak
-                            class="absolute right-0 mt-3 w-52 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-white/10 rounded-lg shadow-xl p-1 z-50">
-                            <button @click="handleLogout()"
-                                class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-all text-left">
-                                <i class="ri-logout-box-r-line text-sm"></i> Sign Out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            {{-- Navbar --}}
+            @include('dapur.partials.navbar', ['pageTitle' => 'Laporan'])
 
             <div class="flex-1 p-8 md:p-12 min-h-screen">
                 {{-- Grafik Laporan Order per Kategori --}}
@@ -369,70 +126,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         // Sidebar Toggle
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-        const mainContent = document.querySelector('.main-content');
-
-        function toggleSidebar() {
-            const isMobile = window.innerWidth <= 1024;
-            if (isMobile) {
-                const isCollapsed = sidebar.classList.contains('collapsed');
-                if (isCollapsed) {
-                    sidebar.classList.remove('collapsed');
-                    if (sidebarOverlay) {
-                        sidebarOverlay.classList.add('show');
-                    }
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    sidebar.classList.add('collapsed');
-                    if (sidebarOverlay) {
-                        sidebarOverlay.classList.remove('show');
-                    }
-                    document.body.style.overflow = '';
-                }
-            }
-        }
-
-        if (window.innerWidth <= 1024) {
-            sidebar.classList.add('collapsed');
-        }
-
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        if (mobileSidebarToggle) {
-            mobileSidebarToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 1024) {
-                sidebar.classList.remove('collapsed');
-                if (sidebarOverlay) {
-                    sidebarOverlay.classList.remove('show');
-                }
-                document.body.style.overflow = '';
-            } else {
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-            }
-        });
 
         // Category Chart untuk Laporan
         let categoryChart = null;
@@ -472,17 +165,25 @@
                 }
 
                 const categoryData = data.data;
+                const chartType = data.type || 'daily';
                 
-                renderCategoryChart(categoryData);
-                renderCategoryDetails(categoryData);
-                renderCategorySummary(categoryData);
+                renderCategoryChart(categoryData, chartType);
+                
+                // Hanya render detail dan summary untuk daily (per kategori)
+                if (chartType === 'daily') {
+                    renderCategoryDetails(categoryData);
+                    renderCategorySummary(categoryData);
+                } else {
+                    // Untuk monthly dan yearly, render summary periode
+                    renderPeriodSummary(categoryData, chartType);
+                }
             } catch (error) {
                 console.error('Error loading category chart:', error);
             }
         }
 
         // Render category chart using Chart.js
-        function renderCategoryChart(data) {
+        function renderCategoryChart(data, type = 'daily') {
             const ctx = document.getElementById('categoryChart');
             if (!ctx) return;
 
@@ -490,9 +191,21 @@
                 categoryChart.destroy();
             }
 
-            const labels = data.map(item => item.name);
+            const labels = data.map(item => item.name || item.period);
             const quantities = data.map(item => item.total_quantity);
             const revenues = data.map(item => item.total_revenue);
+            
+            // Tentukan label untuk dataset berdasarkan type
+            let quantityLabel = 'Total Quantity';
+            let revenueLabel = 'Total Revenue (Rp)';
+            
+            if (type === 'monthly') {
+                quantityLabel = 'Quantity per Minggu';
+                revenueLabel = 'Revenue per Minggu (Rp)';
+            } else if (type === 'yearly') {
+                quantityLabel = 'Quantity per Bulan';
+                revenueLabel = 'Revenue per Bulan (Rp)';
+            }
 
             categoryChart = new Chart(ctx, {
                 type: 'line',
@@ -500,7 +213,7 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Total Quantity',
+                            label: quantityLabel,
                             data: quantities,
                             backgroundColor: 'rgba(250, 154, 8, 0.1)',
                             borderColor: 'rgba(250, 154, 8, 1)',
@@ -516,7 +229,7 @@
                             yAxisID: 'y'
                         },
                         {
-                            label: 'Total Revenue (Rp)',
+                            label: revenueLabel,
                             data: revenues,
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
                             borderColor: 'rgba(59, 130, 246, 1)',
@@ -537,6 +250,19 @@
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
+                        title: {
+                            display: true,
+                            text: type === 'monthly' ? 'Grafik Pendapatan per Minggu' : (type === 'yearly' ? 'Grafik Pendapatan per Bulan' : 'Laporan Order per Kategori'),
+                            color: '#fff',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            }
+                        },
                         legend: {
                             display: true,
                             position: 'top',
@@ -719,6 +445,98 @@
             renderTotalSummary(data);
         }
 
+        // Render period summary for monthly and yearly
+        function renderPeriodSummary(data, type) {
+            const container = document.getElementById('categorySummary');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            // Hide category details for monthly/yearly
+            const detailsContainer = document.getElementById('categoryDetails');
+            if (detailsContainer) {
+                detailsContainer.classList.add('hidden');
+            }
+
+            data.forEach(period => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-700 dark:bg-[#1a1a1a] rounded-xl p-6 border border-gray-600 dark:border-white/10';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-white dark:text-slate-200 text-lg font-bold">${period.name || period.period}</h3>
+                        <div class="w-12 h-12 rounded-lg bg-[#fa9a08]/20 flex items-center justify-center">
+                            <i class="ri-calendar-line text-2xl text-[#fa9a08]"></i>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-gray-400 dark:text-gray-500 text-xs mb-1">Total Quantity</p>
+                            <p class="text-white dark:text-slate-200 text-2xl font-bold">${period.total_quantity}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 dark:text-gray-500 text-xs mb-1">Total Revenue</p>
+                            <p class="text-white dark:text-slate-200 text-xl font-bold">Rp ${new Intl.NumberFormat('id-ID').format(period.total_revenue)}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 dark:text-gray-500 text-xs mb-1">Total Order</p>
+                            <p class="text-white dark:text-slate-200 text-lg font-semibold">${period.order_count} order</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Render total summary untuk periode
+            renderPeriodTotalSummary(data, type);
+        }
+
+        // Render total summary untuk periode (monthly/yearly)
+        function renderPeriodTotalSummary(data, type) {
+            const container = document.getElementById('totalSummaryCard');
+            if (!container) return;
+
+            let totalQuantity = 0;
+            let totalRevenue = 0;
+            let totalOrders = 0;
+
+            data.forEach(period => {
+                totalQuantity += period.total_quantity;
+                totalRevenue += period.total_revenue;
+                totalOrders += period.order_count;
+            });
+
+            const title = type === 'monthly' ? 'Total Gabungan Seluruh Minggu' : 'Total Gabungan Seluruh Bulan';
+
+            container.innerHTML = `
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-white text-2xl font-bold flex items-center gap-3">
+                        <i class="ri-stack-line text-[#fa9a08]"></i>
+                        ${title}
+                    </h3>
+                    <div class="w-16 h-16 rounded-xl bg-[#fa9a08]/30 flex items-center justify-center">
+                        <i class="ri-dashboard-3-line text-3xl text-[#fa9a08]"></i>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gray-700 dark:bg-[#050505]/50 rounded-lg p-4 border border-[#fa9a08]/20">
+                        <p class="text-gray-300 dark:text-gray-500 text-sm mb-2">Total Quantity</p>
+                        <p class="text-white dark:text-slate-200 text-3xl font-bold text-[#fa9a08]">${totalQuantity}</p>
+                        <p class="text-gray-400 dark:text-gray-400 text-xs mt-1">item</p>
+                    </div>
+                    <div class="bg-gray-700 dark:bg-[#050505]/50 rounded-lg p-4 border border-[#fa9a08]/20">
+                        <p class="text-gray-300 dark:text-gray-500 text-sm mb-2">Total Revenue</p>
+                        <p class="text-white dark:text-slate-200 text-3xl font-bold text-[#fa9a08]">Rp ${new Intl.NumberFormat('id-ID').format(totalRevenue)}</p>
+                        <p class="text-gray-400 dark:text-gray-600 text-xs mt-1">pendapatan</p>
+                    </div>
+                    <div class="bg-gray-700 dark:bg-[#050505]/50 rounded-lg p-4 border border-[#fa9a08]/20">
+                        <p class="text-gray-300 dark:text-gray-500 text-sm mb-2">Total Order</p>
+                        <p class="text-white dark:text-slate-200 text-3xl font-bold text-[#fa9a08]">${totalOrders}</p>
+                        <p class="text-gray-400 dark:text-gray-400 text-xs mt-1">order</p>
+                    </div>
+                </div>
+            `;
+        }
+
         // Render total gabungan seluruh menu
         function renderTotalSummary(data) {
             const container = document.getElementById('totalSummaryCard');
@@ -771,26 +589,47 @@
 
         // Handle filter tab buttons
         document.querySelectorAll('.filter-tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-tab-btn').forEach(b => {
-                    b.classList.remove('bg-[#fa9a08]');
-                    b.classList.add('bg-[#2a2a2a]');
-                });
-                this.classList.add('bg-[#fa9a08]');
-                this.classList.remove('bg-[#2a2a2a]');
-
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const type = this.getAttribute('data-filter-type');
                 
+                // Reset all buttons
+                document.querySelectorAll('.filter-tab-btn').forEach(b => {
+                    b.classList.remove('bg-[#fa9a08]');
+                    b.classList.remove('hover:bg-[#e19e2b]');
+                    b.classList.add('bg-gray-700');
+                    b.classList.add('dark:bg-[#1a1a1a]');
+                });
+                
+                // Activate clicked button
+                this.classList.remove('bg-gray-700');
+                this.classList.remove('dark:bg-[#1a1a1a]');
+                this.classList.add('bg-[#fa9a08]');
+                this.classList.add('hover:bg-[#e19e2b]');
+                
+                // Hide all filter groups
                 document.querySelectorAll('.filter-input-group').forEach(group => {
                     group.classList.add('hidden');
                 });
 
+                // Show selected filter group
                 if (type === 'daily') {
-                    document.getElementById('dailyFilter').classList.remove('hidden');
+                    const dailyFilter = document.getElementById('dailyFilter');
+                    if (dailyFilter) {
+                        dailyFilter.classList.remove('hidden');
+                    }
                 } else if (type === 'monthly') {
-                    document.getElementById('monthlyFilter').classList.remove('hidden');
+                    const monthlyFilter = document.getElementById('monthlyFilter');
+                    if (monthlyFilter) {
+                        monthlyFilter.classList.remove('hidden');
+                    }
                 } else if (type === 'yearly') {
-                    document.getElementById('yearlyFilter').classList.remove('hidden');
+                    const yearlyFilter = document.getElementById('yearlyFilter');
+                    if (yearlyFilter) {
+                        yearlyFilter.classList.remove('hidden');
+                    }
                 }
             });
         });
@@ -816,94 +655,12 @@
         });
     </script>
 
-    {{-- Hidden Logout Form --}}
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
-
-    {{-- Theme Manager Script --}}
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('themeManager', () => ({
-                sidebarCollapsed: false,
-                sidebarHover: false,
-                darkMode: false, // Will be set in initTheme()
-
-                initTheme() {
-                    // Set initial theme based on cookie, localStorage, or system preference
-                    const cookieTheme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
-                    const savedTheme = localStorage.getItem('theme');
-                    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    
-                    // Prioritize cookie, then localStorage, then system preference
-                    const theme = cookieTheme || savedTheme || (prefersDark ? 'dark' : 'light');
-                    
-                    this.darkMode = theme === 'dark';
-                    
-                    if (this.darkMode) {
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                    }
-                    
-                    // Sync localStorage with cookie if cookie exists
-                    if (cookieTheme && cookieTheme !== savedTheme) {
-                        localStorage.setItem('theme', cookieTheme);
-                    }
-                },
-
-                toggleTheme() {
-                    this.darkMode = !this.darkMode;
-                    const theme = this.darkMode ? 'dark' : 'light';
-                    
-                    // Set localStorage
-                    localStorage.setItem('theme', theme);
-                    
-                    // Set cookie untuk persist antar reload dan bisa dipakai server-side
-                    document.cookie = `theme=${theme}; path=/; max-age=31536000`;
-                    
-                    // Update DOM class
-                    if (this.darkMode) {
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                    }
-                    
-                    // Force re-render untuk memastikan perubahan terlihat
-                    this.$nextTick(() => {
-                        console.log('Theme toggled:', theme);
-                    });
-                },
-
-                updateTheme() {
-                    if (this.darkMode) {
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                    }
-                },
-
-                handleLogout() {
-                    Swal.fire({
-                        title: 'Confirm Logout',
-                        text: 'Are you sure you want to logout?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#fa9a08',
-                        cancelButtonColor: '#1e1e1e',
-                        confirmButtonText: 'Yes, Sign Out',
-                        background: this.darkMode ? '#0A0A0A' : '#fff',
-                        color: this.darkMode ? '#fff' : '#000',
-                        customClass: {
-                            popup: 'rounded-lg border border-white/5',
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('logout-form').submit();
-                        }
-                    });
-                }
-            }));
-        });
-    </script>
+    {{-- Include theme manager script --}}
+    @include('dapur.partials.theme-manager')
+    
+    {{-- Include shift check script --}}
+    @include('dapur.partials.shift-check-script')
+    
     @endpush
 @endsection
 

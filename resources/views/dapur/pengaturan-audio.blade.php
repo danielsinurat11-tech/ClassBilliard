@@ -2,7 +2,31 @@
 
 @section('title', 'Pengaturan Audio - Billiard Class')
 
+@php
+    // Get shift_end from session untuk auto-logout real-time
+    $shiftEndTimestamp = session('shift_end');
+    $shiftEndDatetime = session('shift_end_datetime');
+    
+    // Jika belum ada di session, hitung dari active shift
+    if (!$shiftEndTimestamp && isset($activeShift) && $activeShift) {
+        $now = \Carbon\Carbon::now('Asia/Jakarta');
+        $shiftStart = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($activeShift->start_time);
+        $shiftEnd = \Carbon\Carbon::today('Asia/Jakarta')->setTimeFromTimeString($activeShift->end_time);
+        
+        if ($shiftEnd->lt($shiftStart)) {
+            $shiftEnd->addDay();
+        }
+        
+        $shiftEndTimestamp = $shiftEnd->timestamp;
+        $shiftEndDatetime = $shiftEnd->toIso8601String();
+    }
+@endphp
+
 @push('head')
+@if($shiftEndTimestamp)
+<meta name="shift-end" content="{{ $shiftEndDatetime }}">
+<meta name="shift-end-timestamp" content="{{ $shiftEndTimestamp }}">
+@endif
     {{-- Initialize theme immediately in head --}}
     <script>
         (function() {
@@ -173,98 +197,12 @@
 
     <div class="flex min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200" x-data="themeManager()" x-init="initTheme()">
         {{-- Sidebar --}}
-        <aside id="sidebar" 
-            @mouseenter="if(sidebarCollapsed) sidebarHover = true" 
-            @mouseleave="sidebarHover = false"
-            class="sidebar fixed lg:static top-0 left-0 h-screen theme-transition border-r border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0A] z-50 flex flex-col sidebar-animate"
-            :class="[
-                (sidebarCollapsed && !sidebarHover) ? 'sidebar-desktop-collapsed' : '',
-                (sidebarCollapsed && sidebarHover) ? 'shadow-[20px_0_50px_rgba(0,0,0,0.2)] dark:shadow-[20px_0_50px_rgba(0,0,0,0.5)]' : ''
-            ]">
-            {{-- Sidebar Header --}}
-            <div class="h-20 flex items-center px-6 shrink-0 border-b border-gray-100 dark:border-white/5 overflow-hidden">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-[#fa9a08] rounded-lg flex items-center justify-center shrink-0">
-                        <i class="ri-restaurant-line text-black text-lg"></i>
-                    </div>
-                    <div x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="flex flex-col whitespace-nowrap">
-                        <span class="font-bold text-sm tracking-tight text-black dark:text-white uppercase leading-none">Dashboard Dapur</span>
-                        <span class="text-[9px] font-bold text-gray-600 dark:text-gray-600 uppercase tracking-widest mt-1">Kitchen System</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Sidebar Menu --}}
-            <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-1 no-scrollbar">
-                <a href="{{ route('dapur') }}" id="menu-orders" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('dapur') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-shopping-cart-2-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Orderan</span>
-                </a>
-                <a href="{{ route('reports') }}" id="menu-reports" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('reports') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-file-chart-2-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Laporan</span>
-                </a>
-                <a href="{{ route('pengaturan-audio') }}" id="menu-audio" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('pengaturan-audio') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-settings-3-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Pengaturan Audio</span>
-                </a>
-            </nav>
-
-            {{-- Sidebar Footer --}}
-            <div class="p-4 border-t border-gray-100 dark:border-white/5">
-                {{-- Sidebar Toggle Button --}}
-                <button @click="sidebarCollapsed = !sidebarCollapsed; sidebarHover = false" 
-                    class="w-full h-9 flex items-center justify-center rounded-md bg-gray-100 dark:bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
-                    <i :class="sidebarCollapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line'" class="text-sm"></i>
-                </button>
-            </div>
-        </aside>
-
-        {{-- Sidebar Overlay untuk Mobile --}}
-        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        @include('dapur.partials.sidebar')
 
         {{-- Main Content --}}
         <div class="main-content flex-1 w-full" :class="sidebarCollapsed ? 'desktop-collapsed' : ''">
-            {{-- Header dengan Profile dan Theme Toggle --}}
-            <header class="h-16 px-8 flex items-center justify-between sticky top-0 z-40 bg-white/90 dark:bg-[#050505]/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
-                <div class="flex items-center gap-4">
-                    {{-- Mobile Sidebar Toggle --}}
-                    <button id="mobile-sidebar-toggle" class="lg:hidden text-black dark:text-slate-200">
-                        <i class="ri-menu-line text-2xl"></i>
-                    </button>
-                    <h1 class="text-sm font-bold text-black dark:text-white tracking-tight hidden lg:block">Pengaturan Audio</h1>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    {{-- Theme Switcher --}}
-                    <button @click="toggleTheme()"
-                        class="w-8 h-8 rounded-md border border-gray-200 dark:border-white/10 flex items-center justify-center hover:border-[#fa9a08] transition-all bg-white dark:bg-transparent">
-                        <i x-show="!darkMode" class="ri-moon-line text-sm text-black"></i>
-                        <i x-show="darkMode" class="ri-sun-line text-sm text-[#fa9a08]" x-cloak></i>
-                    </button>
-
-                    {{-- Profile Dropdown --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="flex items-center gap-2.5 group">
-                            <img class="w-8 h-8 rounded-md object-cover border border-gray-200 dark:border-white/10"
-                                src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()?->name) }}&background=fa9a08&color=000&bold=true"
-                                alt="">
-                            <div class="text-left hidden md:block">
-                                <p class="text-[11px] font-bold text-black dark:text-white leading-none group-hover:text-[#fa9a08] transition-colors">
-                                    {{ Auth::user()?->name }}</p>
-                            </div>
-                        </button>
-
-                        <div x-show="open" @click.away="open = false" x-cloak
-                            class="absolute right-0 mt-3 w-52 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-white/10 rounded-lg shadow-xl p-1 z-50">
-                            <button @click="handleLogout()"
-                                class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-all text-left">
-                                <i class="ri-logout-box-r-line text-sm"></i> Sign Out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            {{-- Navbar --}}
+            @include('dapur.partials.navbar', ['pageTitle' => 'Pengaturan Audio'])
 
             <div class="flex-1 p-8 md:p-12 min-h-screen">
                 <div class="w-full">
@@ -368,70 +306,6 @@
     @push('scripts')
     <script>
         // Sidebar Toggle
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-        const mainContent = document.querySelector('.main-content');
-
-        function toggleSidebar() {
-            const isMobile = window.innerWidth <= 1024;
-            if (isMobile) {
-                const isCollapsed = sidebar.classList.contains('collapsed');
-                if (isCollapsed) {
-                    sidebar.classList.remove('collapsed');
-                    if (sidebarOverlay) {
-                        sidebarOverlay.classList.add('show');
-                    }
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    sidebar.classList.add('collapsed');
-                    if (sidebarOverlay) {
-                        sidebarOverlay.classList.remove('show');
-                    }
-                    document.body.style.overflow = '';
-                }
-            }
-        }
-
-        if (window.innerWidth <= 1024) {
-            sidebar.classList.add('collapsed');
-        }
-
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        if (mobileSidebarToggle) {
-            mobileSidebarToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 1024) {
-                sidebar.classList.remove('collapsed');
-                if (sidebarOverlay) {
-                    sidebarOverlay.classList.remove('show');
-                }
-                document.body.style.overflow = '';
-            } else {
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-            }
-        });
 
         // Menu Navigation
         const menuOrders = document.getElementById('menu-orders');
@@ -973,6 +847,126 @@
                 }
             }));
         });
+        
+        
+        // Check shift end and auto-logout (REAL-TIME dengan session shift_end)
+        function checkShiftEndRealTime() {
+            const shiftEndMeta = document.querySelector('meta[name="shift-end-timestamp"]');
+            
+            if (!shiftEndMeta) {
+                return; // Skip jika meta tidak ada
+            }
+            
+            const shiftEndTimestamp = parseInt(shiftEndMeta.getAttribute('content'));
+            const now = Math.floor(Date.now() / 1000);
+            
+            // Cek apakah shift sudah berakhir
+            if (now >= shiftEndTimestamp) {
+                // Shift telah berakhir - logout otomatis
+                let message = 'Shift Anda telah berakhir. Anda akan di-logout.';
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Shift Berakhir',
+                        html: `<p class="text-lg mb-2">${message}</p>`,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#fa9a08',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    }).then(() => {
+                        performLogout();
+                    });
+                } else {
+                    performLogout();
+                }
+                return;
+            }
+            
+            // Cek apakah 5 menit sebelum shift berakhir untuk notifikasi
+            const minutesUntilEnd = Math.floor((shiftEndTimestamp - now) / 60);
+            if (minutesUntilEnd <= 5 && minutesUntilEnd >= 0) {
+                const lastNotification = localStorage.getItem('shiftWarningShown');
+                const currentMinute = Math.floor(now / 60);
+                
+                if (lastNotification !== String(currentMinute)) {
+                    // Show browser notification
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification('⏰ Peringatan Shift', {
+                            body: `Shift akan berakhir dalam ${minutesUntilEnd} menit. Jangan lupa untuk Tutup Hari!`,
+                            icon: '/logo.png',
+                            tag: 'shift-warning',
+                            requireInteraction: true
+                        });
+                    }
+                    
+                    // Show SweetAlert notification
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: '⏰ Peringatan!',
+                            html: `<p class="text-lg mb-2">Shift akan berakhir dalam <strong>${minutesUntilEnd} menit</strong>!</p><p class="text-sm">Jangan lupa untuk <strong>Tutup Hari</strong> sebelum shift berakhir.</p>`,
+                            confirmButtonText: 'Ke Halaman Tutup Hari',
+                            confirmButtonColor: '#fa9a08',
+                            showCancelButton: true,
+                            cancelButtonText: 'Nanti',
+                            background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
+                            color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '{{ route("tutup-hari") }}';
+                            }
+                        });
+                    }
+                    
+                    localStorage.setItem('shiftWarningShown', String(currentMinute));
+                }
+            }
+        }
+        
+        // Helper function untuk logout
+        function performLogout() {
+            const logoutForm = document.getElementById('logout-form');
+            if (logoutForm) {
+                logoutForm.submit();
+            } else {
+                // Fallback: create and submit form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route("logout") }}';
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken.getAttribute('content');
+                    form.appendChild(csrfInput);
+                }
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Wait for DOM to be ready before checking shift end
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                // Check shift end every 10 seconds untuk real-time auto-logout
+                setInterval(checkShiftEndRealTime, 10000);
+                checkShiftEndRealTime();
+            });
+        } else {
+            // DOM is already ready
+            // Check shift end every 10 seconds untuk real-time auto-logout
+            setInterval(checkShiftEndRealTime, 10000);
+            checkShiftEndRealTime();
+        }
+        
+        // Request notification permission on page load
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
     </script>
     @endpush
 @endsection

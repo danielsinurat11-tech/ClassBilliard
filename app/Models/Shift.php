@@ -146,4 +146,42 @@ class Shift extends Model
 
         return null;
     }
+    
+    /**
+     * Get the next shift after the current active shift
+     */
+    public static function getNextShift()
+    {
+        $activeShift = self::getActiveShift();
+        
+        if (!$activeShift) {
+            // If no active shift, return the first active shift
+            return self::where('is_active', true)->orderBy('start_time')->first();
+        }
+        
+        // Get all active shifts
+        $shifts = self::where('is_active', true)->orderBy('start_time')->get();
+        
+        if ($shifts->count() < 2) {
+            // If only one shift, return it (circular)
+            return $activeShift;
+        }
+        
+        // Find the next shift
+        $currentIndex = -1;
+        foreach ($shifts as $index => $shift) {
+            if ($shift->id === $activeShift->id) {
+                $currentIndex = $index;
+                break;
+            }
+        }
+        
+        if ($currentIndex === -1) {
+            return $shifts->first();
+        }
+        
+        // Get next shift (circular)
+        $nextIndex = ($currentIndex + 1) % $shifts->count();
+        return $shifts[$nextIndex];
+    }
 }

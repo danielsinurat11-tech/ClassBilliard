@@ -471,6 +471,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
 
                 if (response.ok && result.success) {
+                    // Tampilkan pesan jika order duplicate
+                    if (result.is_duplicate) {
+                        showNotification('Pesanan Anda telah ditambahkan ke order yang sudah ada. Silakan cek detail order Anda.');
+                    } else {
+                        showNotification('Pesanan berhasil dibuat!');
+                    }
+                    
                     // Clear cart
                     cart = [];
                     updateOrderBar();
@@ -489,8 +496,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Reset form
                     checkoutForm.reset();
                     
-                    // Show success message
-                    showNotification('Pesanan berhasil dibuat!');
+                    // Redirect jika ada redirect_url
+                    if (result.redirect_url) {
+                        setTimeout(() => {
+                            window.location.href = result.redirect_url;
+                        }, 1500);
+                    }
                 } else {
                     alert('Gagal membuat pesanan. Silakan coba lagi.');
                 }

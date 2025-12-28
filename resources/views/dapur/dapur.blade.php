@@ -2,43 +2,76 @@
 
 @section('title', 'Dapur - Billiard Class')
 
-@php
-    $isDarkMode = request()->cookie('theme') === 'dark' || (!request()->cookie('theme') && isset($_COOKIE['theme']) && $_COOKIE['theme'] === 'dark');
-@endphp
+{{-- Include shift calculation PHP block --}}
+@include('dapur.partials.shift-calculation')
+
+{{-- Include shift meta tags --}}
+@include('dapur.partials.shift-meta')
+
+{{-- Include common styles --}}
+@include('dapur.partials.common-styles')
 
 @push('styles')
 <style>
-    [x-cloak] {
-        display: none !important;
+
+    /* Modern Order Card Styles */
+    .order-card-modern {
+        position: relative;
+        backdrop-filter: blur(10px);
     }
 
-    .theme-transition {
-        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    .order-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
 
-    /* Standardized Scrollbar */
-    ::-webkit-scrollbar {
-        width: 4px;
+    .order-card-modern:hover::before {
+        opacity: 1;
     }
 
-    ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
+    .order-card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(250, 154, 8, 0.3);
     }
 
-    .dark ::-webkit-scrollbar-thumb {
-        background: #1e1e1e;
+    .complete-order-btn {
+        position: relative;
+        overflow: hidden;
     }
 
-    /* Professional Link State */
-    .active-link {
-        background-color: #fa9a08;
-        color: #000 !important;
+    .complete-order-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(250, 154, 8, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
     }
 
-    /* Sidebar Expansion Animation */
-    .sidebar-animate {
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s ease;
+    .complete-order-btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .complete-order-btn span {
+        position: relative;
+        z-index: 1;
+    }
+
+    .complete-order-btn i {
+        position: relative;
+        z-index: 1;
     }
 
     .sidebar {
@@ -78,81 +111,14 @@
     .main-content.desktop-collapsed {
         margin-left: 80px;
     }
-    .sidebar-menu-item {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-    }
-    .sidebar-menu-item.active {
-        background-color: #fa9a08;
-        color: #000 !important;
-        font-weight: 600;
-    }
-    .sidebar-menu-item.active i {
-        color: #000 !important;
-    }
-    .sidebar-menu-item.active span {
-        color: #000 !important;
-    }
-    .sidebar-menu-item {
-        display: flex;
-        align-items: center;
-    }
-    /* Responsive Styles for Tablet and Mobile */
+    /* Order cards responsive */
     @media (max-width: 1024px) {
-        .sidebar {
-            position: fixed;
-            z-index: 9999;
-            height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 280px;
-        }
-        .sidebar:not(.collapsed) {
-            transform: translateX(0);
-        }
-        .main-content {
-            margin-left: 0;
-            height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9998;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        .sidebar-overlay.show {
-            display: block;
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Order cards responsive */
         .grid.grid-cols-\[repeat\(auto-fill\,minmax\(350px\,1fr\)\)\] {
             grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
         }
     }
 
     @media (max-width: 768px) {
-        .sidebar {
-            width: 260px;
-        }
-
-        .main-content {
-            padding: 0.75rem;
-        }
 
         /* Order card mobile */
         .bg-\[#fa9a08\] {
@@ -354,6 +320,9 @@
 @endpush
 
 @section('content')
+    {{-- Logout Form --}}
+    @include('dapur.partials.logout-form')
+
     {{-- Audio element for notification sound --}}
     <audio id="notificationSound" preload="auto" style="display: none;">
         <source id="notificationSoundSource" src="" type="audio/mpeg">
@@ -367,124 +336,152 @@
 
     <div class="flex min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200" x-data="themeManager()" x-init="initTheme()">
         {{-- Sidebar --}}
-        <aside id="sidebar" 
-            @mouseenter="if(sidebarCollapsed) sidebarHover = true" 
-            @mouseleave="sidebarHover = false"
-            class="sidebar fixed lg:static top-0 left-0 h-screen theme-transition border-r border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0A] z-50 flex flex-col sidebar-animate"
-            :class="[
-                (sidebarCollapsed && !sidebarHover) ? 'sidebar-desktop-collapsed' : '',
-                (sidebarCollapsed && sidebarHover) ? 'shadow-[20px_0_50px_rgba(0,0,0,0.2)] dark:shadow-[20px_0_50px_rgba(0,0,0,0.5)]' : ''
-            ]">
-            {{-- Sidebar Header --}}
-            <div class="h-20 flex items-center px-6 shrink-0 border-b border-gray-100 dark:border-white/5 overflow-hidden">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-[#fa9a08] rounded-lg flex items-center justify-center shrink-0">
-                        <i class="ri-restaurant-line text-black text-lg"></i>
-                    </div>
-                    <div x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="flex flex-col whitespace-nowrap">
-                        <span class="font-bold text-sm tracking-tight text-black dark:text-white uppercase leading-none">Dashboard Dapur</span>
-                        <span class="text-[9px] font-bold text-gray-600 dark:text-gray-600 uppercase tracking-widest mt-1">Kitchen System</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Sidebar Menu --}}
-            <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-1 no-scrollbar">
-                <a href="{{ route('dapur') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('dapur') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-shopping-cart-2-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Orderan</span>
-                </a>
-                <a href="{{ route('reports') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('reports') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-file-chart-2-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Laporan</span>
-                </a>
-                <a href="{{ route('pengaturan-audio') }}" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('pengaturan-audio') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
-                    <i class="ri-settings-3-line text-lg"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Pengaturan Audio</span>
-                </a>
-            </nav>
-
-            {{-- Sidebar Footer --}}
-            <div class="p-4 border-t border-gray-100 dark:border-white/5">
-                {{-- Sidebar Toggle Button --}}
-                <button @click="sidebarCollapsed = !sidebarCollapsed; sidebarHover = false" 
-                    class="w-full h-9 flex items-center justify-center rounded-md bg-gray-100 dark:bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
-                    <i :class="sidebarCollapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line'" class="text-sm"></i>
-                </button>
-            </div>
-        </aside>
-
-        {{-- Sidebar Overlay untuk Mobile --}}
-        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        @include('dapur.partials.sidebar')
 
         {{-- Main Content --}}
         <div class="main-content flex-1 w-full" :class="sidebarCollapsed ? 'desktop-collapsed' : ''">
-            {{-- Header dengan Profile dan Theme Toggle --}}
-            <header class="h-16 px-8 flex items-center justify-between sticky top-0 z-40 bg-white/90 dark:bg-[#050505]/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
-                <div class="flex items-center gap-4">
-                    {{-- Mobile Sidebar Toggle --}}
-                    <button id="mobile-sidebar-toggle" class="lg:hidden text-black dark:text-slate-200">
-                        <i class="ri-menu-line text-2xl"></i>
-                    </button>
-                    <h1 class="text-sm font-bold text-black dark:text-white tracking-tight hidden lg:block">Dashboard Dapur</h1>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    {{-- Theme Switcher --}}
-                    <button @click="toggleTheme()"
-                        class="w-8 h-8 rounded-md border border-gray-200 dark:border-white/10 flex items-center justify-center hover:border-[#fa9a08] transition-all bg-white dark:bg-transparent">
-                        <i x-show="!darkMode" class="ri-moon-line text-sm text-black"></i>
-                        <i x-show="darkMode" class="ri-sun-line text-sm text-[#fa9a08]" x-cloak></i>
-                    </button>
-
-                    {{-- Profile Dropdown --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="flex items-center gap-2.5 group">
-                            <img class="w-8 h-8 rounded-md object-cover border border-gray-200 dark:border-white/10"
-                                src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()?->name) }}&background=fa9a08&color=000&bold=true"
-                                alt="">
-                            <div class="text-left hidden md:block">
-                                <p class="text-[11px] font-bold text-black dark:text-white leading-none group-hover:text-[#fa9a08] transition-colors">
-                                    {{ Auth::user()?->name }}</p>
-                            </div>
-                        </button>
-
-                        <div x-show="open" @click.away="open = false" x-cloak
-                            class="absolute right-0 mt-3 w-52 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-white/10 rounded-lg shadow-xl p-1 z-50">
-                            <button @click="handleLogout()"
-                                class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-all text-left">
-                                <i class="ri-logout-box-r-line text-sm"></i> Sign Out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            {{-- Navbar --}}
+            @include('dapur.partials.navbar', ['pageTitle' => 'Dashboard Dapur'])
 
             <div class="flex-1 p-8 md:p-12 min-h-screen">
                 <div class="w-full" id="ordersSection">
             @if($orders->count() > 0)
-                <div class="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
+                <div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
                     @foreach($orders as $order)
-                        <div class="bg-[#fa9a08] border-2 border-amber-400 rounded-2xl p-6 flex flex-col gap-4 relative transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] max-md:p-5" data-order-id="{{ $order->id }}">
-                            <div class="flex flex-wrap gap-3 justify-start items-center mb-2">
-                                @foreach($order->orderItems as $item)
+                        <div class="order-card-modern group relative bg-gradient-to-br from-[#fa9a08] via-[#ff8c00] to-[#ff6b00] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-300/20" data-order-id="{{ $order->id }}">
+                            {{-- Decorative Pattern --}}
+                            <div class="absolute inset-0 opacity-10">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
+                                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -ml-12 -mb-12"></div>
+                            </div>
+                            
+                            {{-- Card Header --}}
+                            <div class="relative px-6 pt-6 pb-4 border-b border-white/20">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
+                                            <i class="ri-restaurant-line text-white text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-white font-bold text-sm">Order #{{ $order->id }}</p>
+                                            <p class="text-white/80 text-xs">{{ \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        @php
+                                            $minutesElapsed = \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->diffInMinutes(\Carbon\Carbon::now('Asia/Jakarta'));
+                                            $isWarning = $minutesElapsed >= 15;
+                                        @endphp
+                                        @if($order->status === 'pending')
+                                            <div class="px-3 py-1.5 bg-yellow-500/30 backdrop-blur-sm rounded-lg border border-yellow-500/50">
+                                                <span class="text-yellow-200 text-xs font-bold uppercase tracking-wider">⏳ Belum Selesai</span>
+                                            </div>
+                                        @elseif($order->status === 'processing')
+                                            <div class="px-3 py-1.5 bg-blue-500/30 backdrop-blur-sm rounded-lg border border-blue-500/50">
+                                                <span class="text-blue-200 text-xs font-bold uppercase tracking-wider">🟡 Sedang Diproses</span>
+                                            </div>
+                                        @endif
+                                        <div class="px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                                            <span class="text-white text-xs font-bold uppercase tracking-wider">{{ $order->room }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {{-- Time Indicator --}}
+                                @php
+                                    $minutesElapsed = \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->diffInMinutes(\Carbon\Carbon::now('Asia/Jakarta'));
+                                    $secondsElapsed = \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->diffInSeconds(\Carbon\Carbon::now('Asia/Jakarta'));
+                                    $isWarning = $minutesElapsed >= 15;
+                                    $stopwatchMinutes = floor($secondsElapsed / 60);
+                                    $stopwatchSeconds = $secondsElapsed % 60;
+                                @endphp
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="flex-1 h-1.5 rounded-full {{ $isWarning ? 'bg-red-500/50' : 'bg-white/20' }}">
+                                        <div class="h-full rounded-full {{ $isWarning ? 'bg-red-500' : 'bg-white/40' }}" style="width: {{ min(100, ($minutesElapsed / 30) * 100) }}%"></div>
+                                    </div>
+                                    <span class="text-white/70 text-xs font-medium {{ $isWarning ? 'text-red-300 font-bold' : '' }} stopwatch-timer" data-order-id="{{ $order->id }}" data-start-time="{{ \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->timestamp }}">
+                                        ⏱ <span class="stopwatch-display">{{ str_pad($stopwatchMinutes, 2, '0', STR_PAD_LEFT) }}:{{ str_pad($stopwatchSeconds, 2, '0', STR_PAD_LEFT) }}</span>
+                                    </span>
+                                </div>
+                                
+                                {{-- Menu Items Preview --}}
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($order->orderItems->take(4) as $item)
+                                        <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-white/30">
                                     <img src="{{ $item->image ? asset($item->image) : asset('assets/img/default.png') }}" 
                                          alt="{{ $item->menu_name }}" 
-                                         class="w-[60px] h-[60px] rounded-full object-cover border-2 border-white bg-white max-md:w-[50px] max-md:h-[50px]"
+                                                 class="w-6 h-6 rounded-full object-cover border border-white/50"
                                          onerror="this.src='{{ asset('assets/img/default.png') }}'">
+                                            <span class="text-white text-xs font-semibold">{{ $item->quantity }}x</span>
+                                        </div>
                                 @endforeach
+                                    @if($order->orderItems->count() > 4)
+                                        <div class="flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-white/30">
+                                            <span class="text-white text-xs font-semibold">+{{ $order->orderItems->count() - 4 }}</span>
                             </div>
-                            <div class="text-black text-[0.95rem] leading-relaxed max-md:text-[0.85rem]">
-                                <p class="my-2"><strong class="font-semibold">Waktu Pesan :</strong> {{ \Carbon\Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('d M Y H:i') }} WIB</p>
-                                <p class="my-2"><strong class="font-semibold">Nama Pemesan :</strong> {{ $order->customer_name }}</p>
-                                <p class="my-2"><strong class="font-semibold">Pesanan :</strong> 
-                                    {{ $order->orderItems->map(function($item){ return $item->quantity . 'x ' . $item->menu_name; })->implode(', ') }}
-                                </p>
-                                <p class="my-2"><strong class="font-semibold">Nomor Meja :</strong> {{ $order->table_number }}</p>
-                                <p class="my-2"><strong class="font-semibold">Ruangan :</strong> {{ $order->room }}</p>
-                                <p class="my-2"><strong class="font-semibold">Total Harga :</strong> Rp{{ number_format($order->total_price, 0, ',', '.') }}</p>
+                                    @endif
                             </div>
-                            <button class="self-end bg-white text-[#fa9a08] border-none rounded-lg py-2 px-6 text-[0.9rem] font-semibold cursor-pointer transition-all duration-200 mt-2 hover:bg-slate-100 hover:scale-105 active:scale-95 max-md:py-2 max-md:px-5 max-md:text-[0.85rem]" data-order-id="{{ $order->id }}">Selesai</button>
+                            </div>
+                            
+                            {{-- Card Body --}}
+                            <div class="relative px-6 py-5 bg-white/5 backdrop-blur-sm">
+                                <div class="space-y-3">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                                            <i class="ri-user-line text-white text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-white/70 text-xs font-medium mb-0.5">Nama Pemesan</p>
+                                            <p class="text-white font-bold text-sm">{{ $order->customer_name }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                                            <i class="ri-table-line text-white text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-white/70 text-xs font-medium mb-0.5">Meja</p>
+                                            <p class="text-white font-bold text-sm">Meja {{ $order->table_number }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                                            <i class="ri-shopping-bag-line text-white text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-white/70 text-xs font-medium mb-1">Pesanan</p>
+                                            <div class="flex flex-wrap gap-1.5">
+                                                @foreach($order->orderItems as $item)
+                                                    <span class="inline-block bg-white/20 backdrop-blur-sm px-2 py-1 rounded-md border border-white/30 text-white text-xs font-medium">
+                                                        {{ $item->quantity }}x {{ $item->menu_name }}
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{-- Card Footer --}}
+                            <div class="relative px-6 py-4 bg-white/10 backdrop-blur-sm border-t border-white/20 flex items-center justify-between">
+                                <div>
+                                    <p class="text-white/70 text-xs font-medium mb-0.5">Total Harga</p>
+                                    <p class="text-white font-bold text-lg">Rp{{ number_format($order->total_price, 0, ',', '.') }}</p>
+                                </div>
+                                @if($order->status === 'pending')
+                                    <button class="start-cooking-btn bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 group/btn" data-order-id="{{ $order->id }}">
+                                        <i class="ri-play-circle-line text-base group-hover/btn:scale-110 transition-transform"></i>
+                                        <span>Mulai Masak</span>
+                                    </button>
+                                @elseif($order->status === 'processing')
+                                    <button class="complete-order-btn bg-white text-[#fa9a08] px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 group/btn" data-order-id="{{ $order->id }}">
+                                        <i class="ri-checkbox-circle-line text-base group-hover/btn:rotate-12 transition-transform"></i>
+                                        <span>Selesai</span>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -502,77 +499,6 @@
     <script src="{{ asset('js/dapur.js') }}"></script>
     <script>
         // Sidebar Toggle
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-        const mainContent = document.querySelector('.main-content');
-
-        function toggleSidebar() {
-            const isMobile = window.innerWidth <= 1024;
-            if (isMobile) {
-                const isCollapsed = sidebar.classList.contains('collapsed');
-                if (isCollapsed) {
-                    // Open sidebar
-                    sidebar.classList.remove('collapsed');
-                    if (sidebarOverlay) {
-                        sidebarOverlay.classList.add('show');
-                    }
-                    // Prevent body scroll when sidebar is open
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    // Close sidebar
-                    sidebar.classList.add('collapsed');
-                    if (sidebarOverlay) {
-                        sidebarOverlay.classList.remove('show');
-                    }
-                    // Restore body scroll
-                    document.body.style.overflow = '';
-                }
-            }
-        }
-
-        // Initialize sidebar as collapsed on mobile
-        if (window.innerWidth <= 1024) {
-            sidebar.classList.add('collapsed');
-        }
-
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        if (mobileSidebarToggle) {
-            mobileSidebarToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        // Close sidebar when window is resized to desktop
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 1024) {
-                sidebar.classList.remove('collapsed');
-                if (sidebarOverlay) {
-                    sidebarOverlay.classList.remove('show');
-                }
-                document.body.style.overflow = '';
-            } else {
-                // Ensure sidebar is collapsed on mobile
-                if (!sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-            }
-        });
 
 
         // Notification and Sound Functions
@@ -768,8 +694,8 @@
         // Function to render order card
         function renderOrderCard(order) {
             const items = order.order_items || [];
-            const itemsText = items.map(i => `${i.quantity}x ${i.menu_name}`).join(', ');
-            const orderTime = new Date(order.created_at).toLocaleString('id-ID', {
+            const orderDate = new Date(order.created_at);
+            const orderTime = orderDate.toLocaleString('id-ID', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric',
@@ -777,25 +703,147 @@
                 minute: '2-digit'
             });
             
+            // Calculate minutes elapsed
+            const now = new Date();
+            const minutesElapsed = Math.floor((now - orderDate) / (1000 * 60));
+            const isWarning = minutesElapsed >= 15;
+            
+            const previewItems = items.slice(0, 4);
+            const remainingCount = items.length > 4 ? items.length - 4 : 0;
+            
             return `
-                <div class="bg-[#fa9a08] border-2 border-amber-400 rounded-2xl p-6 flex flex-col gap-4 relative transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)] max-md:p-5" data-order-id="${order.id}">
-                    <div class="flex flex-wrap gap-3 justify-start items-center mb-2">
-                        ${items.map(item => `
+                <div class="order-card-modern group relative bg-gradient-to-br from-[#fa9a08] via-[#ff8c00] to-[#ff6b00] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-300/20" data-order-id="${order.id}">
+                    <!-- Decorative Pattern -->
+                    <div class="absolute inset-0 opacity-10">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
+                        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -ml-12 -mb-12"></div>
+                    </div>
+                    
+                    <!-- Card Header -->
+                    <div class="relative px-6 pt-6 pb-4 border-b border-white/20">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
+                                    <i class="ri-restaurant-line text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-white font-bold text-sm">Order #${order.id}</p>
+                                    <p class="text-white/80 text-xs">${orderTime} WIB</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${order.status === 'pending' ? `
+                                    <div class="px-3 py-1.5 bg-yellow-500/30 backdrop-blur-sm rounded-lg border border-yellow-500/50">
+                                        <span class="text-yellow-200 text-xs font-bold uppercase tracking-wider">⏳ Belum Selesai</span>
+                                    </div>
+                                ` : order.status === 'processing' ? `
+                                    <div class="px-3 py-1.5 bg-blue-500/30 backdrop-blur-sm rounded-lg border border-blue-500/50">
+                                        <span class="text-blue-200 text-xs font-bold uppercase tracking-wider">🟡 Sedang Diproses</span>
+                                    </div>
+                                ` : ''}
+                                <div class="px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                                    <span class="text-white text-xs font-bold uppercase tracking-wider">${order.room}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Time Indicator -->
+                        ${(() => {
+                            const progressPercent = Math.min(100, (minutesElapsed / 30) * 100);
+                            const totalSeconds = Math.floor((now - orderDate) / 1000);
+                            const stopwatchMinutes = Math.floor(totalSeconds / 60);
+                            const stopwatchSeconds = totalSeconds % 60;
+                            const startTimestamp = Math.floor(orderDate.getTime() / 1000);
+                            return `
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="flex-1 h-1.5 rounded-full ${isWarning ? 'bg-red-500/50' : 'bg-white/20'}">
+                                        <div class="h-full rounded-full ${isWarning ? 'bg-red-500' : 'bg-white/40'}" style="width: ${progressPercent}%"></div>
+                                    </div>
+                                    <span class="text-white/70 text-xs font-medium ${isWarning ? 'text-red-300 font-bold' : ''} stopwatch-timer" data-order-id="${order.id}" data-start-time="${startTimestamp}">
+                                        ⏱ <span class="stopwatch-display">${String(stopwatchMinutes).padStart(2, '0')}:${String(stopwatchSeconds).padStart(2, '0')}</span>
+                                    </span>
+                                </div>
+                            `;
+                        })()}
+                        
+                        <!-- Menu Items Preview -->
+                        <div class="flex flex-wrap gap-2">
+                            ${previewItems.map(item => `
+                                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-white/30">
                             <img src="${item.image ? (item.image.startsWith('http') ? item.image : '/' + item.image) : '/assets/img/default.png'}" 
                                  alt="${item.menu_name}" 
-                                 class="w-[60px] h-[60px] rounded-full object-cover border-2 border-white bg-white max-md:w-[50px] max-md:h-[50px]"
+                                         class="w-6 h-6 rounded-full object-cover border border-white/50"
                                  onerror="this.src='/assets/img/default.png'">
+                                    <span class="text-white text-xs font-semibold">${item.quantity}x</span>
+                                </div>
                         `).join('')}
+                            ${remainingCount > 0 ? `
+                                <div class="flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1 border border-white/30">
+                                    <span class="text-white text-xs font-semibold">+${remainingCount}</span>
                     </div>
-                    <div class="text-black text-[0.95rem] leading-relaxed max-md:text-[0.85rem]">
-                        <p class="my-2"><strong class="font-semibold">Waktu Pesan :</strong> ${orderTime}</p>
-                        <p class="my-2"><strong class="font-semibold">Nama Pemesan :</strong> ${order.customer_name}</p>
-                        <p class="my-2"><strong class="font-semibold">Pesanan :</strong> ${itemsText}</p>
-                        <p class="my-2"><strong class="font-semibold">Nomor Meja :</strong> ${order.table_number}</p>
-                        <p class="my-2"><strong class="font-semibold">Ruangan :</strong> ${order.room}</p>
-                        <p class="my-2"><strong class="font-semibold">Total Harga :</strong> Rp${parseInt(order.total_price).toLocaleString('id-ID')}</p>
+                            ` : ''}
                     </div>
-                    <button class="self-end bg-white text-[#fa9a08] border-none rounded-lg py-2 px-6 text-[0.9rem] font-semibold cursor-pointer transition-all duration-200 mt-2 hover:bg-slate-100 hover:scale-105 active:scale-95 max-md:py-2 max-md:px-5 max-md:text-[0.85rem]" data-order-id="${order.id}">Selesai</button>
+                    </div>
+                    
+                    <!-- Card Body -->
+                    <div class="relative px-6 py-5 bg-white/5 backdrop-blur-sm">
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                                    <i class="ri-user-line text-white text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-white/70 text-xs font-medium mb-0.5">Nama Pemesan</p>
+                                    <p class="text-white font-bold text-sm">${order.customer_name}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                                    <i class="ri-table-line text-white text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-white/70 text-xs font-medium mb-0.5">Meja</p>
+                                    <p class="text-white font-bold text-sm">Meja ${order.table_number}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 border border-white/30">
+                                    <i class="ri-shopping-bag-line text-white text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-white/70 text-xs font-medium mb-1">Pesanan</p>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        ${items.map(item => `
+                                            <span class="inline-block bg-white/20 backdrop-blur-sm px-2 py-1 rounded-md border border-white/30 text-white text-xs font-medium">
+                                                ${item.quantity}x ${item.menu_name}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Card Footer -->
+                    <div class="relative px-6 py-4 bg-white/10 backdrop-blur-sm border-t border-white/20 flex items-center justify-between">
+                        <div>
+                            <p class="text-white/70 text-xs font-medium mb-0.5">Total Harga</p>
+                            <p class="text-white font-bold text-lg">Rp${parseInt(order.total_price).toLocaleString('id-ID')}</p>
+                        </div>
+                        ${order.status === 'pending' ? `
+                            <button class="start-cooking-btn bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 group/btn" data-order-id="${order.id}">
+                                <i class="ri-play-circle-line text-base group-hover/btn:scale-110 transition-transform"></i>
+                                <span>Mulai Masak</span>
+                            </button>
+                        ` : order.status === 'processing' ? `
+                            <button class="complete-order-btn bg-white text-[#fa9a08] px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 group/btn" data-order-id="${order.id}">
+                                <i class="ri-checkbox-circle-line text-base group-hover/btn:rotate-12 transition-transform"></i>
+                                <span>Selesai</span>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             `;
         }
@@ -895,11 +943,13 @@
                             ordersGrid.innerHTML = data.orders.map(order => renderOrderCard(order)).join('');
                         } else {
                             ordersSection.innerHTML = `
-                                <div class="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
+                                <div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
                                     ${data.orders.map(order => renderOrderCard(order)).join('')}
                                 </div>
                             `;
                         }
+                        // Update stopwatches immediately after rendering
+                        updateStopwatches();
                     }
                 }
             } catch (error) {
@@ -909,6 +959,58 @@
             }
         }
 
+        // Stopwatch timer function
+        function updateStopwatches() {
+            const now = Math.floor(Date.now() / 1000);
+            document.querySelectorAll('.stopwatch-timer').forEach(timer => {
+                const startTime = parseInt(timer.getAttribute('data-start-time'));
+                const elapsedSeconds = now - startTime;
+                const minutes = Math.floor(elapsedSeconds / 60);
+                const seconds = elapsedSeconds % 60;
+                
+                const display = timer.querySelector('.stopwatch-display');
+                if (display) {
+                    display.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    
+                    // Update warning color if >= 15 minutes
+                    if (minutes >= 15) {
+                        timer.classList.add('text-red-300', 'font-bold');
+                        timer.classList.remove('text-white/70');
+                    } else {
+                        timer.classList.remove('text-red-300', 'font-bold');
+                        timer.classList.add('text-white/70');
+                    }
+                    
+                    // Update progress bar
+                    const progressBar = timer.closest('.flex.items-center')?.querySelector('.h-full.rounded-full');
+                    if (progressBar) {
+                        const progressPercent = Math.min(100, (minutes / 30) * 100);
+                        progressBar.style.width = `${progressPercent}%`;
+                        
+                        const progressContainer = progressBar.parentElement;
+                        if (minutes >= 15) {
+                            progressContainer.classList.remove('bg-white/20');
+                            progressContainer.classList.add('bg-red-500/50');
+                            progressBar.classList.remove('bg-white/40');
+                            progressBar.classList.add('bg-red-500');
+                        } else {
+                            progressContainer.classList.remove('bg-red-500/50');
+                            progressContainer.classList.add('bg-white/20');
+                            progressBar.classList.remove('bg-red-500');
+                            progressBar.classList.add('bg-white/40');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Start stopwatch updates every second
+        setInterval(updateStopwatches, 1000);
+        
+        
+        {{-- Include shift check script --}}
+        @include('dapur.partials.shift-check-script')
+        
         // Initialize order IDs on page load
         (function() {
             const initialOrders = @json($orders);
@@ -924,10 +1026,44 @@
             }, 1000);
         })();
 
+        // Handle start cooking button
+        document.addEventListener('click', async (e) => {
+            if (e.target.closest('.start-cooking-btn')) {
+                const button = e.target.closest('.start-cooking-btn');
+                const orderId = button.getAttribute('data-order-id');
+                
+                if (!confirm('Mulai memproses pesanan ini?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/orders/${orderId}/start-cooking`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        // Refresh orders to update status
+                        fetchAndUpdateOrders();
+                    } else {
+                        alert(result.message || 'Gagal memulai proses pesanan');
+                    }
+                } catch (error) {
+                    console.error('Error starting cooking:', error);
+                    alert('Terjadi kesalahan saat memulai proses pesanan');
+                }
+            }
+        });
+
         // Handle complete order
         document.addEventListener('click', async (e) => {
-            if (e.target.closest('button[data-order-id]')) {
-                const button = e.target.closest('button[data-order-id]');
+            if (e.target.closest('.complete-order-btn')) {
+                const button = e.target.closest('.complete-order-btn');
                 const orderId = button.getAttribute('data-order-id');
                 
                 if (!confirm('Apakah pesanan ini sudah selesai?')) {
@@ -969,6 +1105,8 @@
 
                         // Fetch latest orders to check if there are still active orders
                         fetchAndUpdateOrders();
+                    } else {
+                        alert(result.message || 'Gagal menyelesaikan pesanan');
                     }
                 } catch (error) {
                     console.error('Error completing order:', error);
@@ -979,99 +1117,8 @@
 
     </script>
 
-    {{-- Hidden Logout Form --}}
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
-
-    {{-- Theme Manager Script --}}
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('themeManager', () => ({
-                sidebarCollapsed: false,
-                sidebarHover: false,
-                darkMode: false, // Will be set in initTheme()
-
-                initTheme() {
-                    // Set initial theme based on cookie, localStorage, or system preference
-                    const cookieTheme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
-                    const savedTheme = localStorage.getItem('theme');
-                    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    
-                    // Prioritize cookie, then localStorage, then system preference
-                    const theme = cookieTheme || savedTheme || (prefersDark ? 'dark' : 'light');
-                    
-                    this.darkMode = theme === 'dark';
-                    
-                    if (this.darkMode) {
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                    }
-                    
-                    // Sync localStorage with cookie if cookie exists
-                    if (cookieTheme && cookieTheme !== savedTheme) {
-                        localStorage.setItem('theme', cookieTheme);
-                    }
-                    
-                    console.log('Theme initialized:', this.darkMode ? 'dark' : 'light', 'Cookie:', cookieTheme, 'LocalStorage:', savedTheme);
-                },
-
-                toggleTheme() {
-                    this.darkMode = !this.darkMode;
-                    const theme = this.darkMode ? 'dark' : 'light';
-                    
-                    // Set localStorage
-                    localStorage.setItem('theme', theme);
-                    
-                    // Set cookie untuk persist antar reload dan bisa dipakai server-side
-                    document.cookie = `theme=${theme}; path=/; max-age=31536000`;
-                    
-                    // Update DOM class
-                    if (this.darkMode) {
-                        document.documentElement.classList.add('dark');
-                        console.log('✅ Dark mode ON - Class added:', document.documentElement.classList.contains('dark'));
-                        console.log('✅ HTML element:', document.documentElement.outerHTML.substring(0, 100));
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                        console.log('✅ Dark mode OFF - Class removed:', !document.documentElement.classList.contains('dark'));
-                    }
-                    
-                    // Force re-render untuk memastikan perubahan terlihat
-                    this.$nextTick(() => {
-                        console.log('Theme toggled:', theme, '| HTML has dark class:', document.documentElement.classList.contains('dark'));
-                    });
-                },
-
-                updateTheme() {
-                    if (this.darkMode) {
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                    }
-                },
-
-                handleLogout() {
-                        Swal.fire({
-                        title: 'Confirm Logout',
-                        text: 'Are you sure you want to logout?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                            confirmButtonColor: '#fa9a08',
-                        cancelButtonColor: '#1e1e1e',
-                        confirmButtonText: 'Yes, Sign Out',
-                        background: this.darkMode ? '#0A0A0A' : '#fff',
-                        color: this.darkMode ? '#fff' : '#000',
-                            customClass: {
-                            popup: 'rounded-lg border border-white/5',
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById('logout-form').submit();
-                            }
-                        });
-                    }
-            }));
-        });
-    </script>
+    {{-- Include theme manager script --}}
+    @include('dapur.partials.theme-manager')
 
     @endpush
 @endsection

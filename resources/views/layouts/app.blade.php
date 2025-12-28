@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="id" class="@if(request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->is('admin*')){{ request()->cookie('theme') === 'dark' ? 'dark' : '' }}@endif">
+<html lang="id" class="@if(request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->routeIs('tutup-hari') || request()->is('admin*')){{ request()->cookie('theme') === 'dark' ? 'dark' : '' }}@endif">
     <head>
         {{-- Initialize theme immediately before any content loads - HANYA untuk Admin & Dapur --}}
-        @if(request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->is('admin*'))
+        @if(request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->routeIs('tutup-hari') || request()->is('admin*'))
         <script>
             (function() {
                 try {
@@ -59,7 +59,12 @@
         @stack('styles')
     </head>
     <body class="font-['Plus_Jakarta_Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',sans-serif] antialiased bg-black text-white">
-        @if(!request()->routeIs('dapur') && !request()->routeIs('reports') && !request()->routeIs('pengaturan-audio'))
+        {{-- Hidden Logout Form (must be at start of body for early availability) - HANYA untuk Admin & Dapur --}}
+        @if(request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->routeIs('tutup-hari') || request()->is('admin*'))
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
+        @endif
+        
+        @if(!request()->routeIs('dapur') && !request()->routeIs('reports') && !request()->routeIs('pengaturan-audio') && !request()->routeIs('tutup-hari'))
         <header class="fixed top-0 left-0 right-0 w-full z-50 bg-[#1A1A1A]/95 backdrop-blur-md border-b border-white/10 shadow-lg">
             <div class="max-w-[1400px] mx-auto px-4 md:px-6">
                 <div class="flex items-center justify-between py-4 md:py-5">
@@ -112,9 +117,9 @@
         </header>
         @endif
 
-        <main class="@if(!request()->routeIs('dapur') && !request()->routeIs('reports') && !request()->routeIs('pengaturan-audio'))pt-[73px] @endif bg-black">
+        <main class="@if(!request()->routeIs('dapur') && !request()->routeIs('reports') && !request()->routeIs('pengaturan-audio') && !request()->routeIs('tutup-hari'))pt-[73px] @endif bg-black">
             <!-- ALERTS -->
-            @if(session('error'))
+            @if(session('error') && (request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->routeIs('tutup-hari') || request()->is('admin*')))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
                     class="relative z-50 mx-4 mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
                     <i class="ri-alert-fill text-red-500 text-xl shrink-0 mt-0.5"></i>
@@ -127,7 +132,7 @@
                 </div>
             @endif
 
-            @if(session('warning'))
+            @if(session('warning') && (request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->routeIs('tutup-hari') || request()->is('admin*')))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
                     class="relative z-50 mx-4 mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
                     <i class="ri-alert-line text-amber-500 text-xl shrink-0 mt-0.5"></i>

@@ -57,7 +57,24 @@ class FortifyServiceProvider extends ServiceProvider
             new class implements \Laravel\Fortify\Contracts\LoginResponse {
                 public function toResponse($request)
                 {
-                    $role = auth()->user()->role;
+                    $user = auth()->user();
+                    $role = $user->role;
+                    
+                    // Simpan waktu akhir shift di session untuk auto-logout
+                    if ($user->shift_id) {
+                        $shift = $user->shift;
+                        if ($shift && $shift->is_active) {
+                            $now = \Carbon\Carbon::now('Asia/Jakarta');
+                            $today = $now->copy()->startOfDay();
+                            
+                            // Parse shift end time
+                            $shiftEnd = $this->parseShiftEndTime($shift->end_time, $today, $shift->start_time);
+                            
+                            // Simpan di session untuk cek di middleware dan JavaScript
+                            session(['shift_end' => $shiftEnd->timestamp]);
+                            session(['shift_end_datetime' => $shiftEnd->toIso8601String()]);
+                        }
+                    }
                     
                     // Check if there's an intended URL and it's an admin/kitchen route
                     $intended = session()->pull('url.intended');
@@ -80,6 +97,49 @@ class FortifyServiceProvider extends ServiceProvider
 
                     // Jika tidak ada role yang cocok, redirect ke home
                     return redirect('/');
+                }
+                
+                /**
+                 * Parse shift end time dengan handling midnight crossing
+                 */
+                private function parseShiftEndTime($endTime, $today, $startTime)
+                {
+                    $now = \Carbon\Carbon::now('Asia/Jakarta');
+                    
+                    if ($endTime instanceof \Carbon\Carbon) {
+                        $end = $today->copy()->setHour($endTime->hour)->setMinute($endTime->minute)->setSecond($endTime->second);
+                    } else {
+                        $parts = explode(':', $endTime);
+                        $hour = (int) ($parts[0] ?? 0);
+                        $minute = (int) ($parts[1] ?? 0);
+                        $second = (int) ($parts[2] ?? 0);
+                        $end = $today->copy()->setHour($hour)->setMinute($minute)->setSecond($second);
+                    }
+                    
+                    // Parse start time untuk cek midnight crossing
+                    if ($startTime instanceof \Carbon\Carbon) {
+                        $start = $today->copy()->setHour($startTime->hour)->setMinute($startTime->minute)->setSecond($startTime->second);
+                    } else {
+                        $parts = explode(':', $startTime);
+                        $startHour = (int) ($parts[0] ?? 0);
+                        $startMinute = (int) ($parts[1] ?? 0);
+                        $startSecond = (int) ($parts[2] ?? 0);
+                        $start = $today->copy()->setHour($startHour)->setMinute($startMinute)->setSecond($startSecond);
+                    }
+                    
+                    // Handle midnight crossing (e.g., 22:00 - 06:00)
+                    if ($end < $start) {
+                        // Shift crosses midnight
+                        if ($now < $start) {
+                            // Before start time, shift end is yesterday
+                            $end = $end->copy()->subDay();
+                        } else {
+                            // After start time, shift end is tomorrow
+                            $end = $end->copy()->addDay();
+                        }
+                    }
+                    
+                    return $end;
                 }
             }
         );
