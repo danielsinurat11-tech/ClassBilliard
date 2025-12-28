@@ -1,22 +1,34 @@
 <!DOCTYPE html>
-<html lang="id" class="">
+<html lang="id" class="@if(request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->is('admin*')){{ request()->cookie('theme') === 'dark' ? 'dark' : '' }}@endif">
     <head>
-        {{-- Initialize theme immediately before any content loads --}}
+        {{-- Initialize theme immediately before any content loads - HANYA untuk Admin & Dapur --}}
+        @if(request()->routeIs('dapur') || request()->routeIs('reports') || request()->routeIs('pengaturan-audio') || request()->is('admin*'))
         <script>
             (function() {
                 try {
                     const savedTheme = localStorage.getItem('theme');
+                    const cookieTheme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
                     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    
+                    // Prioritize cookie, then localStorage, then system preference
+                    const theme = cookieTheme || savedTheme || (prefersDark ? 'dark' : 'light');
+                    
+                    if (theme === 'dark') {
                         document.documentElement.classList.add('dark');
                     } else {
                         document.documentElement.classList.remove('dark');
+                    }
+                    
+                    // Sync localStorage with cookie if cookie exists
+                    if (cookieTheme && cookieTheme !== savedTheme) {
+                        localStorage.setItem('theme', cookieTheme);
                     }
                 } catch(e) {
                     console.error('Theme initialization error:', e);
                 }
             })();
         </script>
+        @endif
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">

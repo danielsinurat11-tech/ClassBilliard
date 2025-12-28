@@ -23,10 +23,42 @@
 
 @push('styles')
 <style>
+    [x-cloak] {
+        display: none !important;
+    }
+
+    .theme-transition {
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Standardized Scrollbar */
+    ::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        background: #1e1e1e;
+    }
+
+    /* Professional Link State */
+    .active-link {
+        background-color: #fa9a08;
+        color: #000 !important;
+    }
+
+    /* Sidebar Expansion Animation */
+    .sidebar-animate {
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s ease;
+    }
+
     .sidebar {
         width: 280px;
         transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
         position: fixed;
         top: 0;
         left: 0;
@@ -64,9 +96,6 @@
     .sidebar-menu-item {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
-    }
-    .sidebar-menu-item:hover {
-        background-color: rgba(255, 255, 255, 0.05);
     }
     .sidebar-menu-item.active {
         background-color: #fa9a08;
@@ -142,56 +171,50 @@
         })();
     </script>
 
-    <div class="flex min-h-screen bg-white dark:bg-[#050505]" x-data="themeManager()" x-init="initTheme()">
+    <div class="flex min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200" x-data="themeManager()" x-init="initTheme()">
         {{-- Sidebar --}}
         <aside id="sidebar" 
             @mouseenter="if(sidebarCollapsed) sidebarHover = true" 
             @mouseleave="sidebarHover = false"
-            class="sidebar fixed lg:static top-0 left-0 h-screen bg-gradient-to-b from-gray-50 to-white dark:from-[#0A0A0A] dark:to-[#050505] border-r border-gray-200 dark:border-white/10 z-50 flex flex-col shadow-sm dark:shadow-none"
+            class="sidebar fixed lg:static top-0 left-0 h-screen theme-transition border-r border-gray-100 dark:border-white/5 bg-white dark:bg-[#0A0A0A] z-50 flex flex-col sidebar-animate"
             :class="[
                 (sidebarCollapsed && !sidebarHover) ? 'sidebar-desktop-collapsed' : '',
-                (sidebarCollapsed && sidebarHover) ? 'shadow-[20px_0_50px_rgba(0,0,0,0.5)]' : ''
+                (sidebarCollapsed && sidebarHover) ? 'shadow-[20px_0_50px_rgba(0,0,0,0.2)] dark:shadow-[20px_0_50px_rgba(0,0,0,0.5)]' : ''
             ]">
             {{-- Sidebar Header --}}
-            <div class="p-6 border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-gray-100 to-gray-50 dark:from-[#0A0A0A] dark:to-[#1a1a1a]">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-[#fa9a08] to-[#ffb84d] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 shrink-0">
-                            <i class="ri-restaurant-line text-white text-xl"></i>
-                        </div>
-                        <h2 x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="text-xl font-bold text-gray-900 dark:text-slate-200 whitespace-nowrap">Dashboard Dapur</h2>
+            <div class="h-20 flex items-center px-6 shrink-0 border-b border-gray-100 dark:border-white/5 overflow-hidden">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-[#fa9a08] rounded-lg flex items-center justify-center shrink-0">
+                        <i class="ri-restaurant-line text-black text-lg"></i>
                     </div>
-                    <button id="sidebar-toggle" class="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-                        <i class="ri-close-line text-2xl"></i>
-                    </button>
-                </div>
-                <div class="flex items-center gap-2" x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms>
-                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <p class="text-gray-600 dark:text-gray-500 text-sm">Selamat datang, <span class="text-gray-900 dark:text-slate-200 font-medium">{{ Auth::user()->name ?? 'User' }}</span></p>
+                    <div x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="flex flex-col whitespace-nowrap">
+                        <span class="font-bold text-sm tracking-tight text-black dark:text-white uppercase leading-none">Dashboard Dapur</span>
+                        <span class="text-[9px] font-bold text-gray-600 dark:text-gray-600 uppercase tracking-widest mt-1">Kitchen System</span>
+                    </div>
                 </div>
             </div>
 
             {{-- Sidebar Menu --}}
-            <nav class="flex-1 p-4 space-y-1 overflow-y-auto overflow-x-hidden no-scrollbar">
-                <a href="{{ route('dapur') }}" id="menu-orders" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('dapur') ? 'active' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
-                    <i class="ri-shopping-cart-2-line text-lg shrink-0"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="font-semibold text-sm whitespace-nowrap">Orderan</span>
+            <nav class="flex-1 overflow-y-auto px-3 py-6 space-y-1 no-scrollbar">
+                <a href="{{ route('dapur') }}" id="menu-orders" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('dapur') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
+                    <i class="ri-shopping-cart-2-line text-lg"></i>
+                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Orderan</span>
                 </a>
-                <a href="{{ route('reports') }}" id="menu-reports" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('reports') ? 'active' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
-                    <i class="ri-file-chart-2-line text-lg shrink-0"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="font-semibold text-sm whitespace-nowrap">Laporan</span>
+                <a href="{{ route('reports') }}" id="menu-reports" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('reports') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
+                    <i class="ri-file-chart-2-line text-lg"></i>
+                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Laporan</span>
                 </a>
-                <a href="{{ route('pengaturan-audio') }}" id="menu-audio" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('pengaturan-audio') ? 'active' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
-                    <i class="ri-settings-3-line text-lg shrink-0"></i>
-                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="font-semibold text-sm whitespace-nowrap">Pengaturan Audio</span>
+                <a href="{{ route('pengaturan-audio') }}" id="menu-audio" class="sidebar-menu-item flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('pengaturan-audio') ? 'active-link' : 'hover:bg-gray-100 dark:hover:bg-white/5 text-black dark:text-slate-400' }}">
+                    <i class="ri-settings-3-line text-lg"></i>
+                    <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="font-bold text-xs tracking-tight whitespace-nowrap">Pengaturan Audio</span>
                 </a>
             </nav>
 
             {{-- Sidebar Footer --}}
-            <div class="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#050505]">
+            <div class="p-4 border-t border-gray-100 dark:border-white/5">
                 {{-- Sidebar Toggle Button --}}
                 <button @click="sidebarCollapsed = !sidebarCollapsed; sidebarHover = false" 
-                    class="w-full h-9 flex items-center justify-center rounded-md bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
+                    class="w-full h-9 flex items-center justify-center rounded-md bg-gray-100 dark:bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
                     <i :class="sidebarCollapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line'" class="text-sm"></i>
                 </button>
             </div>
@@ -203,31 +226,31 @@
         {{-- Main Content --}}
         <div class="main-content flex-1 w-full" :class="sidebarCollapsed ? 'desktop-collapsed' : ''">
             {{-- Header dengan Profile dan Theme Toggle --}}
-            <header class="h-16 px-6 flex items-center justify-between sticky top-0 z-40 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10">
+            <header class="h-16 px-8 flex items-center justify-between sticky top-0 z-40 bg-white/90 dark:bg-[#050505]/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
                 <div class="flex items-center gap-4">
                     {{-- Mobile Sidebar Toggle --}}
-                    <button id="mobile-sidebar-toggle" class="lg:hidden text-gray-900 dark:text-slate-200">
+                    <button id="mobile-sidebar-toggle" class="lg:hidden text-black dark:text-slate-200">
                         <i class="ri-menu-line text-2xl"></i>
                     </button>
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-slate-200 hidden lg:block">Pengaturan Audio</h2>
+                    <h1 class="text-sm font-bold text-black dark:text-white tracking-tight hidden lg:block">Pengaturan Audio</h1>
                 </div>
 
                 <div class="flex items-center gap-4">
                     {{-- Theme Switcher --}}
                     <button @click="toggleTheme()"
-                        class="w-8 h-8 rounded-md border border-gray-300 dark:border-white/10 flex items-center justify-center hover:border-[#fa9a08] transition-all">
-                        <i x-show="!darkMode" class="ri-moon-line text-sm text-gray-900 dark:text-slate-200"></i>
+                        class="w-8 h-8 rounded-md border border-gray-200 dark:border-white/10 flex items-center justify-center hover:border-[#fa9a08] transition-all bg-white dark:bg-transparent">
+                        <i x-show="!darkMode" class="ri-moon-line text-sm text-black"></i>
                         <i x-show="darkMode" class="ri-sun-line text-sm text-[#fa9a08]" x-cloak></i>
                     </button>
 
                     {{-- Profile Dropdown --}}
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" class="flex items-center gap-2.5 group">
-                            <img class="w-8 h-8 rounded-md object-cover border border-white/10"
+                            <img class="w-8 h-8 rounded-md object-cover border border-gray-200 dark:border-white/10"
                                 src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()?->name) }}&background=fa9a08&color=000&bold=true"
                                 alt="">
                             <div class="text-left hidden md:block">
-                                <p class="text-[11px] font-bold text-gray-900 dark:text-slate-200 leading-none group-hover:text-[#fa9a08] transition-colors">
+                                <p class="text-[11px] font-bold text-black dark:text-white leading-none group-hover:text-[#fa9a08] transition-colors">
                                     {{ Auth::user()?->name }}</p>
                             </div>
                         </button>
@@ -235,7 +258,7 @@
                         <div x-show="open" @click.away="open = false" x-cloak
                             class="absolute right-0 mt-3 w-52 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-white/10 rounded-lg shadow-xl p-1 z-50">
                             <button @click="handleLogout()"
-                                class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-bold text-red-400 hover:bg-red-500/10 transition-all text-left">
+                                class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-all text-left">
                                 <i class="ri-logout-box-r-line text-sm"></i> Sign Out
                             </button>
                         </div>
@@ -243,7 +266,7 @@
                 </div>
             </header>
 
-            <div class="p-6 max-md:p-4 bg-gray-50 dark:bg-transparent min-h-screen">
+            <div class="flex-1 p-8 md:p-12 min-h-screen">
                 <div class="w-full">
                     {{-- Audio Settings Card --}}
                     <div class="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 p-6 rounded-2xl shadow-sm dark:shadow-none" x-data="kitchenNotification()">
@@ -873,32 +896,50 @@
                 darkMode: false, // Will be set in initTheme()
 
                 initTheme() {
-                    // Set initial theme based on localStorage or system preference
+                    // Set initial theme based on cookie, localStorage, or system preference
+                    const cookieTheme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
                     const savedTheme = localStorage.getItem('theme');
                     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                     
-                    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                        this.darkMode = true;
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        this.darkMode = false;
-                        document.documentElement.classList.remove('dark');
-                    }
+                    // Prioritize cookie, then localStorage, then system preference
+                    const theme = cookieTheme || savedTheme || (prefersDark ? 'dark' : 'light');
                     
-                    console.log('Theme initialized:', this.darkMode ? 'dark' : 'light', 'Saved:', savedTheme);
-                },
-
-                toggleTheme() {
-                    this.darkMode = !this.darkMode;
-                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    this.darkMode = theme === 'dark';
+                    
                     if (this.darkMode) {
                         document.documentElement.classList.add('dark');
                     } else {
                         document.documentElement.classList.remove('dark');
                     }
+                    
+                    // Sync localStorage with cookie if cookie exists
+                    if (cookieTheme && cookieTheme !== savedTheme) {
+                        localStorage.setItem('theme', cookieTheme);
+                    }
+                    
+                    console.log('Theme initialized:', this.darkMode ? 'dark' : 'light', 'Cookie:', cookieTheme, 'LocalStorage:', savedTheme);
+                },
+
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    const theme = this.darkMode ? 'dark' : 'light';
+                    
+                    // Set localStorage
+                    localStorage.setItem('theme', theme);
+                    
+                    // Set cookie untuk persist antar reload dan bisa dipakai server-side
+                    document.cookie = `theme=${theme}; path=/; max-age=31536000`;
+                    
+                    // Update DOM class
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                    
                     // Force re-render untuk memastikan perubahan terlihat
                     this.$nextTick(() => {
-                        console.log('Theme toggled:', this.darkMode ? 'dark' : 'light');
+                        console.log('Theme toggled:', theme);
                     });
                 },
 

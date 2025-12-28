@@ -271,7 +271,20 @@
 
                 toggleTheme() {
                     this.darkMode = !this.darkMode;
-                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    const theme = this.darkMode ? 'dark' : 'light';
+                    
+                    // Set localStorage
+                    localStorage.setItem('theme', theme);
+                    
+                    // Set cookie untuk persist antar reload dan bisa dipakai server-side
+                    document.cookie = `theme=${theme}; path=/; max-age=31536000`;
+                    
+                    // Update DOM class
+                    if (this.darkMode) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
                 },
 
                 handleLogout() {

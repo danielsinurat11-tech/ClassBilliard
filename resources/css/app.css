@@ -11,11 +11,18 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/* Dark mode configuration */
-@media (prefers-color-scheme: dark) {
-    :root:not(.light) {
-        color-scheme: dark;
-    }
+/* Dark mode configuration - class-based untuk Tailwind v4 */
+/* Hanya aktif untuk Admin & Dapur dashboard, tidak untuk public pages */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Pastikan public pages (home, menu) tidak terpengaruh dark mode */
+/* Home selalu menggunakan tema dark fixed (tidak toggle) */
+/* CSS dark mode hanya aktif jika HTML memiliki class 'dark' */
+/* Home tidak akan memiliki class 'dark', jadi tidak terpengaruh */
+
+/* x-cloak untuk Alpine.js - mencegah flicker */
+[x-cloak] {
+    display: none !important;
 }
 
 /* Custom styles for complex elements */
