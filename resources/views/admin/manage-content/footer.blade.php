@@ -84,6 +84,12 @@
             </div>
             <div class="lg:col-span-8 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 space-y-8">
                 <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Location Name</label>
+                    <input type="text" name="location_name" value="{{ $footer->location_name ?? '' }}" 
+                           class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                           placeholder="e.g. Class Billiard Main Hall">
+                </div>
+                <div class="space-y-2">
                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Business Address</label>
                     <textarea name="address" rows="3" 
                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $footer->address ?? '' }}</textarea>
@@ -99,10 +105,27 @@
                         <input type="email" name="email" value="{{ $footer->email ?? '' }}" 
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
                     </div>
-                    <div class="md:col-span-2 space-y-2">
+                    <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Google Maps Integration URL</label>
                         <input type="url" name="google_maps_url" value="{{ $footer->google_maps_url ?? '' }}" 
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Map URL (Alternative)</label>
+                        <input type="url" name="map_url" value="{{ $footer->map_url ?? '' }}" 
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">WhatsApp URL</label>
+                        <input type="url" name="whatsapp" value="{{ $footer->whatsapp ?? '' }}" 
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               placeholder="https://wa.me/...">
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Copyright Text</label>
+                        <input type="text" name="copyright" value="{{ $footer->copyright ?? '' }}" 
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               placeholder="e.g. © 2024 CLASS BILLIARD. ALL RIGHTS RESERVED.">
                     </div>
                 </div>
             </div>
@@ -114,17 +137,32 @@
                 <h2 class="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">Business Hours</h2>
                 <p class="text-xs text-slate-500 dark:text-gray-500 mt-2 leading-relaxed">Atur waktu operasional rutin untuk menginformasikan pelanggan.</p>
             </div>
-            <div class="lg:col-span-8 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
+            <div class="lg:col-span-8 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 space-y-6">
+                <!-- Opening Hours (Primary) -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Opening Hours (Primary)</label>
+                    <p class="text-[9px] text-slate-500 dark:text-gray-600 mb-2">Field ini yang akan ditampilkan di frontend. Contoh: "Mon - Sun: 10AM - 02AM" atau "10:00 - 22:00 / 09:00 - 23:00"</p>
+                    <input type="text" name="opening_hours" value="{{ $footer->opening_hours ?? '' }}" 
+                           class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                           placeholder="e.g. Mon - Sun: 10AM - 02AM">
+                </div>
+
+                <!-- Alternative: Separate Days (Optional) -->
+                <div class="pt-4 border-t border-slate-100 dark:border-white/5">
+                    <p class="text-[9px] text-slate-500 dark:text-gray-600 mb-4 italic">Opsional: Jika tidak menggunakan Opening Hours di atas, bisa isi terpisah (tidak akan ditampilkan di frontend jika Opening Hours sudah diisi)</p>
                 <div class="grid md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Monday - Friday</label>
-                        <input type="text" name="monday_friday_hours" value="{{ $footer->monday_friday_hours ?? '10:00 - 22:00' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                            <input type="text" name="monday_friday_hours" value="{{ $footer->monday_friday_hours ?? '' }}" 
+                                   class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                   placeholder="e.g. 10:00 - 22:00">
                     </div>
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Saturday - Sunday</label>
-                        <input type="text" name="saturday_sunday_hours" value="{{ $footer->saturday_sunday_hours ?? '09:00 - 23:00' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                            <input type="text" name="saturday_sunday_hours" value="{{ $footer->saturday_sunday_hours ?? '' }}" 
+                                   class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                   placeholder="e.g. 09:00 - 23:00">
+                        </div>
                     </div>
                 </div>
 

@@ -43,7 +43,6 @@
                         ['r' => 'admin.hero', 'i' => 'ri-image-2-line', 't' => 'Hero Section', 'd' => 'Konfigurasi visual utama dan headline halaman depan.'],
                         ['r' => 'admin.tentang-kami', 'i' => 'ri-information-line', 'l' => 'Website CMS', 't' => 'Tentang Kami', 'd' => 'Visi, misi, dan manajemen video profil perusahaan.'],
                         ['r' => 'admin.about-founder', 'i' => 'ri-user-star-line', 't' => 'About Founder', 'd' => 'Detail biografi dan profil profesional pendiri.'],
-                        ['r' => 'admin.keunggulan-fasilitas', 'i' => 'ri-medal-line', 't' => 'Keunggulan', 'd' => 'Daftar fasilitas pendukung dan nilai unik kelas.'],
                         ['r' => 'admin.portfolio-achievement', 'i' => 'ri-trophy-line', 't' => 'Portfolio', 'd' => 'Dokumentasi prestasi dan galeri pencapaian.'],
                         ['r' => 'admin.tim-kami', 'i' => 'ri-team-line', 't' => 'Tim Kami', 'd' => 'Manajemen data instruktur dan staf operasional.'],
                         ['r' => 'admin.testimoni-pelanggan', 'i' => 'ri-chat-quote-line', 't' => 'Testimoni', 'd' => 'Moderasi ulasan dan feedback dari pelanggan.'],

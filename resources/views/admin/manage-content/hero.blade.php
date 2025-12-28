@@ -54,15 +54,29 @@
                 </p>
             </div>
 
-            <!-- INFO BOX STANDARD -->
-            <div class="bg-blue-500/5 border border-blue-500/10 p-5 rounded-md flex gap-4 items-start">
-                <i class="ri-information-line text-blue-500 text-xl shrink-0"></i>
-                <div class="space-y-1">
-                    <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Background Logic</p>
-                    <p class="text-[11px] text-slate-500 dark:text-gray-500 leading-relaxed">
-                        Background utama menggunakan gambar statis dari direktori sistem: <code class="bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded text-[10px] font-mono">assets/Hero Section.png</code>.
-                    </p>
+            <!-- Background Image Upload -->
+            <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Background Image</label>
+                <div class="relative group aspect-video rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] overflow-hidden flex items-center justify-center p-8 transition-all duration-500 hover:border-[#fa9a08]/30">
+                    <input type="file" name="background_image" id="backgroundInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/*">
+                    
+                    <div id="backgroundPreview" class="w-full h-full flex items-center justify-center">
+                        @if($hero && $hero->background_image)
+                            <img src="{{ asset('storage/' . $hero->background_image) }}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-700 rounded-lg">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
+                                <i class="ri-camera-switch-line text-3xl text-white"></i>
+                            </div>
+                        @else
+                            <div class="text-center space-y-3">
+                                <i class="ri-image-add-line text-4xl text-slate-300 dark:text-white/10"></i>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Upload Background Image</p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
+                <p class="text-[9px] text-slate-400 dark:text-gray-600 italic tracking-tight leading-relaxed">
+                    *Gambar background untuk hero section (direkomendasikan resolusi tinggi).
+                </p>
             </div>
 
             <!-- STATUS TOGGLE -->
@@ -105,6 +119,30 @@
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
                                placeholder="e.g. BILLIARD">
                     </div>
+
+                    <!-- Tagline -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Tagline</label>
+                        <input type="text" name="tagline" value="{{ $hero->tagline ?? 'Premium Billiard Lounge & Bar' }}"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               placeholder="e.g. Premium Billiard Lounge & Bar">
+                    </div>
+
+                    <!-- CTA Text 1 -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">CTA Button 1 Text</label>
+                        <input type="text" name="cta_text_1" value="{{ $hero->cta_text_1 ?? 'BOOK A TABLE' }}"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               placeholder="e.g. BOOK A TABLE">
+                    </div>
+
+                    <!-- CTA Text 2 -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">CTA Button 2 Text</label>
+                        <input type="text" name="cta_text_2" value="{{ $hero->cta_text_2 ?? 'EXPLORE' }}"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               placeholder="e.g. EXPLORE">
+                    </div>
                 </div>
 
                 <!-- SAVE BUTTON -->
@@ -143,6 +181,19 @@
             preview.style.opacity = '0';
             setTimeout(() => {
                 preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-contain animate-in zoom-in-95 duration-500">`;
+                preview.style.opacity = '1';
+            }, 300);
+        }
+    }
+
+    // Preview Handler for Background
+    document.getElementById('backgroundInput').onchange = evt => {
+        const [file] = evt.target.files
+        if (file) {
+            const preview = document.getElementById('backgroundPreview');
+            preview.style.opacity = '0';
+            setTimeout(() => {
+                preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-700 rounded-lg">`;
                 preview.style.opacity = '1';
             }, 300);
         }

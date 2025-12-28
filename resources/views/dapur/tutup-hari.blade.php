@@ -22,17 +22,16 @@
     @include('dapur.partials.logout-form')
 
 <div x-data="themeManager()" x-init="initTheme()" class="min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200">
-    <div class="flex h-screen overflow-hidden">
-        {{-- Sidebar --}}
-        @include('dapur.partials.sidebar')
+    {{-- Sidebar --}}
+    @include('dapur.partials.sidebar')
+
+    {{-- Main Content Wrapper --}}
+    <div class="min-h-screen flex flex-col transition-all duration-300" :class="sidebarCollapsed ? 'ml-20 lg:ml-20' : 'ml-72 lg:ml-72'">
+        {{-- Navbar --}}
+        @include('dapur.partials.navbar', ['pageTitle' => 'Tutup Hari'])
 
         {{-- Main Content --}}
-        <div class="main-content flex-1 w-full" :class="sidebarCollapsed ? 'desktop-collapsed' : ''">
-            {{-- Navbar --}}
-            @include('dapur.partials.navbar', ['pageTitle' => 'Tutup Hari'])
-
-            {{-- Content --}}
-            <div class="flex-1 p-8 md:p-12 min-h-screen">
+        <main class="flex-1 p-8 md:p-12">
                 <div class="max-w-4xl mx-auto">
                     <div class="bg-white dark:bg-[#0a0a0a] rounded-2xl shadow-lg p-8 border border-gray-100 dark:border-white/5">
                         <div class="mb-6">
@@ -139,7 +138,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 </div>
 

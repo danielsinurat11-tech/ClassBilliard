@@ -21,16 +21,17 @@
     {{-- Logout Form --}}
     @include('dapur.partials.logout-form')
 
-    <div class="flex min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200" x-data="themeManager()" x-init="initTheme()">
+    <div x-data="themeManager()" x-init="initTheme()" class="min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200">
         {{-- Sidebar --}}
         @include('dapur.partials.sidebar')
 
-        {{-- Main Content --}}
-        <div class="main-content flex-1 w-full" :class="sidebarCollapsed ? 'desktop-collapsed' : ''">
+        {{-- Main Content Wrapper --}}
+        <div class="min-h-screen flex flex-col transition-all duration-300" :class="sidebarCollapsed ? 'ml-20 lg:ml-20' : 'ml-72 lg:ml-72'">
             {{-- Navbar --}}
             @include('dapur.partials.navbar', ['pageTitle' => 'Pengaturan Audio'])
 
-            <div class="flex-1 p-8 md:p-12 min-h-screen">
+            {{-- Main Content --}}
+            <main class="flex-1 p-8 md:p-12">
                 <div class="w-full">
                     {{-- Audio Settings Card --}}
                     <div class="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 p-6 rounded-2xl shadow-sm dark:shadow-none" x-data="kitchenNotification()">
@@ -120,7 +121,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 

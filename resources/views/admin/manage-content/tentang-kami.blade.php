@@ -46,7 +46,7 @@
             @endif
         </div>
 
-        <form action="{{ route('admin.tentang-kami.update') }}" method="POST" class="space-y-12">
+        <form action="{{ route('admin.tentang-kami.update') }}" method="POST" enctype="multipart/form-data" class="space-y-12">
             @csrf
 
             <!-- SECTION 1: NARRATIVE CONTENT -->
@@ -72,6 +72,30 @@
                             Subtitle</label>
                         <textarea name="subtitle" rows="3"
                             class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $tentangKami->subtitle ?? '' }}</textarea>
+                    </div>
+                    <div class="space-y-2">
+                        <label
+                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">About Image</label>
+                        <div class="relative group aspect-video rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] overflow-hidden flex items-center justify-center p-8 transition-all duration-500 hover:border-[#fa9a08]/30">
+                            <input type="file" name="image" id="imageInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/*">
+                            
+                            <div id="imagePreview" class="w-full h-full flex items-center justify-center">
+                                @if($tentangKami && $tentangKami->image)
+                                    <img src="{{ asset('storage/' . $tentangKami->image) }}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-700 rounded-lg">
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
+                                        <i class="ri-camera-switch-line text-3xl text-white"></i>
+                                    </div>
+                                @else
+                                    <div class="text-center space-y-3">
+                                        <i class="ri-image-add-line text-4xl text-slate-300 dark:text-white/10"></i>
+                                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Upload About Image</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        <p class="text-[9px] text-slate-400 dark:text-gray-600 italic tracking-tight leading-relaxed">
+                            *Gambar untuk section About (direkomendasikan resolusi tinggi).
+                        </p>
                     </div>
                 </div>
             </div>
@@ -145,4 +169,19 @@
             box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
         }
     </style>
+
+    <script>
+        // Preview Handler for Image
+        document.getElementById('imageInput').onchange = evt => {
+            const [file] = evt.target.files
+            if (file) {
+                const preview = document.getElementById('imagePreview');
+                preview.style.opacity = '0';
+                setTimeout(() => {
+                    preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-700 rounded-lg">`;
+                    preview.style.opacity = '1';
+                }, 300);
+            }
+        }
+    </script>
 @endsection

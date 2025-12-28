@@ -6,9 +6,8 @@ use App\Http\Controllers\MenuAdminController;
 use App\Http\Controllers\LogoutController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::post('/testimonial/submit', [App\Http\Controllers\HomeController::class, 'submitTestimonial'])->name('testimonial.submit');
 
 // Logout Route (accessible without shift time check)
 Route::post('/logout', [LogoutController::class, 'logout'])->name('logout')->middleware('auth.custom');
@@ -81,11 +80,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:admin',
     Route::get('/about-founder', [App\Http\Controllers\AdminController::class, 'aboutFounderIndex'])->name('about-founder');
     Route::post('/about-founder', [App\Http\Controllers\AdminController::class, 'aboutFounderUpdate'])->name('about-founder.update');
     
-    // Keunggulan Fasilitas
-    Route::get('/keunggulan-fasilitas', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasIndex'])->name('keunggulan-fasilitas');
-    Route::post('/keunggulan-fasilitas', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasStore'])->name('keunggulan-fasilitas.store');
-    Route::post('/keunggulan-fasilitas/{id}', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasUpdate'])->name('keunggulan-fasilitas.update');
-    Route::delete('/keunggulan-fasilitas/{id}', [App\Http\Controllers\AdminController::class, 'keunggulanFasilitasDestroy'])->name('keunggulan-fasilitas.destroy');
     
     // Portfolio Achievement
     Route::get('/portfolio-achievement', [App\Http\Controllers\AdminController::class, 'portfolioAchievementIndex'])->name('portfolio-achievement');

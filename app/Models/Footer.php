@@ -15,12 +15,17 @@ class Footer extends Model
         'instagram_url',
         'twitter_url',
         'youtube_url',
+        'whatsapp',
         'address',
+        'location_name',
         'phone',
         'email',
         'google_maps_url',
+        'map_url',
         'monday_friday_hours',
         'saturday_sunday_hours',
+        'opening_hours',
+        'copyright',
         'is_active',
     ];
 

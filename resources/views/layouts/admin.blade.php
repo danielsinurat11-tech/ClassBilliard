@@ -73,7 +73,7 @@
 
             <!-- Group: Website CMS -->
             <div
-                x-data="{ open: {{ request()->routeIs('admin.hero', 'admin.tentang-kami', 'admin.about-founder', 'admin.keunggulan-fasilitas', 'admin.portfolio-achievement', 'admin.tim-kami', 'admin.testimoni-pelanggan', 'admin.event', 'admin.footer') ? 'true' : 'false' }} }">
+                x-data="{ open: {{ request()->routeIs('admin.hero', 'admin.tentang-kami', 'admin.about-founder', 'admin.portfolio-achievement', 'admin.tim-kami', 'admin.testimoni-pelanggan', 'admin.event', 'admin.footer') ? 'true' : 'false' }} }">
                 <p x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Content</p>
@@ -97,7 +97,6 @@
                             ['r' => 'admin.hero', 'l' => 'Hero Section'],
                             ['r' => 'admin.tentang-kami', 'l' => 'Tentang Kami'],
                             ['r' => 'admin.about-founder', 'l' => 'About Founder'],
-                            ['r' => 'admin.keunggulan-fasilitas', 'l' => 'Keunggulan'],
                             ['r' => 'admin.portfolio-achievement', 'l' => 'Portfolio'],
                             ['r' => 'admin.tim-kami', 'l' => 'Tim Kami'],
                             ['r' => 'admin.testimoni-pelanggan', 'l' => 'Testimoni'],

@@ -12,6 +12,7 @@ class TentangKami extends Model
     protected $fillable = [
         'title',
         'subtitle',
+        'image',
         'visi',
         'misi',
         'arah_gerak',

@@ -45,8 +45,8 @@
                             class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
                         <div id="preview"
                             class="w-full h-full flex flex-col items-center justify-center text-slate-400 group-hover:text-[#fa9a08] transition-all duration-300">
-                            @if($aboutFounder && $aboutFounder->photo)
-                                <img src="{{ asset('storage/' . $aboutFounder->photo) }}"
+                            @if($aboutFounder && ($aboutFounder->photo || $aboutFounder->image))
+                                <img src="{{ asset('storage/' . ($aboutFounder->image ?? $aboutFounder->photo)) }}"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                                 <div
                                     class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
@@ -60,6 +60,15 @@
                     </div>
                     <p class="text-[9px] text-slate-400 dark:text-gray-600 italic tracking-tight">*Format portrait (3:4)
                         direkomendasikan untuk hasil terbaik.</p>
+                </div>
+
+                <!-- Image Upload (Alternative) -->
+                <div class="space-y-2">
+                    <label
+                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Image (Alternative)</label>
+                    <input type="file" name="image" accept="image/*"
+                        class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-slate-200 dark:file:bg-white/10 file:text-black">
+                    <p class="text-[9px] text-slate-400 dark:text-gray-600 italic tracking-tight">*Alternatif field untuk image.</p>
                 </div>
 
                 <!-- STATUS TOGGLE -->
@@ -114,13 +123,31 @@
                                 class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $aboutFounder->subtitle ?? '' }}</textarea>
                         </div>
 
-                        <!-- Description -->
+                        <!-- Position -->
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Position / Role</label>
+                            <input type="text" name="position" value="{{ $aboutFounder->position ?? 'Founder & CEO' }}"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all font-bold"
+                                placeholder="e.g. Founder & CEO">
+                        </div>
+
+                        <!-- Signature -->
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Signature</label>
+                            <input type="text" name="signature" value="{{ $aboutFounder->signature ?? '' }}"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all font-serif italic"
+                                placeholder="e.g. L.Ipsum">
+                        </div>
+
+                        <!-- Quote -->
                         <div class="space-y-2 md:col-span-2">
                             <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Biography
-                                Description</label>
-                            <textarea name="description" rows="6"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $aboutFounder->description ?? '' }}</textarea>
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Quote / Statement</label>
+                            <textarea name="quote" rows="4"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed"
+                                placeholder="Billiards is not just a game; it is an art of precision, patience, and strategy.">{{ $aboutFounder->quote ?? '' }}</textarea>
                         </div>
                     </div>
 

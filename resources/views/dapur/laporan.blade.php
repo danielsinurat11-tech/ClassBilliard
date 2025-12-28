@@ -48,16 +48,17 @@
     {{-- Logout Form --}}
     @include('dapur.partials.logout-form')
 
-    <div class="flex min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200" x-data="themeManager()" x-init="initTheme()">
+    <div x-data="themeManager()" x-init="initTheme()" class="min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200">
         {{-- Sidebar --}}
         @include('dapur.partials.sidebar')
 
-        {{-- Main Content --}}
-        <div class="main-content flex-1 w-full" :class="sidebarCollapsed ? 'desktop-collapsed' : ''">
+        {{-- Main Content Wrapper --}}
+        <div class="min-h-screen flex flex-col transition-all duration-300" :class="sidebarCollapsed ? 'ml-20 lg:ml-20' : 'ml-72 lg:ml-72'">
             {{-- Navbar --}}
             @include('dapur.partials.navbar', ['pageTitle' => 'Laporan'])
 
-            <div class="flex-1 p-8 md:p-12 min-h-screen">
+            {{-- Main Content --}}
+            <main class="flex-1 p-8 md:p-12">
                 {{-- Grafik Laporan Order per Kategori --}}
                 <div class="bg-gray-800 dark:bg-[#0A0A0A] border border-gray-700 dark:border-white/10 p-6 rounded-2xl mb-6 shadow-sm dark:shadow-none">
                     <h2 class="text-xl font-bold text-white dark:text-slate-200 mb-6 flex items-center gap-2">
@@ -120,7 +121,7 @@
                         <!-- Total gabungan akan diisi via JavaScript -->
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 

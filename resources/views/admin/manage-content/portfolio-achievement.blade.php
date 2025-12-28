@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10 transition-colors duration-300"
-        x-data="{ showCreate: false, type: 'achievement' }">
+        x-data="{ showCreate: false }">
 
         <!-- HEADER STANDARD -->
         <div
@@ -36,71 +36,62 @@
             </div>
         @endif
 
-        <!-- CREATION MODULE (Alpine.js Conditional Logic) -->
+        <!-- CREATION MODULE -->
         <div x-show="showCreate" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform -translate-y-4"
             x-transition:enter-end="opacity-100 transform translate-y-0" class="mb-12">
             <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Asset Registration</h2>
+                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Add New Achievement</h2>
                 <form action="{{ route('admin.portfolio-achievement.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <input type="hidden" name="type" value="gallery">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Image Upload -->
                         <div class="space-y-2">
                             <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Asset
-                                Type</label>
-                            <select name="type" x-model="type"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all appearance-none cursor-pointer">
-                                <option value="achievement">🏆 Achievement (Stats)</option>
-                                <option value="gallery">🖼️ Gallery (Visual)</option>
-                            </select>
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Achievement Image <span class="text-red-500">*</span></label>
+                            <input type="file" name="image" accept="image/*" required
+                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-[#fa9a08] file:text-black">
+                            <p class="text-[9px] text-slate-400 dark:text-gray-600 italic">Image akan ditampilkan di dashboard achievements section</p>
                         </div>
 
-                        <!-- Conditional Achievement Fields -->
-                        <template x-if="type === 'achievement'">
-                            <div class="contents">
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Icon
-                                        Class (Remix)</label>
-                                    <input type="text" name="icon" placeholder="ri-trophy-fill"
-                                        class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
-                                </div>
-                                <div class="space-y-2">
-                                    <label
-                                        class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Numerical
-                                        Value</label>
-                                    <input type="text" name="number" placeholder="e.g. 100+"
-                                        class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm font-bold text-[#fa9a08] focus:border-[#fa9a08] outline-none transition-all">
-                                </div>
-                            </div>
-                        </template>
-
-                        <!-- Conditional Gallery Fields -->
-                        <template x-if="type === 'gallery'">
-                            <div class="space-y-2">
-                                <label
-                                    class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Gallery
-                                    Image</label>
-                                <input type="file" name="image" accept="image/*"
-                                    class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-[#fa9a08] file:text-black">
-                            </div>
-                        </template>
-
+                        <!-- Title -->
                         <div class="space-y-2">
                             <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Label
-                                / Description</label>
-                            <input type="text" name="label" required
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Title <span class="text-red-500">*</span></label>
+                            <input type="text" name="title" required
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                placeholder="e.g. Championship Winner">
+                            <p class="text-[9px] text-slate-400 dark:text-gray-600 italic">Judul yang ditampilkan di card achievement</p>
                         </div>
 
+                        <!-- Description -->
+                        <div class="space-y-2 md:col-span-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Description</label>
+                            <textarea name="description" rows="3"
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                placeholder="Deskripsi pencapaian..."></textarea>
+                        </div>
+
+                        <!-- Order -->
                         <div class="space-y-2">
                             <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort
-                                Order</label>
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort Order</label>
                             <input type="number" name="order" value="0"
                                 class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                            <p class="text-[9px] text-slate-400 dark:text-gray-600 italic">Urutan tampil (0 = pertama, semakin besar semakin akhir)</p>
+                        </div>
+
+                        <!-- Is Active -->
+                        <div class="space-y-2 flex items-end">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="is_active" value="1" checked class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]">
+                                </div>
+                                <span class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Active</span>
+                            </label>
                         </div>
                     </div>
                     <div class="mt-10 flex justify-end">
@@ -114,134 +105,105 @@
         </div>
 
         <!-- DATA GRID -->
-        <div class="space-y-16">
-
+        <div class="space-y-8">
             <!-- ACHIEVEMENTS SECTION -->
             <section>
                 <h2
                     class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500 mb-8 flex items-center gap-4">
                     Achievements Library
                     <span class="h-px flex-1 bg-slate-100 dark:bg-white/5"></span>
+                    <span class="text-[9px] text-slate-500 dark:text-gray-600">({{ $allAchievements->count() }} items)</span>
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    @foreach($achievements as $item)
-                        <div
-                            class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-6 group hover:border-[#fa9a08]/50 transition-all duration-300">
-                            <form action="{{ route('admin.portfolio-achievement.update', $item->id) }}" method="POST"
-                                class="space-y-6">
-                                @csrf
-                                <div class="flex items-start gap-6">
-                                    <div
-                                        class="w-16 h-16 rounded-md bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 flex items-center justify-center text-[#fa9a08] shrink-0 group-hover:scale-110 transition-transform">
-                                        <i class="{{ $item->icon }} text-3xl"></i>
-                                    </div>
-                                    <div class="flex-1 grid grid-cols-2 gap-4">
-                                        <div class="space-y-1">
-                                            <label
-                                                class="text-[9px] font-black uppercase tracking-widest text-slate-400">Value</label>
-                                            <input type="text" name="number" value="{{ $item->number }}"
-                                                class="w-full bg-transparent border-none p-0 text-xl font-bold text-slate-900 dark:text-white focus:ring-0">
-                                        </div>
-                                        <div class="space-y-1 text-right">
-                                            <label
-                                                class="text-[9px] font-black uppercase tracking-widest text-slate-400">Order</label>
-                                            <input type="number" name="order" value="{{ $item->order }}"
-                                                class="w-full bg-transparent border-none p-0 text-xs font-bold text-slate-400 focus:ring-0 text-right">
-                                        </div>
-                                        <div class="col-span-2 space-y-1">
-                                            <label
-                                                class="text-[9px] font-black uppercase tracking-widest text-slate-400">Label</label>
-                                            <input type="text" name="label" value="{{ $item->label }}"
-                                                class="w-full bg-transparent border-none p-0 text-sm font-medium text-slate-500 dark:text-gray-400 focus:ring-0">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Actions Area -->
-                                <div
-                                    class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="is_active" {{ $item->is_active ? 'checked' : '' }}
-                                            value="1" class="sr-only peer">
-                                        <div
-                                            class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#fa9a08]">
-                                        </div>
-                                    </label>
-                                    <div class="flex gap-2">
-                                        <button type="submit"
-                                            class="bg-slate-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest py-2 px-4 rounded-md transition-all active:scale-95">Update</button>
-                                        <button type="button"
-                                            onclick="if(confirm('Delete item?')) document.getElementById('delete-form-{{ $item->id }}').submit();"
-                                            class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest py-2 px-4 rounded-md transition-all active:scale-95">Delete</button>
-                                    </div>
-                                </div>
-                            </form>
-                            <form id="delete-form-{{ $item->id }}"
-                                action="{{ route('admin.portfolio-achievement.destroy', $item->id) }}" method="POST"
-                                class="hidden">
-                                @csrf @method('DELETE')
-                            </form>
-                        </div>
-                    @endforeach
-                </div>
-            </section>
-
-            <!-- GALLERY SECTION -->
-            <section>
-                <h2
-                    class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500 mb-8 flex items-center gap-4">
-                    Visual Gallery library
-                    <span class="h-px flex-1 bg-slate-100 dark:bg-white/5"></span>
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @foreach($galleries as $item)
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @forelse($allAchievements as $item)
                         <div
                             class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden flex flex-col hover:border-[#fa9a08]/50 transition-all duration-300">
-                            <div class="aspect-square bg-slate-100 dark:bg-white/5 relative overflow-hidden">
+                            <!-- Image Preview -->
+                            <div class="aspect-video bg-slate-100 dark:bg-white/5 relative overflow-hidden">
                                 @if($item->image)
                                     <img src="{{ asset('storage/' . $item->image) }}"
                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-400 dark:text-gray-600">
+                                        <i class="ri-image-line text-4xl"></i>
+                                    </div>
                                 @endif
                                 <div
-                                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300">
-                                    <span class="text-[8px] font-black text-white uppercase tracking-widest">Order:
-                                        {{ $item->order }}</span>
+                                    class="absolute top-2 right-2 bg-black/70 text-white text-[8px] font-black uppercase px-2 py-1 rounded">
+                                    Order: {{ $item->order }}
                                 </div>
                             </div>
+                            
+                            <!-- Form Content -->
                             <div class="p-6 space-y-4">
                                 <form action="{{ route('admin.portfolio-achievement.update', $item->id) }}" method="POST"
-                                    enctype="multipart/form-data">
+                                    enctype="multipart/form-data" class="space-y-4">
                                     @csrf
-                                    <input type="file" name="image"
-                                        class="text-[8px] text-slate-500 mb-4 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-100 dark:file:bg-white/10 file:text-[8px] file:uppercase">
-                                    <div class="flex items-center justify-between gap-2">
+                                    <input type="hidden" name="type" value="gallery">
+                                    
+                                    <!-- Image Upload -->
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Change Image</label>
+                                        <input type="file" name="image" accept="image/*"
+                                            class="w-full text-[8px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-100 dark:file:bg-white/10 file:text-[8px] file:uppercase">
+                                    </div>
+
+                                    <!-- Title -->
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Title <span class="text-red-500">*</span></label>
+                                        <input type="text" name="title" value="{{ $item->title ?? $item->label }}" required
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                            placeholder="e.g. Championship Winner">
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Description</label>
+                                        <textarea name="description" rows="2"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all resize-none">{{ $item->description ?? '' }}</textarea>
+                                    </div>
+
+                                    <!-- Order -->
+                                    <div class="space-y-2">
+                                        <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort Order</label>
+                                        <input type="number" name="order" value="{{ $item->order }}"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/5">
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" name="is_active" {{ $item->is_active ? 'checked' : '' }}
                                                 value="1" class="sr-only peer">
                                             <div
-                                                class="w-8 h-4 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-[#fa9a08]">
+                                                class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#fa9a08]">
                                             </div>
+                                            <span class="ml-2 text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Active</span>
                                         </label>
-                                        <div class="flex gap-1">
+                                        <div class="flex gap-2">
                                             <button type="submit"
-                                                class="bg-slate-900 dark:bg-white text-white dark:text-black text-[8px] font-black uppercase px-3 py-2 rounded transition-all active:scale-95">Save</button>
+                                                class="bg-slate-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-widest py-2 px-4 rounded-md transition-all active:scale-95">Update</button>
                                             <button type="button"
-                                                onclick="if(confirm('Delete gallery?')) document.getElementById('delete-form-gallery-{{ $item->id }}').submit();"
-                                                class="bg-red-500/10 text-red-500 text-[8px] font-black uppercase px-3 py-2 rounded transition-all active:scale-95">Del</button>
+                                                onclick="if(confirm('Delete achievement?')) document.getElementById('delete-form-{{ $item->id }}').submit();"
+                                                class="bg-red-500/10 text-red-500 text-[9px] font-black uppercase tracking-widest py-2 px-4 rounded-md transition-all active:scale-95">Delete</button>
                                         </div>
                                     </div>
                                 </form>
-                                <form id="delete-form-gallery-{{ $item->id }}"
+                                <form id="delete-form-{{ $item->id }}"
                                     action="{{ route('admin.portfolio-achievement.destroy', $item->id) }}" method="POST"
                                     class="hidden">
                                     @csrf @method('DELETE')
                                 </form>
                             </div>
                         </div>
-                    @endforeach
+                    @empty
+                        <div class="col-span-full text-center py-12">
+                            <i class="ri-inbox-line text-4xl text-slate-400 dark:text-gray-600 mb-4"></i>
+                            <p class="text-sm text-slate-500 dark:text-gray-500">No achievements yet. Create your first achievement above.</p>
+                        </div>
+                    @endforelse
                 </div>
             </section>
-
         </div>
     </div>
 

@@ -1,29 +1,6 @@
-{{-- Sidebar & Main Content Styles (diambil dari dapur.blade.php yang sudah rapi) --}}
+{{-- Sidebar & Main Content Styles (mengikuti styling admin) --}}
 @push('styles')
 <style>
-    .sidebar {
-        width: 280px;
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    .sidebar.collapsed {
-        transform: translateX(-100%);
-    }
-    .sidebar-desktop-collapsed {
-        width: 80px;
-    }
-    .main-content {
-        margin-left: 280px;
-        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        height: 100vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
     /* Hide scrollbar but keep functionality */
     .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -32,55 +9,47 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-    .main-content.expanded {
-        margin-left: 0;
+    
+    /* Ensure smooth margin-left transition */
+    .min-h-screen.flex.flex-col {
+        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .main-content.desktop-collapsed {
-        margin-left: 80px;
-    }
+    
     /* Responsive Styles for Tablet and Mobile */
     @media (max-width: 1024px) {
-        .sidebar {
-            position: fixed;
-            z-index: 9999;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Sidebar width on mobile - collapsed = 80px, expanded = 280px */
+        #sidebar {
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .sidebar:not(.collapsed) {
-            transform: translateX(0);
+        #sidebar.w-20 {
+            width: 80px !important;
         }
-        .main-content {
-            margin-left: 0;
+        #sidebar.w-72 {
+            width: 280px !important;
         }
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9998;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
+        /* Main content margin on mobile - follows sidebar width */
+        .min-h-screen.flex.flex-col.ml-20 {
+            margin-left: 80px !important;
         }
-        .sidebar-overlay.show {
-            display: block;
-            opacity: 1;
-            pointer-events: auto;
+        .min-h-screen.flex.flex-col.ml-72 {
+            margin-left: 280px !important;
         }
     }
-
+    
     @media (max-width: 768px) {
-        .sidebar {
-            width: 260px;
+        /* Sidebar width on small mobile - collapsed = 80px, expanded = 260px */
+        #sidebar.w-20 {
+            width: 80px !important;
         }
-
-        .main-content {
-            padding: 0.75rem;
+        #sidebar.w-72 {
+            width: 260px !important;
+        }
+        /* Main content margin on small mobile */
+        .min-h-screen.flex.flex-col.ml-20 {
+            margin-left: 80px !important;
+        }
+        .min-h-screen.flex.flex-col.ml-72 {
+            margin-left: 260px !important;
         }
     }
 </style>

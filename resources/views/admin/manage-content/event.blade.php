@@ -61,6 +61,12 @@
                         </div>
                         <div class="space-y-2">
                             <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Category</label>
+                            <input type="text" name="category" placeholder="e.g. Tournament, Workshop, Exhibition"
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort
                                 Order</label>
                             <input type="number" name="order" value="0"
@@ -157,12 +163,19 @@
                                             value="{{ $event->event_date ? $event->event_date->format('Y-m-d') : '' }}"
                                             class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
                                     </div>
+                                    <div class="space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Category</label>
+                                        <input type="text" name="category" value="{{ $event->category ?? '' }}"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                            placeholder="e.g. Tournament">
+                                    </div>
                                     <div class="md:col-span-2 space-y-2">
                                         <label
                                             class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
                                             Description</label>
                                         <textarea name="event_description" rows="2"
-                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">{{ $event->event_description }}</textarea>
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">{{ $event->event_description ?? $event->description }}</textarea>
                                     </div>
 
                                     <div

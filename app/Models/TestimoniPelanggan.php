@@ -13,10 +13,13 @@ class TestimoniPelanggan extends Model
         'title',
         'subtitle',
         'customer_name',
+        'name',
         'customer_role',
+        'role',
         'testimonial',
         'rating',
         'photo',
+        'image',
         'order',
         'is_active',
     ];

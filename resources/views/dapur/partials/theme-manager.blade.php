@@ -49,6 +49,9 @@
                     localStorage.setItem('theme', cookieTheme);
                 }
                 
+                // Initialize sidebar state
+                this.initSidebarState();
+                
                 console.log('Theme initialized:', this.darkMode ? 'dark' : 'light', 'Saved:', savedTheme, 'Cookie:', cookieTheme);
             },
 
@@ -78,6 +81,7 @@
 
             toggleSidebar() {
                 this.sidebarCollapsed = !this.sidebarCollapsed;
+                this.sidebarHover = false;
                 localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
             },
 

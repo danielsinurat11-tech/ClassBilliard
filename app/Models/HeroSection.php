@@ -14,6 +14,9 @@ class HeroSection extends Model
         'logo_image',
         'title',
         'subtitle',
+        'tagline',
+        'cta_text_1',
+        'cta_text_2',
         'is_active',
     ];
 

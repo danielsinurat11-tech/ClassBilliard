@@ -74,6 +74,14 @@
                                 class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
                         </div>
 
+                        <div class="lg:col-span-4 space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Bio / Short Description</label>
+                            <textarea name="bio" rows="3"
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                placeholder="Short biography or description about the team member..."></textarea>
+                        </div>
+
                         <div
                             class="lg:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
                             <div class="space-y-2">
@@ -178,6 +186,12 @@
                                             Order</label>
                                         <input type="number" name="order" value="{{ $member->order }}"
                                             class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white outline-none">
+                                    </div>
+                                    <div class="md:col-span-2 lg:col-span-4 space-y-2">
+                                        <label
+                                            class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Bio / Short Description</label>
+                                        <textarea name="bio" rows="2"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">{{ $member->bio ?? '' }}</textarea>
                                     </div>
 
                                     <!-- Social Mini Inputs -->

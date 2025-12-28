@@ -1,119 +1,155 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
-@section('title', 'Beranda - Billiard Class')
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Class Billiard</title>
 
-@section('content')
-    {{-- Hero Section --}}
-    @include('components.hero-section')
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
 
-    {{-- Stats Section (Optional - bisa ditambahkan jika diperlukan) --}}
-    @php
-        try {
-            $achievements = \App\Models\PortfolioAchievement::where('type', 'achievement')->where('is_active', true)->orderBy('order')->limit(4)->get();
-        } catch (\Exception $e) {
-            $achievements = collect([]);
-        }
-    @endphp
-    @if($achievements->count() > 0)
-    <style>
-        .stats-section {
-            position: relative;
-        }
-        
-        .stats-item {
-            padding: 2rem 1rem;
-            border-radius: 20px;
-            background: linear-gradient(145deg, rgba(20, 20, 20, 0.8) 0%, rgba(15, 15, 15, 0.9) 100%);
-            border: 1px solid rgba(250, 154, 8, 0.1);
-            transition: all 0.4s;
-        }
-        
-        .stats-item:hover {
-            transform: translateY(-8px);
-            border-color: rgba(250, 154, 8, 0.3);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6),
-                        0 0 40px rgba(250, 154, 8, 0.15);
-        }
-        
-        .stats-icon {
-            filter: drop-shadow(0 0 15px rgba(250, 154, 8, 0.5));
-            transition: transform 0.4s;
-        }
-        
-        .stats-item:hover .stats-icon {
-            transform: scale(1.15) rotate(5deg);
-        }
-        
-        .stats-number {
-            background: linear-gradient(135deg, #fff 0%, #fa9a08 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-    </style>
-    <section class="stats-section py-16 bg-gradient-to-b from-black via-[#0a0a0a] to-black border-y border-[#fa9a08]/10">
-        <div class="max-w-[1400px] mx-auto px-4 md:px-6">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                @foreach($achievements->take(4) as $achievement)
-                <div class="stats-item text-center">
-                    @if($achievement->icon)
-                    <div class="text-[#fa9a08] text-4xl md:text-5xl mb-3 stats-icon">
-                        <i class="{{ $achievement->icon }}"></i>
-                    </div>
-                    @endif
-                    @if($achievement->number)
-                    <div class="text-3xl md:text-4xl font-bold mb-2 stats-number">{{ $achievement->number }}</div>
-                    @endif
-                    @if($achievement->label)
-                    <div class="text-sm md:text-base text-gray-400">{{ $achievement->label }}</div>
-                    @endif
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Styles / Scripts -->
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @else
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            gold: {
+                                400: '#FFD700', // Yellow/Gold from mockup
+                                500: '#E6C200',
+                                600: '#B39700',
+                            }
+                        },
+                        fontFamily: {
+                            sans: ['Montserrat', 'sans-serif'],
+                            rumonds: ['Rumonds', 'sans-serif'], // Fallback config
+                        }
+                    }
+                }
+            }
+        </script>
+        <style>
+            @font-face {
+                font-family: 'Rumonds';
+                src: url('/fonts/rumonds.otf') format('opentype');
+                font-weight: normal;
+                font-style: normal;
+            }
+        </style>
     @endif
 
-    {{-- Tentang Kami Section --}}
-    @include('components.tentang-kami')
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+        }
 
-    {{-- About Founder Section --}}
-    @include('components.about-founder')
+        /* Custom Clip Paths for Diagonals */
+        .clip-diagonal-hero {
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
 
-    {{-- Keunggulan & Fasilitas Section --}}
-    @include('components.keunggulan-fasilitas')
+        .navbar-bg-shape {
+            background: linear-gradient(to right, #1a1a1a 0%, #1a1a1a 80%, transparent 100%);
+            transform: skewX(-20deg);
+            transform-origin: top left;
+        }
 
-    {{-- Portfolio & Achievement Section --}}
-    @include('components.portfolio-achievement')
+        /* Marquee Animation */
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
 
-    {{-- Tim Kami Section --}}
-    @include('components.tim-kami')
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+        }
 
-    {{-- Testimoni Pelanggan Section --}}
-    @include('components.testimoni-pelanggan')
+        .animate-marquee {
+            animation: marquee 20s linear infinite;
+            display: inline-flex;
+            white-space: nowrap;
+        }
 
-    {{-- Event Section --}}
-    @include('components.event')
+        /* Pause animation on hover (optional) */
+        .marquee-container:hover .animate-marquee {
+            animation-play-state: paused;
+        }
+    </style>
+</head>
 
-    {{-- CTA Section --}}
-    <section class="cta-section py-20 md:py-28 bg-gradient-to-b from-black via-[#0a0a0a] to-black relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-r from-[#fa9a08]/10 via-transparent to-[#fa9a08]/10"></div>
-        <div class="max-w-[1400px] mx-auto px-4 md:px-6 relative z-10">
-            <div class="text-center">
-                <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">
-                    Siap untuk Pengalaman Bermain Terbaik?
-                </h2>
-                <p class="text-lg md:text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-                    Pesan meja Anda sekarang dan nikmati fasilitas premium kami
-                </p>
-                <a href="{{ route('menu') }}" class="inline-flex items-center gap-3 bg-gradient-to-r from-[#fa9a08] to-[#e19e2b] text-black px-8 py-4 rounded-xl font-bold text-lg transition-all hover:shadow-2xl hover:shadow-[#fa9a08]/40 hover:scale-105">
-                    <i class="ri-shopping-cart-line text-xl"></i>
-                    Pesan Sekarang
-                </a>
-            </div>
-        </div>
-    </section>
+<body class="bg-black text-white antialiased">
+    <!-- Navbar Component -->
+    @include('components.navbar')
 
-    {{-- Footer Section --}}
-    @include('components.footer')
-@endsection
+    <!-- Hero Section Component -->
+    @include('components.hero-section', ['hero' => $hero])
+
+    <!-- About Section Component -->
+    @include('components.about-section', ['about' => $about])
+
+    <!-- Achievements Section Component -->
+    @include('components.achievements-section', ['achievements' => $achievements])
+
+    <!-- About Founder Section Component -->
+    @include('components.founder-section', ['founder' => $founder])
+
+    <!-- Events Section Component -->
+    @include('components.events-section', ['events' => $events])
+
+    <!-- Team Section Component -->
+    @include('components.team-section', ['teamMembers' => $teamMembers])
+
+   
+
+    <!-- Testimonials Section Component -->
+    @include('components.testimonials-section', ['testimonials' => $testimonials])
+
+    <!-- Footer Section Component -->
+    @include('components.footer-section', ['footer' => $footer])
+
+    <!-- AOS Animation Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            once: true,
+            duration: 1000,
+            easing: 'ease-out-cubic',
+        });
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', function () {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('bg-black/90', 'backdrop-blur-md', 'shadow-lg');
+                nav.classList.remove('h-24');
+                nav.classList.add('h-20');
+            } else {
+                nav.classList.remove('bg-black/90', 'backdrop-blur-md', 'shadow-lg');
+                nav.classList.remove('h-20');
+                nav.classList.add('h-24');
+            }
+        });
+    </script>
+</body>
+
+</html>

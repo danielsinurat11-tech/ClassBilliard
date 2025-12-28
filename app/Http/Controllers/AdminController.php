@@ -40,8 +40,18 @@ class AdminController extends Controller
             $hero->logo_image = $request->file('logo_image')->store('hero', 'public');
         }
         
-        $hero->title = $request->title ?? 'CLASS';
-        $hero->subtitle = $request->subtitle ?? 'BILLIARD';
+        if ($request->hasFile('background_image')) {
+            if ($hero->background_image) {
+                Storage::disk('public')->delete($hero->background_image);
+            }
+            $hero->background_image = $request->file('background_image')->store('hero', 'public');
+        }
+        
+        $hero->title = $request->title ?? 'The Art of';
+        $hero->subtitle = $request->subtitle ?? 'Precision';
+        $hero->tagline = $request->tagline ?? 'Premium Billiard Lounge & Bar';
+        $hero->cta_text_1 = $request->cta_text_1 ?? 'BOOK A TABLE';
+        $hero->cta_text_2 = $request->cta_text_2 ?? 'EXPLORE';
         $hero->is_active = $request->has('is_active');
         $hero->save();
 
@@ -69,6 +79,14 @@ class AdminController extends Controller
         ]);
 
         $tentangKami = TentangKami::firstOrNew();
+        
+        if ($request->hasFile('image')) {
+            if ($tentangKami->image) {
+                Storage::disk('public')->delete($tentangKami->image);
+            }
+            $tentangKami->image = $request->file('image')->store('tentang-kami', 'public');
+        }
+        
         $tentangKami->fill($request->only(['title', 'subtitle']));
 
         if ($request->filled('video_url')) {
@@ -165,7 +183,14 @@ class AdminController extends Controller
             $aboutFounder->photo = $request->file('photo')->store('founder', 'public');
         }
         
-        $aboutFounder->fill($request->only(['title', 'subtitle', 'name', 'description', 'facebook_url', 'instagram_url', 'linkedin_url']));
+        if ($request->hasFile('image')) {
+            if ($aboutFounder->image) {
+                Storage::disk('public')->delete($aboutFounder->image);
+            }
+            $aboutFounder->image = $request->file('image')->store('founder', 'public');
+        }
+        
+        $aboutFounder->fill($request->only(['title', 'subtitle', 'name', 'position', 'quote', 'signature', 'facebook_url', 'instagram_url', 'linkedin_url']));
         $aboutFounder->is_active = $request->has('is_active');
         $aboutFounder->save();
 
@@ -206,22 +231,25 @@ class AdminController extends Controller
     // Portfolio Achievement
     public function portfolioAchievementIndex()
     {
-        $achievements = PortfolioAchievement::where('type', 'achievement')->orderBy('order')->get();
-        $galleries = PortfolioAchievement::where('type', 'gallery')->orderBy('order')->get();
-        return view('admin.manage-content.portfolio-achievement', compact('achievements', 'galleries'));
+        // Semua achievements ditampilkan di dashboard tanpa filter type
+        $allAchievements = PortfolioAchievement::orderBy('order')->get();
+        return view('admin.manage-content.portfolio-achievement', compact('allAchievements'));
     }
 
     public function portfolioAchievementStore(Request $request)
     {
-        $data = $request->only(['title', 'subtitle', 'type', 'icon', 'number', 'label', 'order']);
+        $data = $request->only(['title', 'description', 'order', 'type']);
         $data['is_active'] = $request->has('is_active');
+        
+        // Set type ke gallery karena dashboard hanya menampilkan items dengan image
+        $data['type'] = 'gallery';
         
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('portfolio', 'public');
         }
         
         PortfolioAchievement::create($data);
-        return redirect()->route('admin.portfolio-achievement')->with('success', 'Item added successfully');
+        return redirect()->route('admin.portfolio-achievement')->with('success', 'Achievement added successfully');
     }
 
     public function portfolioAchievementUpdate(Request $request, $id)
@@ -235,11 +263,16 @@ class AdminController extends Controller
             $item->image = $request->file('image')->store('portfolio', 'public');
         }
         
-        $item->fill($request->only(['title', 'subtitle', 'type', 'icon', 'number', 'label', 'order']));
+        $data = $request->only(['title', 'description', 'order', 'type']);
+        
+        // Pastikan type tetap gallery
+        $data['type'] = 'gallery';
+        
+        $item->fill($data);
         $item->is_active = $request->has('is_active');
         $item->save();
 
-        return redirect()->route('admin.portfolio-achievement')->with('success', 'Item updated successfully');
+        return redirect()->route('admin.portfolio-achievement')->with('success', 'Achievement updated successfully');
     }
 
     public function portfolioAchievementDestroy($id)
@@ -261,11 +294,15 @@ class AdminController extends Controller
 
     public function timKamiStore(Request $request)
     {
-        $data = $request->only(['title', 'subtitle', 'name', 'position', 'facebook_url', 'instagram_url', 'linkedin_url', 'order']);
+        $data = $request->only(['title', 'subtitle', 'name', 'position', 'bio', 'facebook_url', 'instagram_url', 'linkedin_url', 'order']);
         $data['is_active'] = $request->has('is_active');
         
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('team', 'public');
+        }
+        
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('team', 'public');
         }
         
         TimKami::create($data);
@@ -283,7 +320,14 @@ class AdminController extends Controller
             $member->photo = $request->file('photo')->store('team', 'public');
         }
         
-        $member->fill($request->only(['title', 'subtitle', 'name', 'position', 'facebook_url', 'instagram_url', 'linkedin_url', 'order']));
+        if ($request->hasFile('image')) {
+            if ($member->image) {
+                Storage::disk('public')->delete($member->image);
+            }
+            $member->image = $request->file('image')->store('team', 'public');
+        }
+        
+        $member->fill($request->only(['title', 'subtitle', 'name', 'position', 'bio', 'facebook_url', 'instagram_url', 'linkedin_url', 'order']));
         $member->is_active = $request->has('is_active');
         $member->save();
 
@@ -309,11 +353,15 @@ class AdminController extends Controller
 
     public function testimoniPelangganStore(Request $request)
     {
-        $data = $request->only(['title', 'subtitle', 'customer_name', 'customer_role', 'testimonial', 'rating', 'order']);
+        $data = $request->only(['title', 'subtitle', 'customer_name', 'name', 'customer_role', 'role', 'testimonial', 'rating', 'order']);
         $data['is_active'] = $request->has('is_active');
         
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('testimoni', 'public');
+        }
+        
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('testimoni', 'public');
         }
         
         TestimoniPelanggan::create($data);
@@ -331,7 +379,14 @@ class AdminController extends Controller
             $testimoni->photo = $request->file('photo')->store('testimoni', 'public');
         }
         
-        $testimoni->fill($request->only(['title', 'subtitle', 'customer_name', 'customer_role', 'testimonial', 'rating', 'order']));
+        if ($request->hasFile('image')) {
+            if ($testimoni->image) {
+                Storage::disk('public')->delete($testimoni->image);
+            }
+            $testimoni->image = $request->file('image')->store('testimoni', 'public');
+        }
+        
+        $testimoni->fill($request->only(['title', 'subtitle', 'customer_name', 'name', 'customer_role', 'role', 'testimonial', 'rating', 'order']));
         $testimoni->is_active = $request->has('is_active');
         $testimoni->save();
 
@@ -357,7 +412,7 @@ class AdminController extends Controller
 
     public function eventStore(Request $request)
     {
-        $data = $request->only(['title', 'subtitle', 'event_title', 'event_description', 'event_date', 'link_url', 'order']);
+        $data = $request->only(['title', 'subtitle', 'event_title', 'event_description', 'description', 'category', 'event_date', 'link_url', 'order']);
         $data['is_active'] = $request->has('is_active');
         
         if ($request->hasFile('image')) {
@@ -379,7 +434,7 @@ class AdminController extends Controller
             $event->image = $request->file('image')->store('events', 'public');
         }
         
-        $event->fill($request->only(['title', 'subtitle', 'event_title', 'event_description', 'event_date', 'link_url', 'order']));
+        $event->fill($request->only(['title', 'subtitle', 'event_title', 'event_description', 'description', 'category', 'event_date', 'link_url', 'order']));
         $event->is_active = $request->has('is_active');
         $event->save();
 
@@ -412,12 +467,17 @@ class AdminController extends Controller
             'instagram_url',
             'twitter_url',
             'youtube_url',
+            'whatsapp',
             'address',
+            'location_name',
             'phone',
             'email',
             'google_maps_url',
+            'map_url',
             'monday_friday_hours',
-            'saturday_sunday_hours'
+            'saturday_sunday_hours',
+            'opening_hours',
+            'copyright'
         ]));
         $footer->is_active = $request->has('is_active');
         $footer->save();

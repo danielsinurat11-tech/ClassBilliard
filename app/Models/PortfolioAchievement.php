@@ -16,6 +16,7 @@ class PortfolioAchievement extends Model
         'icon',
         'number',
         'label',
+        'description',
         'image',
         'order',
         'is_active',

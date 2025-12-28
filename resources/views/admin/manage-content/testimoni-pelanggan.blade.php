@@ -3,8 +3,7 @@
 @section('title', 'Edit Testimoni Pelanggan - Admin')
 
 @section('content')
-    <div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10 transition-colors duration-300"
-        x-data="{ showCreate: false }">
+        <div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10 transition-colors duration-300">
 
         <!-- HEADER STANDARD -->
         <div
@@ -16,15 +15,8 @@
                 </a>
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Customer <span
                         class="text-[#fa9a08]">Testimonials</span></h1>
-                <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Kelola apresiasi dan feedback pelanggan
-                    untuk membangun kepercayaan brand.</p>
+                <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Kelola testimoni yang dikirim oleh pelanggan. Testimoni baru akan muncul setelah diaktifkan.</p>
             </div>
-
-            <button @click="showCreate = !showCreate"
-                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95">
-                <i :class="showCreate ? 'ri-close-line' : 'ri-add-line'" class="text-lg"></i>
-                <span x-text="showCreate ? 'Batalkan' : 'Tambah Testimoni'"></span>
-            </button>
         </div>
 
         <!-- FLASH MESSAGE -->
@@ -36,82 +28,20 @@
             </div>
         @endif
 
-        <!-- CREATION MODULE (Sleek Accordion) -->
-        <div x-show="showCreate" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 transform -translate-y-4"
-            x-transition:enter-end="opacity-100 transform translate-y-0" class="mb-12">
-            <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Input Testimoni Baru</h2>
-                <form action="{{ route('admin.testimoni-pelanggan.store') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Nama
-                                Pelanggan</label>
-                            <input type="text" name="customer_name" required
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
-                        </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Role
-                                / Jabatan</label>
-                            <input type="text" name="customer_role" placeholder="e.g. Regular Guest"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
-                        </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Rating
-                                Score (1-5)</label>
-                            <input type="number" name="rating" min="1" max="5" value="5"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm font-bold text-[#fa9a08] focus:border-[#fa9a08] outline-none transition-all">
-                        </div>
-                        <div class="md:col-span-2 lg:col-span-3 space-y-2">
-                            <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Testimonial
-                                Content</label>
-                            <textarea name="testimonial" rows="4" required
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed"></textarea>
-                        </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Customer
-                                Photo</label>
-                            <input type="file" name="photo" accept="image/*"
-                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-[#fa9a08] file:text-black hover:file:bg-orange-600">
-                        </div>
-                        <div class="space-y-2">
-                            <label
-                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort
-                                Order</label>
-                            <input type="number" name="order" value="0"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
-                        </div>
-                        <div class="flex items-center pt-6">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="is_active" checked value="1" class="sr-only peer">
-                                <div
-                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]">
-                                </div>
-                                <span class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Publish
-                                    to Site</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mt-10 flex justify-end">
-                        <button type="submit"
-                            class="bg-slate-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest py-4 px-12 rounded-md transition-all active:scale-95 shadow-sm">
-                            Submit Testimonial
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
         <!-- TESTIMONIALS LIBRARY -->
         <div class="space-y-6">
-            <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500 mb-6">Verified
-                Customer Feedback Library</h2>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500">Customer Testimonials Library</h2>
+                <span class="text-[9px] text-slate-500 dark:text-gray-600">({{ $testimonis->count() }} testimoni)</span>
+            </div>
+            
+            @if($testimonis->count() == 0)
+            <div class="text-center py-12 bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg">
+                <i class="ri-inbox-line text-4xl text-slate-400 dark:text-gray-600 mb-4"></i>
+                <p class="text-sm text-slate-500 dark:text-gray-500">Belum ada testimoni. Testimoni akan muncul setelah pelanggan mengirim melalui form di website.</p>
+            </div>
+            @endif
 
             <div class="grid grid-cols-1 gap-8">
                 @foreach($testimonis as $testimoni)
@@ -185,6 +115,24 @@
                                                     Update</label>
                                                 <input type="file" name="photo" accept="image/*"
                                                     class="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-slate-200 dark:file:bg-white/10 file:text-[9px] file:font-black file:uppercase">
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label
+                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400">Image (Alternative)</label>
+                                                <input type="file" name="image" accept="image/*"
+                                                    class="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-slate-200 dark:file:bg-white/10 file:text-[9px] file:font-black file:uppercase">
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label
+                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400">Name (Alternative)</label>
+                                                <input type="text" name="name" value="{{ $testimoni->name ?? '' }}"
+                                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white outline-none">
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label
+                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400">Role (Alternative)</label>
+                                                <input type="text" name="role" value="{{ $testimoni->role ?? '' }}"
+                                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white outline-none">
                                             </div>
                                         </div>
                                     </div>
