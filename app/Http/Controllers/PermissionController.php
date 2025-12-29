@@ -121,9 +121,13 @@ class PermissionController extends Controller
             // 3. Refresh the user instance to reload permissions
             $user->refresh();
 
+            // Set flash message untuk session
+            session()->flash('success', 'Permissions berhasil diupdate untuk user ' . $user->name . '.');
+
             return response()->json([
                 'success' => true,
-                'message' => 'Permissions berhasil diupdate untuk user ' . $user->name . '. Silakan refresh halaman untuk melihat perubahan.'
+                'message' => 'Permissions berhasil diupdate untuk user ' . $user->name . '.',
+                'redirect_url' => route('admin.permissions.select-user')
             ]);
         } catch (\Exception $e) {
             return response()->json([

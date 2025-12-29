@@ -20,33 +20,6 @@
     </div>
 </div>
 
-<!-- ALERTS -->
-@if(session('success'))
-    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
-        class="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-start gap-4">
-        <i class="ri-checkbox-circle-fill text-emerald-500 text-xl shrink-0 mt-0.5"></i>
-        <div class="flex-1">
-            <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400">{{ session('success') }}</p>
-        </div>
-        <button @click="show = false" class="text-emerald-500 hover:text-emerald-700 shrink-0">
-            <i class="ri-close-line"></i>
-        </button>
-    </div>
-@endif
-
-@if(session('error'))
-    <div x-data="{ show: true }" x-show="show"
-        class="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-4">
-        <i class="ri-alert-fill text-red-500 text-xl shrink-0 mt-0.5"></i>
-        <div class="flex-1">
-            <p class="text-sm font-bold text-red-600 dark:text-red-400">{{ session('error') }}</p>
-        </div>
-        <button @click="show = false" class="text-red-500 hover:text-red-700 shrink-0">
-            <i class="ri-close-line"></i>
-        </button>
-    </div>
-@endif
-
 <!-- USERS LIST CONTAINER -->
 @if($users->isEmpty())
     <div class="p-12 text-center border border-slate-200 dark:border-white/5 rounded-lg bg-slate-50 dark:bg-white/[0.02]">

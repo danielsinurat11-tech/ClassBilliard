@@ -273,7 +273,7 @@
                 
                 // Redirect to permissions select-user page after 2 seconds
                 setTimeout(() => {
-                    window.location.href = '{{ route("admin.permissions.select-user") }}';
+                    window.location.href = result.redirect_url;
                 }, 2000);
             } else {
                 document.getElementById('errorText').textContent = result.message;
