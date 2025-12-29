@@ -103,10 +103,8 @@ class TableController extends Controller
         $table = meja_billiard::create([
             'name' => $validated['name'],
             'room' => $validated['room'],
-            'number' => $tableNumber,
             'slug' => $slug,
-            'qrcode' => $qrCodePath,
-            'status' => 'available'
+            'qrcode' => $qrCodePath
         ]);
 
         return redirect()->route('admin.tables.index')

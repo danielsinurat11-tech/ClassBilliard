@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('meja_billiards', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('room');
+            $table->string('slug')->unique();
+            $table->string('qrcode')->nullable();
             $table->timestamps();
         });
     }
