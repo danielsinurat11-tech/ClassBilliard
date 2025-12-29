@@ -3,91 +3,173 @@
 @section('title', 'Staff Management')
 
 @section('content')
-<div class="space-y-6 animate-in fade-in duration-500">
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold text-white tracking-tight">Manajemen Staff</h1>
-            <p class="text-gray-500 text-sm">Kelola hak akses administrator dan operator sistem operasional</p>
-        </div>
-        <a href="{{ route('admin.manage-users.create') }}" 
-           class="bg-[var(--accent)] hover:bg-orange-600 text-black font-bold py-3 px-6 rounded-2xl transition-all flex items-center gap-2">
-            <i class="ri-user-add-line"></i>
-            Tambah Staff
-        </a>
-    </div>
+    <div class="space-y-8 animate-in fade-in duration-500">
 
-    <div class="bg-[#111] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-white/[0.02] border-b border-white/5">
-                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Identitas</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Role Privilege</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Shift</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Dibuat Pada</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-                @foreach($users as $user)
-                <tr class="hover:bg-white/[0.01] transition-colors">
-                    <td class="px-6 py-5">
-                        <div class="flex items-center gap-4">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=333&color=fff" class="w-10 h-10 rounded-xl">
-                            <div>
-                                <div class="text-white font-medium">{{ $user->name }}</div>
-                                <div class="text-gray-500 text-xs">{{ $user->email }}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-5">
-                        @php
-                            $role = $user->getRoleNames()->first() ?? 'no-role';
-                            $roleColors = [
-                                'super_admin' => 'bg-red-500/10 text-red-500',
-                                'admin' => 'bg-orange-500/10 text-orange-500',
-                                'kitchen' => 'bg-blue-500/10 text-blue-500',
-                                'no-role' => 'bg-gray-500/10 text-gray-500',
-                            ];
-                        @endphp
-                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter {{ $roleColors[$role] ?? 'bg-gray-500/10 text-gray-500' }}">
-                            {{ ucfirst(str_replace('_', ' ', $role)) }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-5">
-                        @if($user->shift)
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter bg-green-500/10 text-green-500">
-                                {{ $user->shift->name }}
-                            </span>
-                            <div class="text-[10px] text-gray-500 mt-1">
-                                {{ $user->shift->start_time->format('H:i') }} - {{ $user->shift->end_time->format('H:i') }} WIB
-                            </div>
-                        @else
-                            <span class="text-gray-500 text-xs">Belum di-assign</span>
-                        @endif
-                    </td>
-                    <td class="px-6 py-5 text-gray-400 text-sm">
-                        {{ $user->created_at->format('d M Y') }}
-                    </td>
-                    <td class="px-6 py-5 text-right">
-                        <div class="flex justify-end gap-2">
-                            <a href="{{ route('admin.manage-users.edit', $user) }}" class="p-2 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition-all">
-                                <i class="ri-edit-2-line"></i>
-                            </a>
-                            <form action="{{ route('admin.manage-users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Cabut akses user ini?')">
-                                @csrf @method('DELETE')
-                                <button class="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-all">
-                                    <i class="ri-delete-bin-line"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-        <div class="p-4 border-t border-white/5">
+        <!-- HEADER -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8">
+            <div class="space-y-1">
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Manajemen Staff</h1>
+                <p class="text-xs text-slate-500 dark:text-gray-500 font-medium uppercase tracking-wider">Otoritas & Akses
+                    Pengguna Sistem</p>
+            </div>
+
+            <a href="{{ route('admin.manage-users.create') }}"
+                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md transition-all flex items-center gap-2 shadow-sm">
+                <i class="ri-user-add-line text-sm"></i>
+                Tambah Staff
+            </a>
+        </div>
+
+        <!-- TABLE -->
+        <div class="w-full">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr>
+                        <th
+                            class="px-4 py-4 text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-widest border-b border-slate-200 dark:border-white/5">
+                            Identitas
+                        </th>
+                        <th
+                            class="px-4 py-4 text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-widest border-b border-slate-200 dark:border-white/5">
+                            Role
+                        </th>
+                        <th
+                            class="px-4 py-4 text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-widest border-b border-slate-200 dark:border-white/5">
+                            Shift
+                        </th>
+                        <th
+                            class="px-4 py-4 text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-widest border-b border-slate-200 dark:border-white/5 text-right">
+                            Aksi
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-white/5">
+                    @foreach($users as $user)
+                        <tr class="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+                            <td class="px-4 py-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=111&color=fa9a08&bold=true"
+                                        class="w-8 h-8 rounded-md border border-slate-200 dark:border-white/10">
+                                    <div>
+                                        <div class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
+                                            {{ $user->name }}
+                                        </div>
+                                        <div class="text-[11px] text-slate-500 dark:text-gray-500 font-medium">
+                                            {{ $user->email }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                @php
+                                    $role = $user->getRoleNames()->first() ?? 'no-role';
+                                    $roleColors = [
+                                        'super_admin' => 'text-red-500 bg-red-500/5 border-red-500/10',
+                                        'admin' => 'text-[#fa9a08] bg-[#fa9a08]/5 border-[#fa9a08]/10',
+                                        'kitchen' => 'text-blue-500 bg-blue-500/5 border-blue-500/10',
+                                        'no-role' => 'text-gray-500 bg-gray-500/5 border-gray-500/10',
+                                    ];
+                                @endphp
+                                <span
+                                    class="inline-block px-2 py-0.5 border rounded text-[9px] font-black uppercase tracking-widest {{ $roleColors[$role] ?? $roleColors['no-role'] }}">
+                                    {{ str_replace('_', ' ', $role) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-4">
+                                @if($user->shift)
+                                    <div class="text-[11px] font-bold text-slate-700 dark:text-gray-300 uppercase tracking-tight">
+                                        {{ $user->shift->name }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 dark:text-gray-500">
+                                        {{ $user->shift->start_time->format('H:i') }} - {{ $user->shift->end_time->format('H:i') }}
+                                    </div>
+                                @else
+                                    <span
+                                        class="text-[10px] text-slate-400 dark:text-gray-600 uppercase font-bold tracking-widest">None</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-4 text-right">
+                                <div class="flex justify-end gap-1">
+                                    <a href="{{ route('admin.manage-users.edit', $user) }}"
+                                        class="p-2 text-slate-400 hover:text-[#fa9a08] transition-colors" title="Edit Staff">
+                                        <i class="ri-edit-line text-lg"></i>
+                                    </a>
+
+                                    <!-- SweetAlert Delete Trigger -->
+                                    <form action="{{ route('admin.manage-users.destroy', $user) }}" method="POST"
+                                        class="inline delete-form">
+                                        @csrf @method('DELETE')
+                                        <button type="button" onclick="confirmDelete(this)"
+                                            class="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Hapus Staff">
+                                            <i class="ri-delete-bin-line text-lg"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pt-6 border-t border-slate-200 dark:border-white/5 text-xs">
             {{ $users->links() }}
         </div>
     </div>
-</div>
+
+    {{-- SweetAlert2 Custom Styling & Script --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(button) {
+            const form = button.closest('.delete-form');
+
+            Swal.fire({
+                title: 'KONFIRMASI HAPUS',
+                text: "Akses staff ini akan dicabut secara permanen dari sistem.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#fa9a08', // Accent Color
+                cancelButtonColor: '#1a1a1a',
+                confirmButtonText: 'YA, HAPUS AKSES',
+                cancelButtonText: 'BATAL',
+                background: '#0a0a0a', // Dark Mode Bg
+                color: '#ffffff',
+                borderRadius: '8px', // Precision Radius
+                customClass: {
+                    title: 'text-sm font-black tracking-widest',
+                    htmlContainer: 'text-xs text-gray-400 font-medium',
+                    confirmButton: 'text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md',
+                    cancelButton: 'text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+
+        // Success Alert after redirect
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'BERHASIL',
+                text: "{{ session('success') }}",
+                background: '#0a0a0a',
+                color: '#ffffff',
+                showConfirmButton: false,
+                timer: 2000,
+                borderRadius: '8px'
+            });
+        @endif
+    </script>
+
+    <style>
+        /* Styling tambahan untuk menyesuaikan SweetAlert dengan Manifesto */
+        .swal2-popup {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+    </style>
 @endsection

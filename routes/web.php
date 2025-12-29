@@ -169,8 +169,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         return redirect()->route('admin.tables.index');
     })->name('barcode.index');
 
-    // User Management (super_admin only)
-    Route::prefix('manage-users')->name('manage-users.')->middleware('can:viewAny,App\Models\User')->group(function () {
+    // User Management - check user.view permission
+    Route::prefix('manage-users')->name('manage-users.')->middleware('permission:user.view')->group(function () {
         Route::get('/', [App\Http\Controllers\UserController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\UserController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
@@ -178,5 +178,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
         Route::patch('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
+    });
+
+    // Permission Management (super_admin only)
+    Route::prefix('permissions')->name('permissions.')->group(function () {
+        Route::get('/select-user', [App\Http\Controllers\PermissionController::class, 'selectUser'])->name('select-user');
+        Route::get('/{userId}/manage', [App\Http\Controllers\PermissionController::class, 'managePermissions'])->name('manage');
+        Route::post('/{userId}/update', [App\Http\Controllers\PermissionController::class, 'updatePermissions'])->name('update');
+        Route::post('/{userId}/toggle', [App\Http\Controllers\PermissionController::class, 'togglePermission'])->name('toggle');
     });
 });

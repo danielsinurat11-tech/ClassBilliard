@@ -14,39 +14,39 @@ use App\Models\User;
 class CategoryMenuPolicy
 {
     /**
-     * View any categories - allowed for admin and super_admin
+     * View any categories - check category.view permission
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['admin', 'super_admin']);
+        return $user->hasPermissionTo('category.view');
     }
 
     /**
-     * View a category - allowed for admin and super_admin
+     * View a category - check category.view permission
      */
     public function view(User $user, CategoryMenu $category): bool
     {
-        return $user->hasRole(['admin', 'super_admin']);
+        return $user->hasPermissionTo('category.view');
     }
 
     /**
-     * Create category - only super_admin
+     * Create category - check category.create permission
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('category.create');
     }
 
     /**
-     * Update category - only super_admin
+     * Update category - check category.update permission
      */
     public function update(User $user, CategoryMenu $category): bool
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('category.update');
     }
 
     /**
-     * Delete category - only super_admin
+     * Delete category - check category.delete permission
      */
     public function delete(User $user, CategoryMenu $category): bool
     {

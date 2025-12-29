@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Refresh permission cache on every authenticated request
+        $middleware->web(append: \App\Http\Middleware\RefreshPermissionCache::class);
+        
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'auth.custom' => \App\Http\Middleware\EnsureUserIsAuthenticated::class,

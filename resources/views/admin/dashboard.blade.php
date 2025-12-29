@@ -81,6 +81,53 @@
             </div>
         </div>
 
+        <!-- ADVANCED MANAGEMENT: Super Admin Only -->
+        @if(auth()->user()->role === 'super_admin')
+        <div class="space-y-6 pt-8 border-t border-slate-200 dark:border-white/5">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-gray-500">
+                    Advanced Administration
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                @php
+                    $advancedModules = [
+                        ['r' => 'admin.permissions.select-user', 'i' => 'ri-shield-check-line', 't' => 'Kelola Permissions', 'd' => 'Berikan hak akses lebih kepada user dengan mengelola permissions mereka secara detail.'],
+                        ['r' => 'admin.manage-users.index', 'i' => 'ri-group-line', 't' => 'Manage Users', 'd' => 'Kelola user accounts, assign roles, dan atur shift untuk operasional.'],
+                    ];
+                @endphp
+
+                @foreach($advancedModules as $m)
+                    <a href="{{ route($m['r']) }}"
+                        class="group relative bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-purple-200 dark:border-purple-500/30 p-6 rounded-lg transition-all duration-300 hover:border-purple-500 hover:shadow-lg dark:hover:shadow-purple-500/20 flex items-start gap-5">
+
+                        <!-- Icon: Sharp & Minimalist -->
+                        <div
+                            class="w-12 h-12 shrink-0 bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/30 rounded-md flex items-center justify-center text-purple-600 dark:text-purple-300 group-hover:text-purple-700 dark:group-hover:text-purple-200 group-hover:bg-purple-200 dark:group-hover:bg-purple-500/30 transition-all duration-300">
+                            <i class="{{ $m['i'] }} text-xl"></i>
+                        </div>
+
+                        <div class="space-y-1">
+                            <h3
+                                class="text-sm font-bold text-purple-900 dark:text-purple-200 transition-colors group-hover:text-purple-700 dark:group-hover:text-purple-100">
+                                {{ $m['t'] }}
+                            </h3>
+                            <p class="text-xs text-purple-700 dark:text-purple-300/70 leading-relaxed font-medium">
+                                {{ $m['d'] }}
+                            </p>
+                        </div>
+
+                        <!-- Indicator: Subtle Corner Arrow -->
+                        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="ri-arrow-right-up-line text-purple-600 dark:text-purple-300 text-sm"></i>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         <!-- SYSTEM FOOTER: Balanced Spacing -->
         <div
             class="mt-12 p-8 border border-slate-200 dark:border-white/5 rounded-lg flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50/50 dark:bg-white/[0.02]">

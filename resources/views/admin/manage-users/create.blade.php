@@ -3,91 +3,163 @@
 @section('title', 'Register New Staff')
 
 @section('content')
-<div class="max-w-xl mx-auto animate-in fade-in duration-500">
-    <div class="flex items-center gap-4 mb-8">
-            <a href="{{ route('admin.manage-users.index') }}"
-           class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 text-white hover:bg-white/10 transition-all">
-                <i class="ri-arrow-left-line"></i>
-            </a>
-        <div>
-            <h1 class="text-2xl font-bold text-white">Registrasi Staff Baru</h1>
-            <p class="text-gray-500 text-xs">User Access Control</p>
+<div class="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+    
+    <!-- HEADER & NAVIGATION -->
+    <div class="flex items-center gap-5 mb-10 pb-6 border-b border-slate-200 dark:border-white/5">
+        <a href="{{ route('admin.manage-users.index') }}"
+           class="w-9 h-9 flex items-center justify-center rounded-md border border-slate-200 dark:border-white/10 text-slate-500 dark:text-gray-400 hover:text-[#fa9a08] hover:border-[#fa9a08]/50 transition-all duration-300">
+            <i class="ri-arrow-left-s-line text-xl"></i>
+        </a>
+        <div class="space-y-0.5">
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Registrasi Staff Baru</h1>
+            <p class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em]">User Access Control & Identity</p>
         </div>
     </div>
 
     @if ($errors->any())
-        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl">
-            <div class="flex items-center gap-2 mb-2">
-                <i class="ri-error-warning-fill"></i>
-                <span class="text-xs font-bold uppercase">Terjadi Kesalahan</span>
-            </div>
-            <ul class="list-none text-xs space-y-1">
+        <!-- (Error Alert Tetap Sama - Sudah Sesuai Manifesto) -->
+        <div class="mb-8 p-4 bg-red-500/5 border border-red-500/20 rounded-lg">
+            <ul class="space-y-1">
                 @foreach ($errors->all() as $error)
-                    <li>• {{ $error }}</li>
+                    <li class="text-xs text-red-400/80 flex items-center gap-2">
+                        <span class="w-1 h-1 bg-red-500 rounded-full"></span>
+                        {{ $error }}
+                    </li>
                 @endforeach
             </ul>
         </div>
     @endif
 
-    <form action="{{ route('admin.manage-users.store') }}" method="POST" class="space-y-6">
-            @csrf
+    <form action="{{ route('admin.manage-users.store') }}" method="POST" class="space-y-8">
+        @csrf
 
-        <div class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- NAMA LENGKAP -->
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
-                <input type="text" name="name" value="{{ old('name') }}" placeholder="Contoh: John Doe" required
-                    class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all placeholder:text-gray-600">
+                <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                <input type="text" name="name" value="{{ old('name') }}" placeholder="e.g. Alexander Graham" required
+                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-600">
             </div>
 
+            <!-- EMAIL -->
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Email Kredensial</label>
-                <input type="email" name="email" value="{{ old('email') }}" placeholder="staff@billiardclass.com" required
-                    class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all placeholder:text-gray-600">
+                <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Email Kredensial</label>
+                <input type="email" name="email" value="{{ old('email') }}" placeholder="staff@enterprise.com" required
+                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-600">
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Hak Akses (Role)</label>
-                    <select name="role" class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all appearance-none">
-                        <option value="kitchen">Kitchen Staff</option>
-                        <option value="admin">Administrator</option>
-                        <option value="super_admin">Super Admin</option>
-                    </select>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Shift</label>
-                    <select name="shift_id" class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all appearance-none">
-                        <option value="">Pilih Shift</option>
-                        @foreach($shifts as $shift)
-                            <option value="{{ $shift->id }}">
-                                {{ $shift->name }} ({{ $shift->start_time->format('H:i') }} - {{ $shift->end_time->format('H:i') }} WIB)
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Password Awal</label>
-                <input type="password" name="password" required placeholder="••••••••"
-                    class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all placeholder:text-gray-600">
-            </div>
-
-            <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Konfirmasi Password</label>
-                <input type="password" name="password_confirmation" required placeholder="••••••••"
-                    class="w-full bg-black/50 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:border-[var(--accent)] outline-none transition-all placeholder:text-gray-600">
-            </div>
-            </div>
-
-        <div class="pt-4">
-            <button type="submit" class="w-full bg-[var(--accent)] hover:bg-orange-600 text-black font-bold py-4 rounded-2xl transition-all uppercase tracking-wider text-sm">
-                Daftarkan Staff
-            </button>
-            <p class="text-center text-[10px] text-gray-500 mt-4">
-                Pastikan data yang dimasukkan sudah valid sesuai kebijakan keamanan sistem.
-            </p>
         </div>
-        </form>
-    </div>
+
+        <!-- DROPDOWN SECTION (REBUILT WITH ALPINE.JS) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200 dark:border-white/5">
+            
+            <!-- CUSTOM DROPDOWN: ROLE -->
+            <div class="space-y-2" x-data="{ 
+                open: false, 
+                selected: '{{ old('role', 'kitchen') }}',
+                options: {
+                    'kitchen': 'Kitchen Staff',
+                    'admin': 'Administrator',
+                    'super_admin': 'Super Admin'
+                }
+            }">
+                <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Hak Akses (Role)</label>
+                <div class="relative">
+                    <input type="hidden" name="role" :value="selected">
+                    <button type="button" @click="open = !open" @click.away="open = false"
+                        class="w-full flex items-center justify-between bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-left text-slate-900 dark:text-white hover:border-[#fa9a08]/50 transition-all">
+                        <span x-text="options[selected]"></span>
+                        <i class="ri-arrow-down-s-line text-slate-400 transition-transform duration-300" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         class="absolute z-50 w-full mt-2 bg-[#0A0A0A] border border-white/10 rounded-md shadow-xl overflow-hidden backdrop-blur-md">
+                        <template x-for="(label, value) in options">
+                            <div @click="selected = value; open = false" 
+                                 class="px-4 py-3 text-sm text-gray-400 hover:bg-[#fa9a08] hover:text-black cursor-pointer transition-colors font-medium"
+                                 :class="selected === value ? 'text-[#fa9a08] bg-white/[0.02]' : ''">
+                                <span x-text="label"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CUSTOM DROPDOWN: SHIFT -->
+            <div class="space-y-2" x-data="{ 
+                open: false, 
+                selected: '{{ old('shift_id', '') }}',
+                selectedLabel: 'Pilih Shift'
+            }">
+                <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Shift Operasional</label>
+                <div class="relative">
+                    <input type="hidden" name="shift_id" :value="selected">
+                    <button type="button" @click="open = !open" @click.away="open = false"
+                        class="w-full flex items-center justify-between bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-left text-slate-900 dark:text-white hover:border-[#fa9a08]/50 transition-all">
+                        <span x-text="selectedLabel"></span>
+                        <i class="ri-arrow-down-s-line text-slate-400 transition-transform duration-300" :class="open ? 'rotate-180' : ''"></i>
+                    </button>
+                    
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         class="absolute z-50 w-full mt-2 bg-[#0A0A0A] border border-white/10 rounded-md shadow-xl max-h-60 overflow-y-auto backdrop-blur-md">
+                        
+                        <div @click="selected = ''; selectedLabel = 'Pilih Shift'; open = false" 
+                             class="px-4 py-3 text-sm text-gray-500 hover:bg-white/5 cursor-pointer italic">
+                            None
+                        </div>
+
+                        @foreach($shifts as $shift)
+                            <div @click="selected = '{{ $shift->id }}'; selectedLabel = '{{ $shift->name }}'; open = false" 
+                                 class="px-4 py-3 text-sm text-gray-400 hover:bg-[#fa9a08] hover:text-black cursor-pointer transition-colors font-medium">
+                                <div class="flex justify-between items-center">
+                                    <span>{{ $shift->name }}</span>
+                                    <span class="text-[10px] opacity-70">{{ $shift->start_time->format('H:i') }} - {{ $shift->end_time->format('H:i') }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION: SECURITY -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200 dark:border-white/5">
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Password Awal</label>
+                <input type="password" name="password" required placeholder="••••••••"
+                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Konfirmasi Password</label>
+                <input type="password" name="password_confirmation" required placeholder="••••••••"
+                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+            </div>
+        </div>
+
+        <div class="pt-10 flex flex-col items-center">
+            <button type="submit" class="w-full bg-[#fa9a08] hover:bg-orange-600 text-black text-[11px] font-black uppercase tracking-[0.2em] py-4 rounded-md transition-all shadow-sm active:scale-[0.98]">
+                Daftarkan Staff Baru
+            </button>
+            <div class="mt-6 flex items-center gap-2 text-[10px] text-slate-400 dark:text-gray-600 font-bold uppercase tracking-widest">
+                <i class="ri-shield-check-line text-sm text-[#fa9a08]"></i>
+                Secure Access Protocol Active
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Custom Scrollbar for Dropdown */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(250, 154, 8, 0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(250, 154, 8, 0.5); }
+</style>
 @endsection

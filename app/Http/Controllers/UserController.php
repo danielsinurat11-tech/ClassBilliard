@@ -12,6 +12,11 @@ class UserController extends Controller
 {
     public function index()
     {
+        // Check permission: user.view
+        if (!auth()->user()->hasPermissionTo('user.view')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat manajemen pengguna.');
+        }
+
         // Menampilkan semua user kecuali ID yang sedang login
         $users = User::with('shift')
             ->where('id', '!=', auth()->id())
@@ -25,12 +30,22 @@ class UserController extends Controller
 
     public function create()
     {
+        // Check permission: user.create
+        if (!auth()->user()->hasPermissionTo('user.create')) {
+            abort(403, 'Anda tidak memiliki akses untuk membuat pengguna baru.');
+        }
+
         $shifts = Shift::where('is_active', true)->orderBy('start_time')->get();
         return view('admin.manage-users.create', compact('shifts'));
     }
 
     public function store(Request $request)
     {
+        // Check permission: user.create
+        if (!auth()->user()->hasPermissionTo('user.create')) {
+            abort(403, 'Anda tidak memiliki akses untuk membuat pengguna baru.');
+        }
+
         $validated = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
@@ -53,6 +68,11 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        // Check permission: user.update
+        if (!auth()->user()->hasPermissionTo('user.update')) {
+            abort(403, 'Anda tidak memiliki akses untuk mengedit pengguna.');
+        }
+
         // Proteksi tambahan: Jangan izinkan edit diri sendiri lewat URL manual
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.manage-users.index')->with('error', 'Gunakan menu Profil untuk mengedit akun Anda.');
@@ -64,6 +84,11 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        // Check permission: user.update
+        if (!auth()->user()->hasPermissionTo('user.update')) {
+            abort(403, 'Anda tidak memiliki akses untuk mengedit pengguna.');
+        }
+
         $validated = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'unique:users,email,' . $user->id],
@@ -90,6 +115,11 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Check permission: user.delete
+        if (!auth()->user()->hasPermissionTo('user.delete')) {
+            abort(403, 'Anda tidak memiliki akses untuk menghapus pengguna.');
+        }
+
         $userName = $user->name;
         $user->delete();
 

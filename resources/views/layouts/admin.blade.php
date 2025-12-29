@@ -153,18 +153,28 @@
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Management</p>
                 <div class="space-y-1">
-                    {{-- User Management: Super Admin Only --}}
-                    @can('viewAny', App\Models\User::class)
+                    {{-- User Management: Check permission user.view --}}
+                    @if(auth()->user()->hasPermissionTo('user.view'))
                     <a href="{{ route('admin.manage-users.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.manage-users.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-user-settings-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">User Access</span>
                     </a>
-                    @endcan
+                    @endif
 
-                    {{-- Orders: Admin & Super Admin --}}
-                    @if(auth()->user()->hasAnyRole(['admin', 'super_admin']))
+                    {{-- Permissions Management: Check permission role.view --}}
+                    @if(auth()->user()->hasPermissionTo('role.view'))
+                    <a href="{{ route('admin.permissions.select-user') }}"
+                        class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.permissions.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
+                        <i class="ri-shield-check-line text-lg"></i>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Permissions</span>
+                    </a>
+                    @endif
+
+                    {{-- Orders: Check permission order.view --}}
+                    @if(auth()->user()->hasPermissionTo('order.view'))
                     <a href="{{ route('admin.orders.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.orders.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-shopping-cart-line text-lg"></i>
@@ -173,8 +183,8 @@
                     </a>
                     @endif
 
-                    {{-- Categories: Admin & Super Admin --}}
-                    @if(auth()->user()->hasAnyRole(['admin', 'super_admin']))
+                    {{-- Categories: Check permission category.view --}}
+                    @if(auth()->user()->hasPermissionTo('category.view'))
                     <a href="{{ route('admin.categories.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.categories.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-price-tag-3-line text-lg"></i>
@@ -183,8 +193,8 @@
                     </a>
                     @endif
 
-                    {{-- Menus: Admin & Super Admin --}}
-                    @if(auth()->user()->hasAnyRole(['admin', 'super_admin']))
+                    {{-- Menus: Check permission menu.view --}}
+                    @if(auth()->user()->hasPermissionTo('menu.view'))
                     <a href="{{ route('admin.menus.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.menus.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-restaurant-line text-lg"></i>
@@ -193,8 +203,8 @@
                     </a>
                     @endif
 
-                    {{-- Tables/Barcode: Admin & Super Admin --}}
-                    @if(auth()->user()->hasAnyRole(['admin', 'super_admin']))
+                    {{-- Tables/Barcode: Check permission table.view --}}
+                    @if(auth()->user()->hasPermissionTo('table.view'))
                     <a href="{{ route('admin.tables.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.tables.*') || request()->routeIs('admin.barcode.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-qr-code-line text-lg"></i>
@@ -319,7 +329,7 @@
         <!-- FOOTER -->
         <footer
             class="px-12 py-6 flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest border-t border-slate-100 dark:border-white/5">
-            <p>&copy; {{ date('Y') }} Billiard CMS v1.0.4</p>
+            <p>&copy; {{ date('Y') }} Class Billiard v1.0.0</p>
             <div class="flex items-center gap-4">
                 <span class="flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>

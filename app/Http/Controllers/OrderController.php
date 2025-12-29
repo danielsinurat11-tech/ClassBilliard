@@ -25,6 +25,43 @@ use Carbon\Carbon;
 
 class OrderController extends Controller
 {
+    /**
+     * Helper: Add shift filter to query
+     * - Super admin: no filter (lihat semua shift)
+     * - Regular admin: filter by their shift_id
+     * - Kitchen: has separate dashboard
+     */
+    private function applyShiftFilter($query, $user)
+    {
+        // Super admin lihat semua data (no filter)
+        if ($user->hasRole('super_admin')) {
+            return $query;
+        }
+        
+        // Regular admin filter by their shift
+        if ($user->shift_id) {
+            return $query->where('shift_id', $user->shift_id);
+        }
+        
+        // No shift assigned - return empty
+        return $query->whereRaw('1=0');
+    }
+
+    /**
+     * Helper: Check if user can access order
+     * - Super admin: can access any
+     * - Regular admin: only their shift
+     * - Kitchen: separate access control
+     */
+    private function canAccessOrder($user, $order)
+    {
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+        
+        return $order->shift_id === $user->shift_id;
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -39,13 +76,22 @@ class OrderController extends Controller
             'items.*.image' => 'nullable|string',
         ]);
 
+        // Get active shift based on current time
+        $activeShift = Shift::getActiveShift();
+
+        // Validasi: Order hanya bisa dibuat jika ada active shift
+        if (!$activeShift) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan tidak bisa dibuat di luar jam operasional. Silakan cek jam buka restoran.',
+                'error' => 'no_active_shift'
+            ], 422);
+        }
+
         $totalPrice = 0;
         foreach ($request->items as $item) {
             $totalPrice += $item['price'] * $item['quantity'];
         }
-
-        // Get active shift based on current time
-        $activeShift = Shift::getActiveShift();
 
         $order = orders::create([
             'customer_name' => $request->customer_name,
@@ -54,7 +100,7 @@ class OrderController extends Controller
             'total_price' => $totalPrice,
             'payment_method' => $request->payment_method,
             'status' => 'processing', // Langsung processing agar langsung muncul di dapur tanpa perlu konfirmasi admin
-            'shift_id' => $activeShift ? $activeShift->id : null
+            'shift_id' => $activeShift->id
         ]);
 
         foreach ($request->items as $item) {
@@ -373,17 +419,19 @@ class OrderController extends Controller
      * Optimization:
      * - Eager load orderItems (prevent N+1 queries)
      * - Filter by shift_id with authorization check
-     * - Limit to 100 orders for performance
+     * - Super admin sees all shifts, regular admin sees only their shift
      */
     public function adminIndex()
     {
         $user = Auth::user();
         
-        // Authorization check
-        $this->authorize('viewAny', orders::class);
+        // Authorization check: user must have order.view permission
+        if (!$user->hasPermissionTo('order.view')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat daftar order.');
+        }
         
-        // Validation: User must be assigned to a shift
-        if (!$user->shift_id) {
+        // Super admin atau regular admin dengan shift_id
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
             return view('admin.orders.index', [
                 'allOrders' => collect([]),
                 'tables' => collect([])
@@ -391,9 +439,8 @@ class OrderController extends Controller
         }
         
         // Eager load orderItems to prevent N+1 queries
-        // Filter by user's shift and order by status priority
-        $allOrders = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
-            ->where('shift_id', $user->shift_id)
+        // Apply shift filter (super_admin: all, regular admin: by shift)
+        $query = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->orderByRaw("CASE 
                 WHEN status = 'processing' THEN 1 
                 WHEN status = 'completed' THEN 2 
@@ -402,8 +449,9 @@ class OrderController extends Controller
                 ELSE 5 
             END")
             ->orderBy('created_at', 'desc')
-            ->limit(100)
-            ->get();
+            ->limit(100);
+        
+        $allOrders = $this->applyShiftFilter($query, $user)->get();
 
         // Eager load tables with select to minimize data transfer
         $tables = meja_billiard::select('id', 'name', 'number', 'status')
@@ -523,13 +571,17 @@ class OrderController extends Controller
     public function approve($id)
     {
         $user = Auth::user();
-        $this->authorize('update', orders::class);
+        
+        // Check permission
+        if (!$user->hasPermissionTo('order.update')) {
+            abort(403, 'Anda tidak memiliki akses untuk mengapprove order.');
+        }
         
         // Eager load to minimize queries
         $order = orders::findOrFail($id);
         
-        // Authorization: Check if order belongs to user's shift
-        if ($order->shift_id !== $user->shift_id) {
+        // Authorization: Check if order belongs to user's shift (or super_admin)
+        if (!$this->canAccessOrder($user, $order)) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
         
@@ -554,13 +606,17 @@ class OrderController extends Controller
     public function reject($id)
     {
         $user = Auth::user();
-        $this->authorize('update', orders::class);
+        
+        // Check permission
+        if (!$user->hasPermissionTo('order.update')) {
+            abort(403, 'Anda tidak memiliki akses untuk menolak order.');
+        }
         
         // Eager load to minimize queries
         $order = orders::findOrFail($id);
         
-        // Authorization: Check if order belongs to user's shift
-        if ($order->shift_id !== $user->shift_id) {
+        // Authorization: Check if order belongs to user's shift (or super_admin)
+        if (!$this->canAccessOrder($user, $order)) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
         
@@ -589,13 +645,17 @@ class OrderController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        $this->authorize('delete', orders::class);
+        
+        // Check permission
+        if (!$user->hasPermissionTo('order.delete')) {
+            abort(403, 'Anda tidak memiliki akses untuk menghapus order.');
+        }
         
         // Eager load orderItems for deletion
         $order = orders::with('orderItems:id,order_id')->findOrFail($id);
         
-        // Authorization: Check if order belongs to user's shift
-        if ($order->shift_id !== $user->shift_id) {
+        // Authorization: Check if order belongs to user's shift (or super_admin)
+        if (!$this->canAccessOrder($user, $order)) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
         
@@ -719,24 +779,26 @@ class OrderController extends Controller
      * Optimization:
      * - Eager load orderItems to prevent N+1 queries
      * - Filter by user's shift and status = 'processing'
+     * - Super admin sees all shifts
      * - Select only needed columns
      */
     public function activeOrders()
     {
         $user = Auth::user();
         
-        // Validation: User must be assigned to a shift
-        if (!$user->shift_id) {
+        // Validation: User must be assigned to a shift or be super_admin
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
             return response()->json(['orders' => []]);
         }
         
         // Eager load orderItems with specific columns to prevent N+1
-        $orders = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('status', 'processing')
-            ->where('shift_id', $user->shift_id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
+        
+        // Apply shift filter
+        $orders = $this->applyShiftFilter($query, $user)->get();
 
         return response()->json([
             'orders' => $orders->map(function ($order) {
@@ -775,9 +837,11 @@ class OrderController extends Controller
         $month = $request->get('month', Carbon::now()->format('Y-m'));
         $year = $request->get('year', Carbon::now()->format('Y'));
 
-        // Get current user's shift - WAJIB filter berdasarkan shift user
+        // Get current user
         $user = Auth::user();
-        if (!$user->shift_id) {
+        
+        // Super admin or user with shift_id
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.',
@@ -786,16 +850,14 @@ class OrderController extends Controller
                 'total_orders' => 0
             ], 400);
         }
-        
-        $shiftId = $user->shift_id; // Selalu gunakan shift user yang login
 
         // Ambil dari kitchen_reports (data yang sudah tersimpan permanen)
         $kitchenReportsQuery = KitchenReport::query();
         
-        // Filter by shift if specified - KitchenReport has order_id, so we need to join with orders
-        if ($shiftId) {
-            $kitchenReportsQuery->whereHas('order', function($q) use ($shiftId) {
-                $q->where('shift_id', $shiftId);
+        // Filter by shift - apply based on user role
+        if (!$user->hasRole('super_admin') && $user->shift_id) {
+            $kitchenReportsQuery->whereHas('order', function($q) use ($user) {
+                $q->where('shift_id', $user->shift_id);
             });
         }
 
@@ -811,8 +873,8 @@ class OrderController extends Controller
         $kitchenReports = $kitchenReportsQuery->orderBy('completed_at', 'desc')->get();
         
         // Also filter kitchen reports by shift_id if specified
-        if ($shiftId) {
-            $kitchenReportOrderIds = orders::where('shift_id', $shiftId)->pluck('id')->toArray();
+        if (!$user->hasRole('super_admin') && $user->shift_id) {
+            $kitchenReportOrderIds = orders::where('shift_id', $user->shift_id)->pluck('id')->toArray();
             $kitchenReports = $kitchenReports->filter(function($report) use ($kitchenReportOrderIds) {
                 return in_array($report->order_id, $kitchenReportOrderIds);
             });
@@ -822,9 +884,9 @@ class OrderController extends Controller
         $ordersQuery = orders::with('orderItems')
             ->where('status', 'completed');
         
-        // Filter by shift if specified
-        if ($shiftId) {
-            $ordersQuery->where('shift_id', $shiftId);
+        // Filter by shift if not super_admin
+        if (!$user->hasRole('super_admin') && $user->shift_id) {
+            $ordersQuery->where('shift_id', $user->shift_id);
         }
 
         if ($type === 'daily') {
@@ -1499,15 +1561,20 @@ class OrderController extends Controller
         
         if (!$user->shift_id) {
             return view('admin.orders.recap', [
-                'reports' => collect([])->paginate(20)
+                'reports' => new \Illuminate\Pagination\Paginator([], 20)
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
 
         // Query dasar untuk tutup hari
-        $query = Report::where(function($q) use ($user) {
-                $q->where('shift_id', $user->shift_id)
-                  ->orWhereNull('shift_id'); // Tampilkan juga rekap lama yang belum punya shift_id
-            });
+        // Super admin lihat semua, regular admin filter by shift
+        if ($user->hasRole('super_admin')) {
+            $query = Report::query();
+        } else {
+            $query = Report::where(function($q) use ($user) {
+                    $q->where('shift_id', $user->shift_id)
+                      ->orWhereNull('shift_id'); // Tampilkan juga rekap lama yang belum punya shift_id
+                });
+        }
 
         // Filter berdasarkan tanggal - default ke tanggal hari ini jika tidak ada filter
         $filterDate = $request->has('filter_date') && $request->filter_date 
@@ -1533,8 +1600,8 @@ class OrderController extends Controller
         $user = Auth::user();
         $report = Report::findOrFail($id);
         
-        // Pastikan user hanya bisa melihat tutup hari shift mereka sendiri
-        if ($report->shift_id != $user->shift_id) {
+        // Pastikan user hanya bisa melihat tutup hari shift mereka sendiri (atau super_admin)
+        if (!$user->hasRole('super_admin') && $report->shift_id != $user->shift_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki akses ke tutup hari ini.'

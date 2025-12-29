@@ -15,39 +15,39 @@ use App\Models\User;
 class TablePolicy
 {
     /**
-     * View any tables - allowed for admin and super_admin
+     * View any tables - check table.view permission
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['admin', 'super_admin']);
+        return $user->hasPermissionTo('table.view');
     }
 
     /**
-     * View a table - allowed for admin and super_admin
+     * View a table - check table.view permission
      */
     public function view(User $user, meja_billiard $table): bool
     {
-        return $user->hasRole(['admin', 'super_admin']);
+        return $user->hasPermissionTo('table.view');
     }
 
     /**
-     * Create table - only super_admin
+     * Create table - check table.create permission
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('table.create');
     }
 
     /**
-     * Update table - only super_admin
+     * Update table - check table.update permission
      */
     public function update(User $user, meja_billiard $table): bool
     {
-        return $user->hasRole('super_admin');
+        return $user->hasPermissionTo('table.update');
     }
 
     /**
-     * Delete table - only super_admin
+     * Delete table - check table.delete permission
      */
     public function delete(User $user, meja_billiard $table): bool
     {
