@@ -124,21 +124,14 @@
     @push('scripts')
         <script>
             function confirmDelete(button) {
-                Swal.fire({
+                showAlert({
                     title: 'Hapus Item?',
                     text: "Data ini akan dihapus permanen dari katalog menu.",
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#fa9a08',
-                    cancelButtonColor: '#1e1e1e',
+                    cancelButtonColor: '#64748b',
                     confirmButtonText: 'Ya, Hapus',
-                    background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
-                    color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
-                    customClass: {
-                        popup: 'rounded-lg border border-white/5 shadow-2xl',
-                        confirmButton: 'rounded-md text-[10px] font-bold px-6 py-3',
-                        cancelButton: 'rounded-md text-[10px] font-bold px-6 py-3'
-                    }
+                    cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         button.closest('form').submit();

@@ -123,9 +123,9 @@ class CheckShiftTime
             $request->session()->regenerateToken();
 
             // Flash error message
-            session()->flash('error', "⏛ Shift Anda telah berakhir. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).");
+            session()->flash('error', "⏛ Anda hanya bisa login saat jam shift aktif. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).");
 
-            return redirect('/login')->with('shift_blocked', true);
+            return redirect('/');
         }
 
         // Check if within 30 min before start or 30 min after end for warning

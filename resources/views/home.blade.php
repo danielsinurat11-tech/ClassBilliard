@@ -157,8 +157,14 @@
                 title: 'Akses Ditolak',
                 text: '{{ session("error") }}',
                 icon: 'error',
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'Mengerti'
+                background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
+                color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                confirmButtonColor: '#fa9a08',
+                confirmButtonText: 'Mengerti',
+                customClass: {
+                    popup: 'rounded-lg border border-white/5',
+                    confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5'
+                }
             });
         @endif
     </script>

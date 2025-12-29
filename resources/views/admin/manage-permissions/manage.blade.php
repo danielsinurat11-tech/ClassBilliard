@@ -217,77 +217,102 @@
 
 @push('scripts')
 <script>
-    // Real-time status badge update saat checkbox di klik
-    document.querySelectorAll('input[name="permissions[]"]').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const label = this.closest('label');
-            const statusBadge = label.querySelector('span:last-child');
-            
-            if (this.checked) {
-                // Change to Aktif (green)
-                statusBadge.className = 'inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 whitespace-nowrap';
-                statusBadge.innerHTML = '<i class="ri-check-line mr-1"></i>Aktif';
-            } else {
-                // Change to Nonaktif (gray)
-                statusBadge.className = 'inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 whitespace-nowrap';
-                statusBadge.innerHTML = '<i class="ri-close-line mr-1"></i>Nonaktif';
-            }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Store initial checkbox states for reset functionality
+        const initialStates = {};
+        document.querySelectorAll('input[name="permissions[]"]').forEach(checkbox => {
+            initialStates[checkbox.value] = checkbox.checked;
         });
-    });
 
-    document.getElementById('permissionsForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const submitBtn = document.getElementById('submitBtn');
-        const successMsg = document.getElementById('successMessage');
-        const errorMsg = document.getElementById('errorMessage');
-        const originalBtnHTML = submitBtn.innerHTML;
-        
-        // Show loading state
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Menyimpan...';
-        successMsg.classList.add('hidden');
-        errorMsg.classList.add('hidden');
-        
-        try {
-            const formData = new FormData(this);
-            const permissions = formData.getAll('permissions[]');
-            
-            const response = await fetch('{{ route("admin.permissions.update", $user->id) }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                },
-                body: JSON.stringify({
-                    permissions: permissions
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                document.getElementById('successText').textContent = result.message;
-                successMsg.classList.remove('hidden');
-                successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Real-time status badge update saat checkbox di klik
+        document.querySelectorAll('input[name="permissions[]"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const label = this.closest('label');
+                const statusBadge = label.querySelector('span:last-child');
                 
-                // Redirect to permissions select-user page after 2 seconds
-                setTimeout(() => {
-                    window.location.href = result.redirect_url;
-                }, 2000);
-            } else {
-                document.getElementById('errorText').textContent = result.message;
+                if (this.checked) {
+                    // Change to Aktif (green)
+                    statusBadge.className = 'inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 whitespace-nowrap';
+                    statusBadge.innerHTML = '<i class="ri-check-line mr-1"></i>Aktif';
+                } else {
+                    // Change to Nonaktif (gray)
+                    statusBadge.className = 'inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 whitespace-nowrap';
+                    statusBadge.innerHTML = '<i class="ri-close-line mr-1"></i>Nonaktif';
+                }
+            });
+        });
+
+        // Reset button functionality
+        const resetBtn = document.querySelector('button[type="reset"]');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Uncheck semua permissions (UI saja, database tetap)
+                document.querySelectorAll('input[name="permissions[]"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                    
+                    // Trigger change event to update badge ke nonaktif
+                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            });
+        }
+
+        // Form submit functionality
+        document.getElementById('permissionsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            const originalBtnHTML = submitBtn.innerHTML;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Menyimpan...';
+            successMsg.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+            
+            try {
+                const formData = new FormData(this);
+                const permissions = formData.getAll('permissions[]');
+                
+                const response = await fetch('{{ route("admin.permissions.update", $user->id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        permissions: permissions
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('successText').textContent = result.message;
+                    successMsg.classList.remove('hidden');
+                    successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    // Redirect to permissions select-user page after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = result.redirect_url;
+                    }, 2000);
+                } else {
+                    document.getElementById('errorText').textContent = result.message;
+                    errorMsg.classList.remove('hidden');
+                    errorMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            } catch (error) {
+                document.getElementById('errorText').textContent = 'Terjadi kesalahan: ' + error.message;
                 errorMsg.classList.remove('hidden');
                 errorMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHTML;
             }
-        } catch (error) {
-            document.getElementById('errorText').textContent = 'Terjadi kesalahan: ' + error.message;
-            errorMsg.classList.remove('hidden');
-            errorMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnHTML;
-        }
+        });
     });
 </script>
 @endpush

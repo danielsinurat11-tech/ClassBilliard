@@ -102,10 +102,10 @@
                 </div>
             </div>
 
-            <!-- Group: Website CMS (Super Admin & Admin only) -->
+            <!-- Group: Website CMS - Only if user has admin role (super_admin or admin) -->
             @if(auth()->user()->hasAnyRole(['super_admin', 'admin']))
             <div
-                x-data="{ open: {{ request()->routeIs('admin.hero', 'admin.tentang-kami', 'admin.about-founder', 'admin.keunggulan-fasilitas', 'admin.portfolio-achievement', 'admin.tim-kami', 'admin.testimoni-pelanggan', 'admin.event', 'admin.footer') ? 'true' : 'false' }} }">
+                x-data="{ open: {{ request()->routeIs('admin.cms.hero', 'admin.cms.tentang-kami', 'admin.cms.about-founder', 'admin.cms.keunggulan-fasilitas', 'admin.cms.portfolio-achievement', 'admin.cms.tim-kami', 'admin.cms.testimoni-pelanggan', 'admin.cms.event', 'admin.cms.footer') ? 'true' : 'false' }} }">
                 <p x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Content</p>
@@ -415,6 +415,36 @@
                 });
             }
         });
+
+        // Helper function untuk SweetAlert2 dengan theme konsisten
+        window.showAlert = function(config = {}) {
+            const isDark = document.documentElement.classList.contains('dark');
+            const defaultConfig = {
+                background: isDark ? '#0A0A0A' : '#fff',
+                color: isDark ? '#fff' : '#000',
+                confirmButtonColor: '#fa9a08',
+                customClass: {
+                    popup: 'rounded-lg border border-white/5',
+                    confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5',
+                    cancelButton: 'rounded-md text-xs font-bold px-5 py-2.5'
+                }
+            };
+            return Swal.fire({ ...defaultConfig, ...config });
+        };
+
+        // Observer untuk deteksi perubahan dark mode dan update alert jika terbuka
+        const observer = new MutationObserver(() => {
+            const popup = document.querySelector('.swal2-container');
+            if (popup && popup.offsetParent !== null) { // Alert sedang tampil
+                const isDark = document.documentElement.classList.contains('dark');
+                popup.style.background = isDark ? 'rgba(10, 10, 10, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+                const title = popup.querySelector('.swal2-title');
+                const html = popup.querySelector('.swal2-html-container');
+                if (title) title.style.color = isDark ? '#fff' : '#000';
+                if (html) html.style.color = isDark ? '#fff' : '#000';
+            }
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     </script>
     @stack('scripts')
 </body>

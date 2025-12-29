@@ -5,6 +5,36 @@
 @section('content')
     <div class="space-y-10 animate-in fade-in duration-700">
 
+        <!-- ERROR ALERT: Shift Not Assigned -->
+        @if(session('error'))
+            <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-3">
+                <i class="ri-error-warning-fill text-red-500 text-xl mt-0.5"></i>
+                <div>
+                    <p class="text-sm font-bold text-red-600 dark:text-red-400">Perhatian!</p>
+                    <p class="text-sm text-red-600 dark:text-red-400 mt-1">{{ session('error') }}</p>
+                </div>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Shift Belum Di-Assign',
+                        html: '<div class="text-left"><p class="text-sm text-gray-700 dark:text-gray-300 mb-3">Anda belum di-assign ke shift apapun.</p><p class="text-sm text-gray-700 dark:text-gray-300">Silakan hubungi Super Admin untuk di-assign ke shift terlebih dahulu sebelum dapat mengakses fitur operasional.</p></div>',
+                        confirmButtonColor: '#fa9a08',
+                        confirmButtonText: 'Mengerti',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                        customClass: {
+                            popup: 'rounded-lg border border-white/5',
+                            confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5'
+                        }
+                    });
+                });
+            </script>
+        @endif
+
         <!-- HEADER: Professional & Utility-Focused -->
         <div
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8">

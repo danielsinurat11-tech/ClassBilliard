@@ -273,56 +273,20 @@ class RoleAndPermissionSeeder extends Seeder
     }
 
     /**
-     * Assign permissions to admin role (22 permissions)
+     * Assign permissions to admin role (3 permissions)
      * 
      * Admin can:
-     * - View orders (read-only)
-     * - View/confirm payments (read-only)
-     * - Full control of menus & categories
-     * - Full control of tables
-     * - Full access to reports
+     * - Handle incoming orders ONLY (view, show, cancel)
+     * - Website CMS access (via role-based check)
+     * - All other features (menus, categories, tables, payments, reports) require explicit permission grant by super_admin
      */
     private function assignAdminPermissions($role): void
     {
         $permissions = [
-            // ORDER (4) - Read-only access
+            // ORDER (3) - Handle incoming orders ONLY
             'order.view',
-            'order.view_history',
             'order.show',
             'order.cancel',
-
-            // PAYMENT (3) - Read-only access
-            'payment.view',
-            'payment.view_reports',
-            'payment.export',
-
-            // MENU (7) - Full control
-            'menu.view',
-            'menu.create',
-            'menu.update',
-            'menu.delete',
-            'menu.toggle_availability',
-            'menu.view_categories',
-
-            // CATEGORY (4) - Full control
-            'category.view',
-            'category.create',
-            'category.update',
-            'category.delete',
-
-            // TABLE (5) - Full control
-            'table.view',
-            'table.manage',
-            'table.create',
-            'table.update',
-            'table.delete',
-
-            // REPORT (5) - Full access
-            'report.view',
-            'report.view_sales',
-            'report.view_hourly',
-            'report.export',
-            'report.send_email',
         ];
 
         $role->syncPermissions($permissions);

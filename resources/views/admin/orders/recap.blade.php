@@ -578,11 +578,10 @@
                 modal.classList.add('flex');
             })
             .catch(error => {
-                Swal.fire({
+                showAlert({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Gagal memuat detail tutup hari',
-                    confirmButtonColor: '#8b5cf6'
+                    text: 'Gagal memuat detail tutup hari'
                 });
             });
     }
@@ -747,16 +746,15 @@
         const endDate = document.getElementById('updateEndDate').value;
         
         if (!startDate || !endDate) {
-            Swal.fire({
+            showAlert({
                 icon: 'error',
                 title: 'Error',
-                text: 'Mohon isi tanggal mulai dan tanggal akhir',
-                confirmButtonColor: '#f97316'
+                text: 'Mohon isi tanggal mulai dan tanggal akhir'
             });
             return;
         }
 
-        Swal.fire({
+        showAlert({
             title: 'Memperbarui Tutup Hari...',
             text: 'Mohon tunggu sebentar',
             allowOutsideClick: false,
@@ -781,29 +779,26 @@
             const result = await response.json();
 
             if (result.success) {
-                Swal.fire({
+                showAlert({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: result.message,
-                    confirmButtonColor: '#f97316'
+                    text: result.message
                 }).then(() => {
                     closeUpdateRecapModal();
                     location.reload();
                 });
             } else {
-                Swal.fire({
+                showAlert({
                     icon: 'error',
                     title: 'Gagal',
-                    text: result.message,
-                    confirmButtonColor: '#f97316'
+                    text: result.message
                 });
             }
         } catch (error) {
-            Swal.fire({
+            showAlert({
                 icon: 'error',
                 title: 'Error',
-                text: 'Terjadi kesalahan saat memperbarui tutup hari',
-                confirmButtonColor: '#f97316'
+                text: 'Terjadi kesalahan saat memperbarui tutup hari'
             });
         }
     });
@@ -960,7 +955,7 @@
 
     // Send recap email
     function sendRecapEmail(reportId) {
-        Swal.fire({
+        showAlert({
             title: 'Kirim Tutup Hari ke Email',
             html: `
                 <div class="text-left">
@@ -971,8 +966,7 @@
             showCancelButton: true,
             confirmButtonText: 'Kirim',
             cancelButtonText: 'Batal',
-            confirmButtonColor: '#8b5cf6',
-            cancelButtonColor: '#6b7280',
+            cancelButtonColor: '#64748b',
             preConfirm: () => {
                 const email = document.getElementById('recapEmail').value;
                 if (!email) {
@@ -989,7 +983,7 @@
             if (result.isConfirmed) {
                 const email = result.value;
                 
-                Swal.fire({
+                showAlert({
                     title: 'Mengirim Email...',
                     text: 'Mohon tunggu sebentar',
                     allowOutsideClick: false,
@@ -1011,27 +1005,24 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        Swal.fire({
+                        showAlert({
                             icon: 'success',
                             title: 'Berhasil!',
-                            text: data.message,
-                            confirmButtonColor: '#8b5cf6'
+                            text: data.message
                         });
                     } else {
-                        Swal.fire({
+                        showAlert({
                             icon: 'error',
                             title: 'Gagal',
-                            text: data.message,
-                            confirmButtonColor: '#8b5cf6'
+                            text: data.message
                         });
                     }
                 })
                 .catch(error => {
-                    Swal.fire({
+                    showAlert({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Terjadi kesalahan saat mengirim email',
-                        confirmButtonColor: '#8b5cf6'
+                        text: 'Terjadi kesalahan saat mengirim email'
                     });
                 });
             }

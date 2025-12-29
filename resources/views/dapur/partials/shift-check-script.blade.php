@@ -19,17 +19,14 @@
             // Shift telah berakhir - logout otomatis
             let message = 'Shift Anda telah berakhir. Anda akan di-logout.';
             
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
+            if (typeof showAlert !== 'undefined') {
+                showAlert({
                     icon: 'info',
                     title: 'Shift Berakhir',
                     html: `<p class="text-lg mb-2">${message}</p>`,
                     confirmButtonText: 'OK',
-                    confirmButtonColor: '#fa9a08',
                     allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
-                    color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    allowEscapeKey: false
                 }).then(() => {
                     performLogout();
                 });
@@ -57,17 +54,15 @@
                 }
                 
                 // Show SweetAlert notification
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
+                if (typeof showAlert !== 'undefined') {
+                    showAlert({
                         icon: 'warning',
                         title: '⏰ Peringatan!',
                         html: `<p class="text-lg mb-2">Shift akan berakhir dalam <strong>${minutesUntilEnd} menit</strong>!</p><p class="text-sm">Jangan lupa untuk <strong>Tutup Hari</strong> sebelum shift berakhir.</p>`,
                         confirmButtonText: 'Ke Halaman Tutup Hari',
-                        confirmButtonColor: '#fa9a08',
                         showCancelButton: true,
                         cancelButtonText: 'Nanti',
-                        background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
-                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                        cancelButtonColor: '#64748b'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = '{{ route("tutup-hari") }}';

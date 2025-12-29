@@ -37,19 +37,11 @@
             </div>
         @endif
 
-        @if(session('error'))
-            <div
-                class="mb-6 flex items-center gap-3 bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-md animate-in slide-in-from-top-4 duration-300">
-                <i class="ri-error-warning-fill text-red-500"></i>
-                <span class="text-[11px] font-bold text-red-500 uppercase tracking-widest">{{ session('error') }}</span>
-            </div>
-        @endif
-
         <!-- TABLE FILTER (Sleek Control Panel) -->
         <div class="mb-10">
-            <label
-                class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em] block mb-4">Filter
-                By Station / Table</label>
+            <label class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em] block mb-4">
+                Filter By Station / Table
+            </label>
             <div class="flex flex-wrap gap-2">
                 <!-- All Tables -->
                 <button @click="currentFilter = 'all'; filterByTable('all')"

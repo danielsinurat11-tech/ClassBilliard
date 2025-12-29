@@ -703,16 +703,30 @@
         document.getElementById('totalPrice').textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
     }
 
+    // Helper function untuk SweetAlert dengan tema dark customer page
+    function showCustomerAlert(config = {}) {
+        const defaultConfig = {
+            background: '#1a1a1a',
+            color: '#fff',
+            confirmButtonColor: '#fa9a08',
+            customClass: {
+                popup: 'rounded-lg border border-purple-500/30',
+                confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5',
+                cancelButton: 'rounded-md text-xs font-bold px-5 py-2.5'
+            }
+        };
+        return Swal.fire({ ...defaultConfig, ...config });
+    }
+
     async function removeItem(itemId) {
-        const result = await Swal.fire({
+        const result = await showCustomerAlert({
             title: 'Hapus Item?',
             text: 'Item ini akan dihapus dari pesanan',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Ya, Hapus',
-            cancelButtonText: 'Batal'
+            cancelButtonText: 'Batal',
+            cancelButtonColor: '#64748b'
         });
 
         if (result.isConfirmed) {
@@ -749,14 +763,14 @@
                         showConfirmButton: false
                     });
                 } else {
-                    Swal.fire({
+                    showCustomerAlert({
                         icon: 'error',
                         title: 'Gagal',
                         text: data.message || 'Gagal menghapus item'
                     });
                 }
             } catch (error) {
-                Swal.fire({
+                showCustomerAlert({
                     icon: 'error',
                     title: 'Error',
                     text: 'Terjadi kesalahan saat menghapus item'
@@ -779,7 +793,7 @@
         });
 
         if (items.length === 0) {
-            Swal.fire({
+            showCustomerAlert({
                 icon: 'warning',
                 title: 'Peringatan',
                 text: 'Pesanan tidak boleh kosong. Silakan tambah item atau batalkan pesanan.'
@@ -800,7 +814,7 @@
             const data = await response.json();
 
             if (data.success) {
-                Swal.fire({
+                showCustomerAlert({
                     icon: 'success',
                     title: 'Berhasil',
                     text: 'Pesanan berhasil diupdate',
@@ -810,14 +824,14 @@
                     location.reload();
                 });
             } else {
-                Swal.fire({
+                showCustomerAlert({
                     icon: 'error',
                     title: 'Gagal',
                     text: data.message || 'Gagal mengupdate pesanan'
                 });
             }
         } catch (error) {
-            Swal.fire({
+            showCustomerAlert({
                 icon: 'error',
                 title: 'Error',
                 text: 'Terjadi kesalahan saat mengupdate pesanan'
@@ -827,15 +841,14 @@
 
     // Cancel order
     document.getElementById('cancelOrderBtn').addEventListener('click', async function() {
-        const result = await Swal.fire({
+        const result = await showCustomerAlert({
             title: 'Batalkan Pesanan?',
             text: 'Pesanan akan dibatalkan dan dihapus. Tindakan ini tidak dapat dibatalkan.',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Ya, Batalkan',
-            cancelButtonText: 'Tidak'
+            cancelButtonText: 'Tidak',
+            cancelButtonColor: '#64748b'
         });
 
         if (result.isConfirmed) {
@@ -851,7 +864,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    Swal.fire({
+                    showCustomerAlert({
                         icon: 'success',
                         title: 'Berhasil',
                         text: 'Pesanan berhasil dibatalkan',
@@ -861,14 +874,14 @@
                         window.location.href = '{{ route("menu") }}';
                     });
                 } else {
-                    Swal.fire({
+                    showCustomerAlert({
                         icon: 'error',
                         title: 'Gagal',
                         text: data.message || 'Gagal membatalkan pesanan'
                     });
                 }
             } catch (error) {
-                Swal.fire({
+                showCustomerAlert({
                     icon: 'error',
                     title: 'Error',
                     text: 'Terjadi kesalahan saat membatalkan pesanan'

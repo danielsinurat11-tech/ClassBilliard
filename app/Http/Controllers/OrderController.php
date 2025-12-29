@@ -430,16 +430,15 @@ class OrderController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk melihat daftar order.');
         }
         
-        // Super admin atau regular admin dengan shift_id
+        // Only regular admin (NOT super_admin) without shift_id gets blocked
+        // Super admin ALWAYS has access to all shifts data regardless of shift assignment
         if (!$user->hasRole('super_admin') && !$user->shift_id) {
-            return view('admin.orders.index', [
-                'allOrders' => collect([]),
-                'tables' => collect([])
-            ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
         
         // Eager load orderItems to prevent N+1 queries
-        // Apply shift filter (super_admin: all, regular admin: by shift)
+        // Apply shift filter: super_admin gets all orders from all shifts, regular admin gets only their shift
         $query = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->orderByRaw("CASE 
                 WHEN status = 'processing' THEN 1 
@@ -454,7 +453,7 @@ class OrderController extends Controller
         $allOrders = $this->applyShiftFilter($query, $user)->get();
 
         // Eager load tables with select to minimize data transfer
-        $tables = meja_billiard::select('id', 'name', 'number', 'status')
+        $tables = meja_billiard::select('id', 'name', 'room', 'slug', 'qrcode')
             ->orderBy('name', 'asc')
             ->get();
 

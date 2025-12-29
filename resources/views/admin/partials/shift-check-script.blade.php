@@ -16,17 +16,14 @@
             // Shift telah berakhir - logout otomatis
             let message = 'Shift Anda telah berakhir. Anda akan di-logout.';
             
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
+            if (typeof showAlert !== 'undefined') {
+                showAlert({
                     icon: 'info',
                     title: 'Shift Berakhir',
                     html: `<p class="text-lg mb-2">${message}</p>`,
                     confirmButtonText: 'OK',
-                    confirmButtonColor: '#fa9a08',
                     allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
-                    color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                    allowEscapeKey: false
                 }).then(() => {
                     performLogout();
                 });
@@ -54,15 +51,12 @@
                 }
                 
                 // Show SweetAlert notification
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
+                if (typeof showAlert !== 'undefined') {
+                    showAlert({
                         icon: 'warning',
                         title: '⏰ Peringatan!',
                         html: `<p class="text-lg mb-2">Shift akan berakhir dalam <strong>${minutesUntilEnd} menit</strong>!</p>`,
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#fa9a08',
-                        background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',
-                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#000',
+                        confirmButtonText: 'OK'
                     });
                 }
                 

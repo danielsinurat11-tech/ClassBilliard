@@ -24,21 +24,14 @@
             },
 
             handleLogout() {
-                Swal.fire({
+                showAlert({
                     title: 'Confirm Logout',
                     text: "Sesi administrasi akan diakhiri.",
                     icon: 'warning',
                     showCancelButton: true,
-                    background: this.darkMode ? '#0A0A0A' : '#fff',
-                    color: this.darkMode ? '#fff' : '#000',
-                    confirmButtonColor: '#fa9a08',
-                    cancelButtonColor: '#1e1e1e',
+                    cancelButtonColor: '#64748b',
                     confirmButtonText: 'Yes, Sign Out',
-                    customClass: {
-                        popup: 'rounded-lg border border-white/5',
-                        confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5',
-                        cancelButton: 'rounded-md text-xs font-bold px-5 py-2.5'
-                    }
+                    cancelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) performLogout();
                 });
