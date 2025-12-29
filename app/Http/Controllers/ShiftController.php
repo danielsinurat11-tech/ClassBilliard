@@ -99,4 +99,51 @@ class ShiftController extends Controller
         return back()->with('success', 'User berhasil dihapus dari shift.');
     }
 
+    /**
+     * Check shift status for current user (AJAX endpoint)
+     */
+    public function checkStatus()
+    {
+        $user = Auth::user();
+        
+        if (!$user || !$user->shift_id) {
+            return response()->json([
+                'shift_active' => false,
+                'message' => 'User tidak memiliki shift yang aktif'
+            ]);
+        }
+
+        $shift = $user->shift;
+        
+        if (!$shift || !$shift->is_active) {
+            return response()->json([
+                'shift_active' => false,
+                'message' => 'Shift tidak aktif'
+            ]);
+        }
+
+        $now = Carbon::now();
+        $shiftStart = Carbon::createFromFormat('H:i', $shift->start_time);
+        $shiftEnd = Carbon::createFromFormat('H:i', $shift->end_time);
+        
+        // Adjust for shifts that cross midnight
+        if ($shiftEnd->lt($shiftStart)) {
+            if ($now->lt($shiftStart)) {
+                $shiftStart->subDay();
+            } else {
+                $shiftEnd->addDay();
+            }
+        }
+
+        $isWithinShiftTime = $now->between($shiftStart, $shiftEnd);
+
+        return response()->json([
+            'shift_active' => $isWithinShiftTime,
+            'shift_name' => $shift->name,
+            'start_time' => $shift->start_time,
+            'end_time' => $shift->end_time,
+            'current_time' => $now->format('H:i:s')
+        ]);
+    }
+
 }

@@ -18,7 +18,8 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Styles / Scripts -->
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
@@ -149,6 +150,17 @@
                 nav.classList.add('h-24');
             }
         });
+
+        // Show error notification if exists in session
+        @if(session('error'))
+            Swal.fire({
+                title: 'Akses Ditolak',
+                text: '{{ session("error") }}',
+                icon: 'error',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Mengerti'
+            });
+        @endif
     </script>
 </body>
 

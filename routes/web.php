@@ -19,6 +19,7 @@ Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name
 // Kitchen Routes (Hanya untuk role kitchen)
 Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(function () {
     Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
+    Route::get('/shift/check', [App\Http\Controllers\ShiftController::class, 'checkStatus'])->name('shift.check');
     Route::get('/tutup-hari', [App\Http\Controllers\OrderController::class, 'tutupHari'])->name('tutup-hari');
     Route::get('/tutup-hari/struk', [App\Http\Controllers\OrderController::class, 'generateStrukHarian'])->name('tutup-hari.struk');
     Route::post('/tutup-hari/kirim-email', [App\Http\Controllers\OrderController::class, 'sendStrukHarianEmail'])->name('tutup-hari.kirim-email');
