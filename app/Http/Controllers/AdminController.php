@@ -543,6 +543,19 @@ class AdminController extends Controller
         return redirect()->route('admin.profile.edit')->with('success', 'Profil berhasil diperbarui.');
     }
 
+    public function profileColorUpdate(Request $request)
+    {
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'primary_color' => ['required', 'string', 'in:#fbbf24,#fa9a08,#2f7d7a'],
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('admin.profile.edit')->with('success', 'Warna preferensi berhasil diperbarui.');
+    }
+
     public function profilePassword(Request $request)
     {
         $user = auth()->user();

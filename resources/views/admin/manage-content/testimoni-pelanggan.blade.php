@@ -10,11 +10,11 @@
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
             <div class="space-y-1">
                 <a href="{{ route('admin.dashboard') }}"
-                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 mb-2" @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''">
                     <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Kembali ke Dashboard
                 </a>
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Customer <span
-                        class="text-[#fa9a08]">Testimonials</span></h1>
+                        style="color: var(--primary-color);">Testimonials</span></h1>
                 <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Kelola testimoni yang dikirim oleh pelanggan. Testimoni baru akan muncul setelah diaktifkan.</p>
             </div>
         </div>
@@ -46,7 +46,7 @@
             <div class="grid grid-cols-1 gap-8">
                 @foreach($testimonis as $testimoni)
                     <div
-                        class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#fa9a08]/50 p-8">
+                        class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden transition-all duration-300 p-8" @mouseenter="$el.style.borderColor = 'rgba(var(--primary-color-rgb), 0.5)'" @mouseleave="$el.style.borderColor = ''">
 
                         <div class="flex flex-col lg:flex-row gap-10">
                             <!-- Left: Profile & Visual -->
@@ -62,7 +62,7 @@
                                         </div>
                                     @endif
                                     <div
-                                        class="absolute -bottom-2 -right-2 bg-[#fa9a08] text-black w-6 h-6 rounded-md flex items-center justify-center text-xs border-2 border-white dark:border-[#0A0A0A]">
+                                        class="absolute -bottom-2 -right-2 text-black w-6 h-6 rounded-md flex items-center justify-center text-xs border-2 border-white dark:border-[#0A0A0A]" style="background-color: var(--primary-color);">
                                         <i class="ri-chat-quote-line"></i>
                                     </div>
                                 </div>
@@ -71,7 +71,7 @@
                                         {{ $testimoni->customer_name }}</h3>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                         {{ $testimoni->customer_role }}</p>
-                                    <div class="flex justify-center lg:justify-start gap-0.5 text-[#fa9a08] pt-2">
+                                    <div class="flex justify-center lg:justify-start gap-0.5 pt-2" style="color: var(--primary-color);">
                                         @for($i = 0; $i < 5; $i++)
                                             <i
                                                 class="{{ $i < $testimoni->rating ? 'ri-star-fill' : 'ri-star-line opacity-30' }} text-xs"></i>
@@ -91,7 +91,9 @@
                                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Update
                                                 Content</label>
                                             <textarea name="testimonial" rows="3"
-                                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $testimoni->testimonial }}</textarea>
+                                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white outline-none transition-all leading-relaxed"
+                                                @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                                @blur="$el.style.borderColor = ''\">{{ $testimoni->testimonial }}</textarea>
                                         </div>
                                         <div class="space-y-6">
                                             <div class="grid grid-cols-2 gap-4">
@@ -100,7 +102,10 @@
                                                         class="text-[9px] font-black uppercase tracking-widest text-slate-400">Rating</label>
                                                     <input type="number" name="rating" min="1" max="5"
                                                         value="{{ $testimoni->rating }}"
-                                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm font-bold text-[#fa9a08] outline-none">
+                                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm font-bold outline-none\"
+                                                        style=\"color: var(--primary-color);\"
+                                                        @focus=\"$el.style.borderColor = 'var(--primary-color)'\"
+                                                        @blur=\"$el.style.borderColor = ''\"
                                                 </div>
                                                 <div class="space-y-1">
                                                     <label
@@ -144,7 +149,9 @@
                                             <label class="relative inline-flex items-center cursor-pointer">
                                                 <input type="checkbox" name="is_active" {{ $testimoni->is_active ? 'checked' : '' }} value="1" class="sr-only peer">
                                                 <div
-                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#fa9a08]">
+                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all\"
+                                                    style=\"background-color: var(--primary-color);\"
+                                                    @change=\"$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''\">
                                                 </div>
                                                 <span
                                                     class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Visible</span>
@@ -194,7 +201,7 @@
 
         input:focus,
         textarea:focus {
-            border-color: #fa9a08 !important;
+            border-color: var(--primary-color) !important;
             box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
         }
     </style>

@@ -20,7 +20,7 @@
                         icon: 'warning',
                         title: 'Shift Belum Di-Assign',
                         html: '<div class="text-left"><p class="text-sm text-gray-700 dark:text-gray-300 mb-3">Anda belum di-assign ke shift apapun.</p><p class="text-sm text-gray-700 dark:text-gray-300">Silakan hubungi Super Admin untuk di-assign ke shift terlebih dahulu sebelum dapat mengakses fitur operasional.</p></div>',
-                        confirmButtonColor: '#fa9a08',
+                        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
                         confirmButtonText: 'Mengerti',
                         allowOutsideClick: false,
                         allowEscapeKey: false,
@@ -84,17 +84,23 @@
 
                 @foreach($modules as $m)
                     <a href="{{ route($m['r']) }}"
-                        class="group relative bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 p-6 rounded-lg transition-all duration-300 hover:border-[#fa9a08] hover:shadow-lg dark:hover:shadow-[#fa9a08]/5 flex items-start gap-5">
+                        class="group relative bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 p-6 rounded-lg transition-all duration-300 flex items-start gap-5"
+                        @mouseenter="$el.style.borderColor = 'var(--primary-color)'; $el.style.boxShadow = '0 10px 25px -5px rgba(var(--primary-color-rgb), 0.1)'"
+                        @mouseleave="$el.style.borderColor = ''; $el.style.boxShadow = ''">
 
                         <!-- Icon: Sharp & Minimalist -->
                         <div
-                            class="w-12 h-12 shrink-0 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-md flex items-center justify-center text-slate-400 group-hover:text-[#fa9a08] group-hover:bg-[#fa9a08]/5 transition-all duration-300">
+                            class="w-12 h-12 shrink-0 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-md flex items-center justify-center text-slate-400 transition-all duration-300"
+                            @mouseenter="$el.style.color = 'var(--primary-color)'; $el.style.backgroundColor = 'rgba(var(--primary-color-rgb), 0.05)'"
+                            @mouseleave="$el.style.color = ''; $el.style.backgroundColor = ''">
                             <i class="{{ $m['i'] }} text-xl"></i>
                         </div>
 
                         <div class="space-y-1">
                             <h3
-                                class="text-sm font-bold text-slate-900 dark:text-white transition-colors group-hover:text-[#fa9a08]">
+                                class="text-sm font-bold text-slate-900 dark:text-white transition-colors"
+                                @mouseenter="$el.style.color = 'var(--primary-color)'"
+                                @mouseleave="$el.style.color = ''">
                                 {{ $m['t'] }}
                             </h3>
                             <p class="text-xs text-slate-500 dark:text-gray-500 leading-relaxed font-medium">
@@ -104,7 +110,7 @@
 
                         <!-- Indicator: Subtle Corner Arrow -->
                         <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i class="ri-arrow-right-up-line text-[#fa9a08] text-sm"></i>
+                            <i class="ri-arrow-right-up-line text-sm" style="color: var(--primary-color);"></i>
                         </div>
                     </a>
                 @endforeach
@@ -164,7 +170,7 @@
             <div class="flex items-center gap-4 text-center md:text-left">
                 <div
                     class="p-3 bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 rounded-md hidden sm:block">
-                    <i class="ri-terminal-box-line text-2xl text-[#fa9a08]"></i>
+                    <i class="ri-terminal-box-line text-2xl" style="color: var(--primary-color);"></i>
                 </div>
                 <div>
                     <h4 class="text-sm font-bold dark:text-white">Butuh Bantuan Teknis?</h4>
@@ -178,7 +184,10 @@
                     Preview Site
                 </a>
                 <button
-                    class="px-5 py-2.5 bg-[#fa9a08] text-black text-xs font-bold rounded-md hover:bg-orange-600 transition-all shadow-md">
+                    class="px-5 py-2.5 text-black text-xs font-bold rounded-md transition-all shadow-md"
+                    style="background-color: var(--primary-color);"
+                    @mouseenter="$el.style.opacity = '0.85'"
+                    @mouseleave="$el.style.opacity = '1'">
                     Contact Support
                 </button>
             </div>

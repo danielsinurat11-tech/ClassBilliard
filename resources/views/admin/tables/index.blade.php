@@ -9,14 +9,13 @@
         <div
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
             <div class="space-y-1">
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Management <span
-                        class="text-[#fa9a08]">Meja</span></h1>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Management <span style="color: var(--primary-color);">Meja</span></h1>
                 <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Kelola akses barcode digital dan pemetaan
                     identitas meja operasional.</p>
             </div>
 
             <a href="{{ route('admin.tables.create') }}"
-                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95">
+                class="text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95 btn-primary">
                 <i class="ri-add-circle-line text-lg"></i>
                 Tambah Meja Baru
             </a>
@@ -39,7 +38,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse($tables as $table)
                 <div
-                    class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden hover:border-[#fa9a08] transition-all duration-300 flex flex-col">
+                    class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden transition-all duration-300 flex flex-col" style="border-color: var(--primary-color);" @mouseenter="$el.style.borderColor = 'var(--primary-color)'" @mouseleave="$el.style.borderColor = ''">
 
                     <!-- QR CODE AREA -->
                     <div class="p-6 pb-0">
@@ -64,7 +63,7 @@
                                         <form action="{{ route('admin.tables.generate-qr', $table->id) }}" method="POST">
                                             @csrf
                                             <button type="submit"
-                                                class="text-[10px] font-black text-[#fa9a08] uppercase tracking-widest hover:underline decoration-2 underline-offset-4">
+                                                class="text-[10px] font-black uppercase tracking-widest hover:underline decoration-2 underline-offset-4" style="color: var(--primary-color);">
                                                 Generate Now
                                             </button>
                                         </form>
@@ -76,7 +75,7 @@
                             <div
                                 class="absolute inset-0 bg-[#050505]/90 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 z-20 backdrop-blur-sm">
                                 <a href="{{ route('admin.tables.barcode', $table->id) }}"
-                                    class="w-10 h-10 bg-[#fa9a08] text-black rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                                    class="w-10 h-10 text-black rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg btn-primary" style="background-color: var(--primary-color);">
                                     title="Print Poster">
                                     <i class="ri-printer-line text-lg"></i>
                                 </a>
@@ -110,7 +109,7 @@
                         <div class="flex justify-between items-start mb-6">
                             <div class="space-y-1">
                                 <h3
-                                    class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#fa9a08] transition-colors uppercase tracking-tight">
+                                    class="text-sm font-bold text-slate-900 dark:text-white transition-colors uppercase tracking-tight" style="color: var(--primary-color);" @mouseenter="$el.style.color = 'var(--primary-hover)'" @mouseleave="$el.style.color = 'var(--primary-color)'">
                                     {{ $table->name }}
                                 </h3>
                                 <p class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em]">
@@ -127,7 +126,7 @@
                         <!-- FOOTER ACTIONS -->
                         <div class="mt-auto flex gap-2 pt-4 border-t border-slate-100 dark:border-white/5">
                             <a href="{{ route('admin.tables.barcode', $table->id) }}"
-                                class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-50 dark:bg-white/[0.02] hover:bg-[#fa9a08] hover:text-black rounded-md text-[10px] font-black uppercase tracking-widest transition-all border border-slate-200 dark:border-white/10 group/btn">
+                                class="flex-1 flex items-center justify-center gap-2 py-2.5 text-black rounded-md text-[10px] font-black uppercase tracking-widest transition-all border border-slate-200 dark:border-white/10 group/btn btn-primary" style="background-color: var(--primary-color);" @mouseenter="$el.style.backgroundColor = 'var(--primary-hover)'" @mouseleave="$el.style.backgroundColor = 'var(--primary-color)'">
                                 <i class="ri-fullscreen-line"></i> Detail QR
                             </a>
 
@@ -154,7 +153,7 @@
                     <p class="text-xs text-slate-500 dark:text-gray-500 mt-1">Sistem belum mendeteksi adanya meja operasional
                         yang terdaftar.</p>
                     <a href="{{ route('admin.tables.create') }}"
-                        class="mt-6 bg-[#fa9a08] text-black px-8 py-3 rounded-md text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm">
+                        class="mt-6 text-black px-8 py-3 rounded-md text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm btn-primary" style="background-color: var(--primary-color);">
                         Inisialisasi Meja Baru
                     </a>
                 </div>

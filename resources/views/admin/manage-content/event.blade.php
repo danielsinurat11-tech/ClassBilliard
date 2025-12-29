@@ -11,17 +11,18 @@
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
             <div class="space-y-1">
                 <a href="{{ route('admin.dashboard') }}"
-                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[color:var(--primary-color)] transition-all duration-300 mb-2">
                     <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Kembali ke Dashboard
                 </a>
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Management <span
-                        class="text-[#fa9a08]">Events</span></h1>
+                        style="color: var(--primary-color);">Events</span></h1>
                 <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Atur jadwal, publikasi, dan dokumentasi
                     event operasional.</p>
             </div>
 
             <button @click="showCreate = !showCreate"
-                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95">
+                class="btn-primary text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95"
+                style="background-color: var(--primary-color);">
                 <i :class="showCreate ? 'ri-close-line' : 'ri-add-line'" class="text-lg"></i>
                 <span x-text="showCreate ? 'Batalkan' : 'Tambah Event Baru'"></span>
             </button>
@@ -41,7 +42,7 @@
             x-transition:enter-start="opacity-0 transform -translate-y-4"
             x-transition:enter-end="opacity-100 transform translate-y-0" class="mb-12">
             <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Informasi Event Baru</h2>
+                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] mb-8" style="color: var(--primary-color);">Informasi Event Baru</h2>
                 <form action="{{ route('admin.cms.event.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -50,54 +51,64 @@
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
                                 Title</label>
                             <input type="text" name="event_title" required
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                style="focus-color: var(--primary-color);">
                         </div>
                         <div class="space-y-2">
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
                                 Date</label>
                             <input type="date" name="event_date"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                style="focus-color: var(--primary-color);">
                         </div>
                         <div class="space-y-2">
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Category</label>
                             <input type="text" name="category" placeholder="e.g. Tournament, Workshop, Exhibition"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                style="focus-color: var(--primary-color);">
                         </div>
                         <div class="space-y-2">
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort
                                 Order</label>
                             <input type="number" name="order" value="0"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                style="focus-color: var(--primary-color);">
                         </div>
                         <div class="md:col-span-2 lg:col-span-3 space-y-2">
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
                                 Description</label>
                             <textarea name="event_description" rows="3"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"></textarea>
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all\"
+                                @focus=\"$el.style.borderColor = 'var(--primary-color)'\"
+                                @blur=\"$el.style.borderColor = '\"\n></textarea>
                         </div>
                         <div class="space-y-2">
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Poster
                                 / Image</label>
                             <input type="file" name="image" accept="image/*"
-                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-[#fa9a08] file:text-black hover:file:bg-orange-600">
+                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:text-black"
+                                style="--file-bg: var(--primary-color);"
+                                @change="$el.style.setProperty('--file-bg-current', window.getComputedStyle($el).getPropertyValue('--primary-color'))">
                         </div>
                         <div class="space-y-2">
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Link
                                 URL (Optional)</label>
                             <input type="url" name="link_url"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                style="focus-color: var(--primary-color);">
                         </div>
                         <div class="flex items-center pt-6">
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="is_active" checked value="1" class="sr-only peer">
                                 <div
-                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]">
+                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"
+                                    style="background-color: var(--primary-color); background-color: var(--primary-color) !important; opacity: 0.8;">
                                 </div>
                                 <span class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Aktifkan
                                     Sekarang</span>
@@ -106,7 +117,8 @@
                     </div>
                     <div class="mt-10 flex justify-end">
                         <button type="submit"
-                            class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-4 px-12 rounded-md transition-all active:scale-95 shadow-lg shadow-orange-500/10">
+                            class="btn-primary text-black text-[10px] font-black uppercase tracking-widest py-4 px-12 rounded-md transition-all active:scale-95 shadow-lg"
+                            style="background-color: var(--primary-color); box-shadow: 0 10px 15px -3px rgba(var(--primary-color-rgb), 0.1);">
                             Publish Event
                         </button>
                     </div>
@@ -122,7 +134,9 @@
             <div class="grid grid-cols-1 gap-6">
                 @foreach($events as $event)
                     <div
-                        class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden flex flex-col lg:flex-row group hover:border-[#fa9a08]/50 transition-all duration-300">
+                        class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden flex flex-col lg:flex-row group transition-all duration-300\"
+                        @mouseenter=\"$el.style.borderColor = 'rgba(var(--primary-color-rgb), 0.5)'\"
+                        @mouseleave=\"$el.style.borderColor = ''\">
 
                         <!-- Image Section -->
                         <div class="w-full lg:w-72 h-48 lg:h-auto bg-slate-100 dark:bg-white/5 relative overflow-hidden">
@@ -153,7 +167,8 @@
                                             class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
                                             Title</label>
                                         <input type="text" name="event_title" value="{{ $event->event_title }}"
-                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                            style="focus-color: var(--primary-color);">
                                     </div>
                                     <div class="space-y-2">
                                         <label
@@ -161,13 +176,15 @@
                                             Date</label>
                                         <input type="date" name="event_date"
                                             value="{{ $event->event_date ? $event->event_date->format('Y-m-d') : '' }}"
-                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                            style="focus-color: var(--primary-color);">
                                     </div>
                                     <div class="space-y-2">
                                         <label
                                             class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Category</label>
                                         <input type="text" name="category" value="{{ $event->category ?? '' }}"
-                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                            style="focus-color: var(--primary-color);"
                                             placeholder="e.g. Tournament">
                                     </div>
                                     <div class="md:col-span-2 space-y-2">
@@ -175,7 +192,9 @@
                                             class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Event
                                             Description</label>
                                         <textarea name="event_description" rows="2"
-                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">{{ $event->event_description ?? $event->description }}</textarea>
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white outline-none transition-all\"
+                                            @focus=\"$el.style.borderColor = 'var(--primary-color)'\"
+                                            @blur=\"$el.style.borderColor = ''\">{{ $event->event_description ?? $event->description }}</textarea>
                                     </div>
 
                                     <div
@@ -185,7 +204,9 @@
                                                 <input type="checkbox" name="is_active" {{ $event->is_active ? 'checked' : '' }}
                                                     value="1" class="sr-only peer">
                                                 <div
-                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#fa9a08]">
+                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all\"
+                                                    style=\"background-color: var(--primary-color);\"
+                                                    @change=\"$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''\">
                                                 </div>
                                                 <span
                                                     class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Active</span>
@@ -194,7 +215,8 @@
                                             <div class="flex items-center gap-2">
                                                 <i class="ri-link text-slate-400"></i>
                                                 <input type="url" name="link_url" value="{{ $event->link_url }}"
-                                                    class="bg-transparent border-none p-0 text-[11px] text-[#fa9a08] focus:ring-0 w-48 truncate"
+                                                    class="bg-transparent border-none p-0 text-[11px] focus:ring-0 w-48 truncate"
+                                                    style="color: var(--primary-color);"
                                                     placeholder="No link set">
                                             </div>
                                         </div>
@@ -234,7 +256,7 @@
 
         input:focus,
         textarea:focus {
-            border-color: #fa9a08 !important;
+            border-color: var(--primary-color) !important;
             box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
         }
     </style>

@@ -64,6 +64,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
     Route::controller(AdminController::class)->group(function () {
         Route::get('/profile', 'profileEdit')->name('profile.edit');
         Route::put('/profile/update', 'profileUpdate')->name('profile.update');
+        Route::put('/profile/color', 'profileColorUpdate')->name('profile.color');
         Route::put('/profile/password', 'profilePassword')->name('profile.password');
     });
     

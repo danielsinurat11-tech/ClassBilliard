@@ -7,7 +7,9 @@
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
             <div class="space-y-1">
                 <a href="{{ route('admin.menus.index') }}"
-                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 mb-2"
+                    @mouseenter="$el.style.color = 'var(--primary-color)'"
+                    @mouseleave="$el.style.color = ''">
                     <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Kembali ke Galeri
                 </a>
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Tambah Hidangan Baru
@@ -45,7 +47,9 @@
                         <input type="file" name="image" id="imgInput"
                             class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" required>
                         <div id="preview"
-                            class="w-full h-full rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center justify-center text-slate-400 group-hover:border-[#fa9a08] transition-all duration-300 overflow-hidden">
+                            class="w-full h-full rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center justify-center text-slate-400 transition-all duration-300 overflow-hidden"
+                            @mouseenter="$el.style.borderColor = 'var(--primary-color)'"
+                            @mouseleave="$el.style.borderColor = ''">
                             <i class="ri-image-add-line text-3xl mb-3 group-hover:scale-110 transition-transform"></i>
                             <p class="text-[10px] font-black uppercase tracking-tighter">Klik atau Drop Gambar</p>
                             <p class="text-[9px] text-slate-500 mt-1 uppercase tracking-tighter">JPG, PNG (Max 2MB)</p>
@@ -70,7 +74,9 @@
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Nama
                                 Hidangan</label>
                             <input type="text" name="name" value="{{ old('name') }}" required
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-0 transition-all outline-none"
+                                @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                @blur="$el.style.borderColor = ''"
                                 placeholder="Contoh: Wagyu Steak Premium">
                         </div>
 
@@ -81,7 +87,9 @@
                                 Kategori</label>
                             <div class="relative">
                                 <select name="category_menu_id" required
-                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none appearance-none cursor-pointer">
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-0 transition-all outline-none appearance-none cursor-pointer"
+                                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                    @blur="$el.style.borderColor = ''">
                                     <option value="" disabled selected>Pilih Kategori</option>
                                     @foreach($categories as $cat)
                                         <option value="{{ $cat->id }}" {{ old('category_menu_id') == $cat->id ? 'selected' : '' }}
@@ -104,7 +112,10 @@
                                 <span
                                     class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
                                 <input type="text" id="price_display" required
-                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md pl-10 pr-4 py-3 text-sm font-bold text-[#fa9a08] focus:border-[#fa9a08] focus:ring-0 transition-all outline-none"
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md pl-10 pr-4 py-3 text-sm font-bold focus:ring-0 transition-all outline-none"
+                                    style="color: var(--primary-color);"
+                                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                    @blur="$el.style.borderColor = ''"
                                     placeholder="0">
                                 <input type="hidden" name="price" id="price_real" value="{{ old('price') }}">
                             </div>
@@ -115,7 +126,9 @@
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Tagging/Labels</label>
                             <input type="text" name="labels" value="{{ old('labels') }}"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-0 transition-all outline-none"
+                                @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                @blur="$el.style.borderColor = ''"
                                 placeholder="Best Seller, Pedas, New">
                         </div>
                     </div>
@@ -126,14 +139,19 @@
                             class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Narasi
                             Deskripsi</label>
                         <textarea name="description" rows="4" required
-                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none leading-relaxed"
+                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-0 transition-all outline-none leading-relaxed"
+                            @focus="$el.style.borderColor = 'var(--primary-color)'"
+                            @blur="$el.style.borderColor = ''"
                             placeholder="Deskripsikan komposisi, rasa, dan keunikan hidangan ini secara profesional...">{{ old('description') }}</textarea>
                     </div>
 
                     <!-- Action Button -->
                     <div class="mt-10 pt-8 border-t border-slate-200 dark:border-white/5">
                         <button type="submit"
-                            class="w-full bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-md transition-all shadow-sm flex items-center justify-center gap-3 active:scale-[0.98]">
+                            class="w-full text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-md transition-all shadow-sm flex items-center justify-center gap-3 active:scale-[0.98]"
+                            style="background-color: var(--primary-color);"
+                            @mouseenter="$el.style.opacity = '0.85'"
+                            @mouseleave="$el.style.opacity = '1'">
                             <i class="ri-save-3-line text-lg"></i>
                             Simpan ke Database Sistem
                         </button>
@@ -154,8 +172,8 @@
         input:focus,
         select:focus,
         textarea:focus {
-            border-color: #fa9a08 !important;
-            box-shadow: 0 0 0 1px #fa9a08 !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
         }
     </style>
 

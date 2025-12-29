@@ -10,12 +10,11 @@
             class="max-w-2xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
             <div class="space-y-1">
                 <a href="{{ route('admin.tables.index') }}"
-                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 mb-2" style="hover:color: var(--primary-color);">
                     <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Kembali ke Daftar
                     Meja
                 </a>
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Registrasi <span
-                        class="text-[#fa9a08]">Meja Baru</span></h1>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Registrasi <span style="color: var(--primary-color);">Meja Baru</span></h1>
                 <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Inisialisasi identitas meja untuk pembuatan
                     QR Code otomatis.</p>
             </div>
@@ -33,7 +32,7 @@
                     <div class="flex justify-center pb-4">
                         <div
                             class="w-16 h-16 bg-slate-50 dark:bg-white/[0.02] rounded-md border border-slate-200 dark:border-white/10 flex items-center justify-center">
-                            <i class="ri-qr-scan-2-line text-3xl text-[#fa9a08]"></i>
+                            <i class="ri-qr-scan-2-line text-3xl" style="color: var(--primary-color);"></i>
                         </div>
                     </div>
 
@@ -45,7 +44,7 @@
                                 Nama / Nomor Unit Meja
                             </label>
                             <input type="text" name="name" id="name"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-4 rounded-md focus:outline-none focus:border-[#fa9a08] transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 text-base font-bold"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-4 rounded-md focus:outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 text-base font-bold"
                                 placeholder="Contoh: Meja 01 atau VIP 05" required autofocus value="{{ old('name') }}">
                             @error('name')
                                 <p class="text-[10px] text-red-500 font-bold uppercase tracking-tight mt-1 ml-1">{{ $message }}
@@ -60,7 +59,7 @@
                                 Alokasi Ruangan / Area
                             </label>
                             <input type="text" name="room" id="room"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-4 rounded-md focus:outline-none focus:border-[#fa9a08] transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 text-base font-bold"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-4 rounded-md focus:outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-600 text-base font-bold"
                                 placeholder="Contoh: Ruang A, VIP Room, Outdoor" required value="{{ old('room') }}">
                             @error('room')
                                 <p class="text-[10px] text-red-500 font-bold uppercase tracking-tight mt-1 ml-1">{{ $message }}
@@ -90,7 +89,7 @@
                             Reset Form
                         </button>
                         <button type="submit"
-                            class="flex-[2] py-4 rounded-md bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2">
+                            class="flex-[2] py-4 rounded-md text-black text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 btn-primary" style="background-color: var(--primary-color);">
                             <i class="ri-qr-code-line text-lg"></i>
                             Generate & Simpan Meja
                         </button>
@@ -109,8 +108,8 @@
 
         /* Focus State for Sleek Inputs */
         input:focus {
-            border-color: #fa9a08 !important;
-            box-shadow: 0 0 0 1px #fa9a08 !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
         }
     </style>
 @endsection

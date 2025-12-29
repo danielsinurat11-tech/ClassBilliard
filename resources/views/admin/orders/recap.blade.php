@@ -476,16 +476,18 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Tanggal Mulai</label>
                         <input type="date" id="updateStartDate" name="start_date" required
-                            class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-orange-600/50 focus:border-orange-600 transition-all">
+                            class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:border-[color:var(--primary-color)] transition-all"
+                            style="focus-color: var(--primary-color);">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Tanggal Akhir</label>
                         <input type="date" id="updateEndDate" name="end_date" required
-                            class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-orange-600/50 focus:border-orange-600 transition-all">
+                            class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:border-[color:var(--primary-color)] transition-all"
+                            style="focus-color: var(--primary-color);">
                     </div>
                 </div>
-                <div class="bg-orange-600/10 border border-orange-600/30 rounded-xl p-4">
-                    <p class="text-sm text-orange-300 flex items-start gap-2">
+                <div style="background-color: var(--primary-color); background-color: rgba(var(--primary-color-rgb), 0.1); border-color: rgba(var(--primary-color-rgb), 0.3);" class="border rounded-xl p-4">
+                    <p style="color: var(--primary-color);" class="text-sm flex items-start gap-2">
                         <i class="ri-information-line text-lg mt-0.5"></i>
                         <span>Tutup hari akan diperbarui dengan data terbaru. Order baru yang completed untuk periode ini akan ditambahkan ke tutup hari.</span>
                     </p>

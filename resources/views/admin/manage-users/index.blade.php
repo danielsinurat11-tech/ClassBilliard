@@ -15,7 +15,8 @@
             </div>
 
             <a href="{{ route('admin.manage-users.create') }}"
-                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md transition-all flex items-center gap-2 shadow-sm">
+                class="btn-primary text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md transition-all flex items-center gap-2 shadow-sm"
+                style="background-color: var(--primary-color);">
                 <i class="ri-user-add-line text-sm"></i>
                 Tambah Staff
             </a>
@@ -49,8 +50,9 @@
                         <tr class="group hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                             <td class="px-4 py-4">
                                 <div class="flex items-center gap-3">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=111&color=fa9a08&bold=true"
-                                        class="w-8 h-8 rounded-md border border-slate-200 dark:border-white/10">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=111&color={{ str_replace('#', '', auth()->user()->primary_color) }}&bold=true"
+                                        class="w-8 h-8 rounded-md border border-slate-200 dark:border-white/10"
+                                        alt="{{ $user->name }}">
                                     <div>
                                         <div class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
                                             {{ $user->name }}
@@ -66,12 +68,14 @@
                                     $role = $user->getRoleNames()->first() ?? 'no-role';
                                     $roleColors = [
                                         'super_admin' => 'text-red-500 bg-red-500/5 border-red-500/10',
-                                        'admin' => 'text-[#fa9a08] bg-[#fa9a08]/5 border-[#fa9a08]/10',
+                                        'admin' => 'bg-[color:var(--primary-color)] bg-opacity-5 border-opacity-10 text-opacity-100',
                                         'kitchen' => 'text-blue-500 bg-blue-500/5 border-blue-500/10',
                                         'no-role' => 'text-gray-500 bg-gray-500/5 border-gray-500/10',
                                     ];
                                 @endphp
                                 <span
+                                    :class="'admin' === '{{ $role }}' ? 'inline-block px-2 py-0.5 border rounded text-[9px] font-black uppercase tracking-widest' : ''"
+                                    :style="'admin' === '{{ $role }}' ? { color: 'var(--primary-color)', backgroundColor: 'var(--primary-color)', borderColor: 'var(--primary-color)', opacity: '0.15' } : {}"
                                     class="inline-block px-2 py-0.5 border rounded text-[9px] font-black uppercase tracking-widest {{ $roleColors[$role] ?? $roleColors['no-role'] }}">
                                     {{ str_replace('_', ' ', $role) }}
                                 </span>
@@ -92,7 +96,9 @@
                             <td class="px-4 py-4 text-right">
                                 <div class="flex justify-end gap-1">
                                     <a href="{{ route('admin.manage-users.edit', $user) }}"
-                                        class="p-2 text-slate-400 hover:text-[#fa9a08] transition-colors" title="Edit Staff">
+                                        class="p-2 text-slate-400 transition-colors"
+                                        @mouseenter="$el.style.color = 'var(--primary-color)'"
+                                        @mouseleave="$el.style.color = ''" title="Edit Staff">
                                         <i class="ri-edit-line text-lg"></i>
                                     </a>
 
@@ -130,7 +136,7 @@
                 text: "Akses staff ini akan dicabut secara permanen dari sistem.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#fa9a08', // Accent Color
+                confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
                 cancelButtonColor: '#1a1a1a',
                 confirmButtonText: 'YA, HAPUS AKSES',
                 cancelButtonText: 'BATAL',

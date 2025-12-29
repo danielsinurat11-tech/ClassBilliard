@@ -11,7 +11,7 @@
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-8">
             <div class="space-y-1">
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Order <span
-                        class="text-[#fa9a08]">Management</span></h1>
+                        style="color: var(--primary-color);">Management</span></h1>
                 <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Monitoring real-time transaksi operasional
                     dan alur kerja dapur.</p>
             </div>
@@ -45,7 +45,8 @@
             <div class="flex flex-wrap gap-2">
                 <!-- All Tables -->
                 <button @click="currentFilter = 'all'; filterByTable('all')"
-                    :class="currentFilter === 'all' ? 'bg-[#fa9a08] text-black border-[#fa9a08]' : 'bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10'"
+                    :class="currentFilter === 'all' ? 'text-black border-b-2' : 'text-slate-500 dark:text-gray-400 border-b-2 border-transparent'"
+                    :style="{ backgroundColor: currentFilter === 'all' ? 'var(--primary-color)' : '', borderColor: currentFilter === 'all' ? 'var(--primary-color)' : '' }"
                     class="px-5 py-2.5 rounded-md border text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95">
                     All Units
                 </button>
@@ -55,7 +56,8 @@
                         $tableNum = preg_replace('/[^0-9]/', '', $table->name) ?: $table->name;
                     @endphp
                     <button @click="currentFilter = '{{ $tableNum }}'; filterByTable('{{ $tableNum }}')"
-                        :class="currentFilter === '{{ $tableNum }}' ? 'bg-[#fa9a08] text-black border-[#fa9a08]' : 'bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10'"
+                        :class="currentFilter === '{{ $tableNum }}' ? 'text-black border-b-2' : 'text-slate-500 dark:text-gray-400 border-b-2 border-transparent'"
+                        :style="{ backgroundColor: currentFilter === '{{ $tableNum }}' ? 'var(--primary-color)' : '', borderColor: currentFilter === '{{ $tableNum }}' ? 'var(--primary-color)' : '' }"
                         class="px-5 py-2.5 rounded-md border text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95">
                         {{ $tableNum }}
                     </button>
@@ -63,7 +65,8 @@
 
                 @if($tables->count() > 0)
                     <button @click="currentFilter = 'other'; filterByTable('other')"
-                        :class="currentFilter === 'other' ? 'bg-[#fa9a08] text-black border-[#fa9a08]' : 'bg-slate-50 dark:bg-white/[0.02] text-slate-500 dark:text-gray-400 border-slate-200 dark:border-white/10'"
+                        :class="currentFilter === 'other' ? 'text-black border-b-2' : 'text-slate-500 dark:text-gray-400 border-b-2 border-transparent'"
+                        :style="{ backgroundColor: currentFilter === 'other' ? 'var(--primary-color)' : '', borderColor: currentFilter === 'other' ? 'var(--primary-color)' : '' }"
                         class="px-5 py-2.5 rounded-md border text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95">
                         Others
                     </button>
@@ -85,8 +88,9 @@
                         $tableFilter = $tableExists && !empty($numericTable) ? $numericTable : 'other';
                     @endphp
 
-                    <div class="order-card-base group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-6 hover:border-[#fa9a08] transition-all duration-300 flex flex-col {{ $order->status === 'rejected' ? 'opacity-50' : '' }}"
-                        data-table="{{ $tableFilter }}">
+                    <div class="order-card-base group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-6 hover:border-[color:var(--primary-color)] transition-all duration-300 flex flex-col {{ $order->status === 'rejected' ? 'opacity-50' : '' }}"
+                        data-table="{{ $tableFilter }}"
+                        style="--hover-border-color: var(--primary-color);">
 
                         <!-- Card Header -->
                         <div class="flex justify-between items-start mb-6">
@@ -94,7 +98,7 @@
                                 <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">
                                     {{ $order->customer_name }}</h3>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-bold text-[#fa9a08] uppercase tracking-widest">Table
+                                    <span style="color: var(--primary-color);" class="text-[10px] font-bold uppercase tracking-widest">Table
                                         {{ $order->table_number }}</span>
                                     <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/10"></span>
                                     <span
@@ -161,7 +165,8 @@
                                     <form action="{{ route('admin.orders.approve', $order->id) }}" method="POST">
                                         @csrf
                                         <button type="submit"
-                                            class="w-full bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-3 rounded-md transition-all active:scale-95">Approve</button>
+                                            class="w-full text-black text-[10px] font-black uppercase tracking-widest py-3 rounded-md transition-all active:scale-95 btn-primary"
+                                            style="background-color: var(--primary-color);">Approve</button>
                                     </form>
                                     <form action="{{ route('admin.orders.reject', $order->id) }}" method="POST">
                                         @csrf

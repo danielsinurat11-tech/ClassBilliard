@@ -8,10 +8,10 @@
     <!-- HEADER STANDARD -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
         <div class="space-y-1">
-            <a href="{{ route('admin.dashboard') }}" class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+            <a href="{{ route('admin.dashboard') }}" class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 mb-2" @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''">
                 <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Back to Dashboard
             </a>
-            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Hero <span class="text-[#fa9a08]">Configuration</span></h1>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Hero <span style="color: var(--primary-color);">Configuration</span></h1>
             <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Atur identitas utama, logo brand, dan pesan sambutan di halaman muka.</p>
         </div>
     </div>
@@ -88,7 +88,7 @@
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="is_active" value="1" {{ ($hero && $hero->is_active) ? 'checked' : '' }} class="sr-only peer">
-                        <div class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]"></div>
+                        <div class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" style="background-color: var(--primary-color);" @change="$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''"></div>
                     </label>
                 </div>
             </div>
@@ -102,10 +102,10 @@
                     <div class="space-y-2">
                         <div class="flex justify-between items-end">
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Main Display Title</label>
-                            <span class="text-[9px] font-bold text-[#fa9a08] uppercase tracking-widest">Large Text</span>
+                            <span class="text-[9px] font-bold uppercase tracking-widest" style="color: var(--primary-color);">Large Text</span>
                         </div>
                         <input type="text" name="title" value="{{ $hero->title ?? 'CLASS' }}" required
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                                placeholder="e.g. CLASS">
                     </div>
 
@@ -113,10 +113,10 @@
                     <div class="space-y-2">
                         <div class="flex justify-between items-end">
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Banner Subtitle</label>
-                            <span class="text-[9px] font-bold text-[#fa9a08] uppercase tracking-widest">Red Banner Text</span>
+                            <span class="text-[9px] font-bold uppercase tracking-widest" style="color: var(--primary-color);">Red Banner Text</span>
                         </div>
                         <input type="text" name="subtitle" value="{{ $hero->subtitle ?? 'BILLIARD' }}" required
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                                placeholder="e.g. BILLIARD">
                     </div>
 
@@ -124,7 +124,7 @@
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Tagline</label>
                         <input type="text" name="tagline" value="{{ $hero->tagline ?? 'Premium Billiard Lounge & Bar' }}"
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                                placeholder="e.g. Premium Billiard Lounge & Bar">
                     </div>
 
@@ -132,7 +132,7 @@
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">CTA Button 1 Text</label>
                         <input type="text" name="cta_text_1" value="{{ $hero->cta_text_1 ?? 'BOOK A TABLE' }}"
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                                placeholder="e.g. BOOK A TABLE">
                     </div>
 
@@ -140,14 +140,14 @@
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">CTA Button 2 Text</label>
                         <input type="text" name="cta_text_2" value="{{ $hero->cta_text_2 ?? 'EXPLORE' }}"
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
-                               placeholder="e.g. EXPLORE">
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                               placeholder="e.g. EXPLORE" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                     </div>
                 </div>
 
                 <!-- SAVE BUTTON -->
                 <div class="mt-12 pt-8 border-t border-slate-100 dark:border-white/5">
-                    <button type="submit" class="w-full bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-md transition-all shadow-lg shadow-orange-500/10 active:scale-95 flex items-center justify-center gap-3">
+                    <button type="submit" class="w-full text-black text-[10px] font-black uppercase tracking-widest py-4 rounded-md transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3" style="background-color: var(--primary-color); box-shadow: 0 10px 15px -3px rgba(var(--primary-color-rgb), 0.1);" @mouseenter="$el.style.opacity = '0.85'" @mouseleave="$el.style.opacity = '1'">
                         <i class="ri-save-3-line text-lg"></i>
                         Update Hero Masterpiece
                     </button>

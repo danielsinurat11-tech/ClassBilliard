@@ -10,7 +10,7 @@
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
             <div class="space-y-1">
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Account <span
-                        class="text-[#fa9a08]">Profile</span></h1>
+                        style="color: var(--primary-color);">Profile</span></h1>
                 <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Manajemen identitas kredensial dan
                     preferensi keamanan sistem.</p>
             </div>
@@ -26,12 +26,13 @@
                     <div class="relative inline-block mb-6">
                         <div
                             class="w-24 h-24 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-1.5 transition-transform duration-500 group-hover:scale-105">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=transparent&color=fa9a08&size=128&bold=true"
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&background=transparent&color={{ str_replace('#', '', auth()->user()->primary_color) }}&size=128&bold=true"
                                 class="w-full h-full rounded-md object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
                                 alt="User Avatar">
                         </div>
                         <div
-                            class="absolute -bottom-2 -right-2 w-6 h-6 bg-[#fa9a08] rounded-md flex items-center justify-center text-black border-2 border-white dark:border-[#0A0A0A]">
+                            class="absolute -bottom-2 -right-2 w-6 h-6 rounded-md flex items-center justify-center text-black border-2 border-white dark:border-[#0A0A0A]"
+                            style="background-color: var(--primary-color);">
                             <i class="ri-shield-check-line text-xs"></i>
                         </div>
                     </div>
@@ -44,7 +45,8 @@
                         $role = $user->getRoleNames()->first() ?? 'no-role';
                     @endphp
                     <div
-                        class="mt-6 inline-flex items-center px-4 py-1.5 rounded-md bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-[#fa9a08] text-[9px] font-black uppercase tracking-widest">
+                        class="mt-6 inline-flex items-center px-4 py-1.5 rounded-md bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-[9px] font-black uppercase tracking-widest"
+                        style="color: var(--primary-color);">
                         {{ ucfirst(str_replace('_', ' ', $role)) }} ACCESS LEVEL
                     </div>
                 </div>
@@ -88,7 +90,7 @@
                             <p class="text-[10px] font-medium text-slate-500 dark:text-gray-500 uppercase tracking-tight">
                                 Identitas publik administratif sistem.</p>
                         </div>
-                        <i class="ri-user-smile-line text-2xl text-[#fa9a08] opacity-20"></i>
+                        <i class="ri-user-smile-line text-2xl opacity-20" style="color: var(--primary-color);"></i>
                     </div>
 
                     <form action="{{ route('admin.profile.update') }}" method="POST" class="p-8 space-y-8">
@@ -101,21 +103,121 @@
                                     class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 ml-1">Nama
                                     Lengkap</label>
                                 <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all duration-300">
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300\"
+                                    @focus=\"$el.style.borderColor = 'var(--primary-color)'\"
+                                    @blur=\"$el.style.borderColor = ''\">
+                                    @focus=\"$el.style.borderColor = 'var(--primary-color)'\"
+                                    @blur=\"$el.style.borderColor = ''\">
                             </div>
                             <div class="space-y-2">
                                 <label
                                     class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 ml-1">Email
                                     System</label>
                                 <input type="email" name="email" value="{{ old('email', $user->email) }}" required
-                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all duration-300">
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                             </div>
                         </div>
 
                         <div class="flex justify-end pt-4">
                             <button type="submit"
-                                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-3 px-10 rounded-md transition-all active:scale-95 shadow-sm">
+                                class="text-black text-[10px] font-black uppercase tracking-widest py-3 px-10 rounded-md transition-all active:scale-95 shadow-sm\"
+                                style=\"background-color: var(--primary-color);\"
+                                @mouseenter=\"$el.style.opacity = '0.85'\"
+                                @mouseleave=\"$el.style.opacity = '1'\">
                                 Commit Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Color Preference Form -->
+                <div
+                    class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden">
+                    <div
+                        class="px-8 py-6 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.01]">
+                        <div class="space-y-1">
+                            <h2 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">
+                                Preferensi Warna</h2>
+                            <p class="text-[10px] font-medium text-slate-500 dark:text-gray-500 uppercase tracking-tight">
+                                Pilih warna accent utama dashboard sesuai preferensi.</p>
+                        </div>
+                        <i class="ri-palette-line text-2xl opacity-20" style="color: var(--primary-color);"></i>
+                    </div>
+
+                    <form action="{{ route('admin.profile.update') }}" method="POST" class="p-8 space-y-8">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 ml-1">
+                                Pilih Warna Accent Utama
+                            </label>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <!-- Color Option 1: Gold -->
+                                <label class="group relative cursor-pointer">
+                                    <input type="radio" name="primary_color" value="#fbbf24" 
+                                        {{ (auth()->user()->primary_color ?? '#fa9a08') === '#fbbf24' ? 'checked' : '' }}
+                                        class="sr-only peer">
+                                    <div class="p-6 border-2 border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-white/[0.02] transition-all duration-300 peer-checked:border-[#fbbf24] peer-checked:bg-yellow-50 dark:peer-checked:bg-yellow-950/20 hover:border-yellow-300 dark:hover:border-yellow-700">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <div class="w-full h-16 rounded-md bg-gradient-to-r from-yellow-300 to-yellow-400 border border-yellow-200 dark:border-yellow-900 shadow-md"></div>
+                                            <div class="text-center">
+                                                <p class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Gold</p>
+                                                <p class="text-[10px] text-slate-500 dark:text-gray-400 uppercase tracking-widest font-medium mt-1">#fbbf24</p>
+                                            </div>
+                                        </div>
+                                        <div class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 bg-[#fbbf24] flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">
+                                            <i class="ri-check-line text-white text-xs"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Color Option 2: Orange (Current) -->
+                                <label class="group relative cursor-pointer">
+                                    <input type="radio" name="primary_color" value="#fa9a08" 
+                                        {{ (auth()->user()->primary_color ?? '#fa9a08') === '#fa9a08' ? 'checked' : '' }}
+                                        class="sr-only peer">
+                                    <div class="p-6 border-2 border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-white/[0.02] transition-all duration-300 peer-checked:border-[#fa9a08] peer-checked:bg-orange-50 dark:peer-checked:bg-orange-950/20 hover:border-orange-300 dark:hover:border-orange-700">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <div class="w-full h-16 rounded-md bg-gradient-to-r from-orange-400 to-orange-500 border border-orange-300 dark:border-orange-800 shadow-md"></div>
+                                            <div class="text-center">
+                                                <p class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Orange</p>
+                                                <p class="text-[10px] text-slate-500 dark:text-gray-400 uppercase tracking-widest font-medium mt-1">#fa9a08 (Current)</p>
+                                            </div>
+                                        </div>
+                                        <div class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 bg-[#fa9a08] flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">
+                                            <i class="ri-check-line text-white text-xs"></i>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <!-- Color Option 3: Elegant Teal -->
+                                <label class="group relative cursor-pointer">
+                                    <input type="radio" name="primary_color" value="#2f7d7a" 
+                                        {{ (auth()->user()->primary_color ?? '#fa9a08') === '#2f7d7a' ? 'checked' : '' }}
+                                        class="sr-only peer">
+                                    <div class="p-6 border-2 border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-white/[0.02] transition-all duration-300 peer-checked:border-[#2f7d7a] peer-checked:bg-teal-50 dark:peer-checked:bg-teal-950/20 hover:border-teal-300 dark:hover:border-teal-700">
+                                        <div class="flex flex-col items-center gap-4">
+                                            <div class="w-full h-16 rounded-md bg-gradient-to-r from-teal-600 to-teal-700 border border-teal-500 dark:border-teal-900 shadow-md"></div>
+                                            <div class="text-center">
+                                                <p class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Elegant</p>
+                                                <p class="text-[10px] text-slate-500 dark:text-gray-400 uppercase tracking-widest font-medium mt-1">#2f7d7a</p>
+                                            </div>
+                                        </div>
+                                        <div class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 bg-[#2f7d7a] flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">
+                                            <i class="ri-check-line text-white text-xs"></i>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-4">
+                            <button type="submit"
+                                class="btn-primary text-black text-[10px] font-black uppercase tracking-widest py-3 px-10 rounded-md transition-all active:scale-95 shadow-sm"
+                                style="background-color: var(--primary-color);">
+                                Simpan Preferensi Warna
                             </button>
                         </div>
                     </form>
@@ -145,7 +247,7 @@
                                     class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 ml-1">Current
                                     Password</label>
                                 <input type="password" name="current_password" required
-                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all duration-300">
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -154,14 +256,14 @@
                                         class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 ml-1">New
                                         Password</label>
                                     <input type="password" name="password" required
-                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all duration-300">
+                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                                 </div>
                                 <div class="space-y-2">
                                     <label
                                         class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 ml-1">Confirm
                                         New Password</label>
                                     <input type="password" name="password_confirmation" required
-                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all duration-300">
+                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all duration-300" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                                 </div>
                             </div>
                         </div>
@@ -211,7 +313,7 @@
                 title: '<span class="text-white font-bold tracking-tight uppercase">SYTEM UPDATED</span>',
                 html: '<p class="text-slate-500 text-[11px] font-bold uppercase tracking-widest leading-relaxed">{{ session('success') }}</p>',
                 background: '#0A0A0A',
-                confirmButtonColor: '#fa9a08',
+                confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
                 customClass: {
                     popup: 'swal2-popup-custom',
                     confirmButton: 'swal2-confirm-custom'

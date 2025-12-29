@@ -13,7 +13,9 @@
     <div class="space-y-1">
         @if($showBackButton)
         <a href="{{ route($backRoute) }}" 
-           class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+           class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 mb-2"
+           @mouseenter="$el.style.color = 'var(--primary-color)'"
+           @mouseleave="$el.style.color = ''">
             <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> {{ $backText }}
         </a>
         @endif

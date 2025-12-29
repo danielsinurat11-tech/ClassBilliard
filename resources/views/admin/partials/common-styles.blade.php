@@ -24,12 +24,12 @@
 
     /* Professional Link State */
     .active-link {
-        background-color: #fa9a08;
+        background-color: var(--primary-color);
         color: #000 !important;
     }
 
     .submenu-active {
-        color: #fa9a08 !important;
+        color: var(--primary-color) !important;
         font-weight: 700;
     }
 

@@ -11,17 +11,16 @@
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
             <div class="space-y-1">
                 <a href="{{ route('admin.dashboard') }}"
-                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 mb-2" @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''">
                     <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Dashboard
                 </a>
-                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Portfolio <span
-                        class="text-[#fa9a08]">& Achievements</span></h1>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Portfolio <span style="color: var(--primary-color);">& Achievements</span></h1>
                 <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Manajemen rekam jejak, pencapaian numerik,
                     dan galeri visual entitas.</p>
             </div>
 
             <button @click="showCreate = !showCreate"
-                class="bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95">
+                class="text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95" style="background-color: var(--primary-color);" @mouseenter="$el.style.opacity = '0.85'" @mouseleave="$el.style.opacity = '1'">
                 <i :class="showCreate ? 'ri-close-line' : 'ri-add-line'" class="text-lg"></i>
                 <span x-text="showCreate ? 'Discard Item' : 'Create New Item'"></span>
             </button>
@@ -41,7 +40,7 @@
             x-transition:enter-start="opacity-0 transform -translate-y-4"
             x-transition:enter-end="opacity-100 transform translate-y-0" class="mb-12">
             <div class="bg-slate-50 dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-[#fa9a08] mb-8">Add New Achievement</h2>
+                <h2 class="text-[10px] font-black uppercase tracking-[0.2em] mb-8" style="color: var(--primary-color);">Add New Achievement</h2>
                 <form action="{{ route('admin.cms.portfolio-achievement.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="type" value="gallery">
@@ -51,7 +50,7 @@
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Achievement Image <span class="text-red-500">*</span></label>
                             <input type="file" name="image" accept="image/*" required
-                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-[#fa9a08] file:text-black">
+                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:text-black" style="--file-bg: var(--primary-color);" @change="this.style.setProperty('--file-bg', 'var(--primary-color)')">
                             <p class="text-[9px] text-slate-400 dark:text-gray-600 italic">Image akan ditampilkan di dashboard achievements section</p>
                         </div>
 
@@ -60,7 +59,9 @@
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Title <span class="text-red-500">*</span></label>
                             <input type="text" name="title" required
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                @blur="$el.style.borderColor = ''"
                                 placeholder="e.g. Championship Winner">
                             <p class="text-[9px] text-slate-400 dark:text-gray-600 italic">Judul yang ditampilkan di card achievement</p>
                         </div>
@@ -70,8 +71,10 @@
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Description</label>
                             <textarea name="description" rows="3"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
-                                placeholder="Deskripsi pencapaian..."></textarea>
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                @blur="$el.style.borderColor = ''"
+                                placeholder="Deskripsi pencapaian...\"></textarea>
                         </div>
 
                         <!-- Order -->
@@ -79,16 +82,16 @@
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort Order</label>
                             <input type="number" name="order" value="0"
-                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                class="w-full bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                             <p class="text-[9px] text-slate-400 dark:text-gray-600 italic">Urutan tampil (0 = pertama, semakin besar semakin akhir)</p>
                         </div>
 
                         <!-- Is Active -->
                         <div class="space-y-2 flex items-end">
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="is_active" value="1" checked class="sr-only peer">
+                                <input type="checkbox" name="is_active" value="1" checked class="sr-only peer" @change="$el.parentElement.querySelector('div').style.backgroundColor = $el.checked ? 'var(--primary-color)' : ''">
                                 <div
-                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]">
+                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" style="background-color: var(--primary-color);" >
                                 </div>
                                 <span class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Active</span>
                             </label>
@@ -117,7 +120,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @forelse($allAchievements as $item)
                         <div
-                            class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden flex flex-col hover:border-[#fa9a08]/50 transition-all duration-300">
+                            class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden flex flex-col transition-all duration-300" @mouseenter="$el.style.borderColor = 'rgba(var(--primary-color-rgb), 0.5)'" @mouseleave="$el.style.borderColor = ''">
                             <!-- Image Preview -->
                             <div class="aspect-video bg-slate-100 dark:bg-white/5 relative overflow-hidden">
                                 @if($item->image)
@@ -152,7 +155,9 @@
                                     <div class="space-y-2">
                                         <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Title <span class="text-red-500">*</span></label>
                                         <input type="text" name="title" value="{{ $item->title ?? $item->label }}" required
-                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                            @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                            @blur="$el.style.borderColor = ''\"
                                             placeholder="e.g. Championship Winner">
                                     </div>
 
@@ -160,14 +165,18 @@
                                     <div class="space-y-2">
                                         <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Description</label>
                                         <textarea name="description" rows="2"
-                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all resize-none">{{ $item->description ?? '' }}</textarea>
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-white outline-none transition-all resize-none"
+                                            @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                            @blur="$el.style.borderColor = ''\">{{ $item->description ?? '' }}</textarea>
                                     </div>
 
                                     <!-- Order -->
                                     <div class="space-y-2">
                                         <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Sort Order</label>
                                         <input type="number" name="order" value="{{ $item->order }}"
-                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all">
+                                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-white outline-none transition-all\"
+                                            @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                            @blur="$el.style.borderColor = ''\"
                                     </div>
 
                                     <!-- Actions -->
@@ -176,7 +185,8 @@
                                             <input type="checkbox" name="is_active" {{ $item->is_active ? 'checked' : '' }}
                                                 value="1" class="sr-only peer">
                                             <div
-                                                class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#fa9a08]">
+                                                class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all\"
+                                                style=\"background-color: var(--primary-color);\"\n                                                @change=\"$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''\">
                                             </div>
                                             <span class="ml-2 text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Active</span>
                                         </label>
@@ -216,8 +226,14 @@
 
         input:focus,
         select:focus {
-            border-color: #fa9a08 !important;
-            box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px rgba(var(--primary-color-rgb), 0.1) !important;
+        }
+        
+        input[type="file"]::file-selector-button {
+            background-color: var(--primary-color);
+            color: black;
+            font-weight: bold;
         }
     </style>
 @endsection

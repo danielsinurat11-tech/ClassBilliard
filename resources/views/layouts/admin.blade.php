@@ -26,6 +26,14 @@
             display: none !important;
         }
 
+        /* Dynamic Primary Color System */
+        :root {
+            --primary-color: {{ auth()->user()->primary_color ?? '#fa9a08' }};
+            --primary-color-rgb: {{ auth()->user()->primary_color === '#fbbf24' ? '251, 191, 36' : (auth()->user()->primary_color === '#2f7d7a' ? '47, 125, 122' : '250, 154, 8') }};
+            --primary-hover: {{ auth()->user()->primary_color === '#fbbf24' ? '#d9a61c' : (auth()->user()->primary_color === '#2f7d7a' ? '#1f5350' : '#d97706') }};
+            --primary-light: {{ auth()->user()->primary_color === '#fbbf24' ? '#fde8a1' : (auth()->user()->primary_color === '#2f7d7a' ? '#9ec4c1' : '#fed7aa') }};
+        }
+
         .theme-transition {
             transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
@@ -44,20 +52,72 @@
             background: #1e1e1e;
         }
 
-        /* Professional Link State */
+        /* Professional Link State - Dynamic Color */
         .active-link {
-            background-color: #fa9a08;
+            background-color: var(--primary-color);
             color: #000 !important;
+            transition: background-color 0.2s ease;
         }
 
         .submenu-active {
-            color: #fa9a08 !important;
+            color: var(--primary-color) !important;
             font-weight: 700;
+            transition: color 0.2s ease;
+        }
+
+        /* Dynamic Focus Rings */
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 1px var(--primary-color) !important;
+        }
+
+        /* Button styles with dynamic colors */
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
         }
 
         /* Sidebar Expansion Animation */
         .sidebar-animate {
             transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s ease;
+        }
+
+        /* Dynamic border hover states */
+        .border-hover-primary:hover {
+            border-color: var(--primary-color) !important;
+        }
+
+        /* Dynamic text hover states */
+        .text-hover-primary:hover {
+            color: var(--primary-color) !important;
+        }
+
+        /* Background with opacity */
+        .bg-primary-light {
+            background-color: rgba(var(--primary-color-rgb), 0.1);
+        }
+
+        .bg-primary-lighter {
+            background-color: rgba(var(--primary-color-rgb), 0.05);
+        }
+
+        /* Border with opacity */
+        .border-primary-light {
+            border-color: rgba(var(--primary-color-rgb), 0.2);
         }
     </style>
 </head>
@@ -73,7 +133,7 @@
         <!-- Logo Area -->
         <div class="h-20 flex items-center px-6 shrink-0 border-b border-slate-200 dark:border-white/5 overflow-hidden">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-[#fa9a08] rounded-lg flex items-center justify-center shrink-0">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background-color: var(--primary-color);">
                     <i class="ri-shield-star-fill text-black text-lg"></i>
                 </div>
                 <div x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms
@@ -113,7 +173,7 @@
                 <button @click="open = !open"
                     class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/5 transition-all text-slate-600 dark:text-slate-400 group">
                     <div class="flex items-center gap-4">
-                        <i class="ri-stack-line text-lg group-hover:text-[#fa9a08]"></i>
+                        <i class="ri-stack-line text-lg" @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">Website CMS</span>
                     </div>
@@ -139,7 +199,8 @@
                     @endphp
                     @foreach($cmsLinks as $m)
                         <a href="{{ route($m['r']) }}"
-                            class="block py-1.5 text-[11px] font-bold transition-all hover:text-[#fa9a08] {{ request()->routeIs($m['r']) ? 'submenu-active' : 'text-slate-500 dark:text-gray-500' }}">
+                            class="block py-1.5 text-[11px] font-bold transition-all {{ request()->routeIs($m['r']) ? 'submenu-active' : 'text-slate-500 dark:text-gray-500' }}"
+                            @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''">
                             {{ $m['l'] }}
                         </a>
                     @endforeach
@@ -219,7 +280,7 @@
         <!-- Sidebar Toggle Bottom -->
         <div class="p-4 border-t border-slate-200 dark:border-white/5">
             <button @click="sidebarCollapsed = !sidebarCollapsed; sidebarHover = false"
-                class="w-full h-9 flex items-center justify-center rounded-md bg-slate-200 dark:bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
+                class="w-full h-9 flex items-center justify-center rounded-md bg-slate-200 dark:bg-white/5 transition-all group" style="color: inherit;" @mouseenter="$el.style.backgroundColor = 'var(--primary-color)'; $el.style.color = '#000';" @mouseleave="$el.style.backgroundColor = ''; $el.style.color = '';">
                 <i :class="sidebarCollapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line'" class="text-sm"></i>
             </button>
         </div>
@@ -238,20 +299,21 @@
             <div class="flex items-center gap-4">
                 <!-- Theme Switcher -->
                 <button @click="toggleTheme"
-                    class="w-8 h-8 rounded-md border border-slate-200 dark:border-white/10 flex items-center justify-center hover:border-[#fa9a08] transition-all">
+                    class="w-8 h-8 rounded-md border border-slate-200 dark:border-white/10 flex items-center justify-center transition-all" @mouseenter="$el.style.borderColor = 'var(--primary-color)'" @mouseleave="$el.style.borderColor = ''">
                     <i x-show="!darkMode" class="ri-moon-line text-sm"></i>
-                    <i x-show="darkMode" class="ri-sun-line text-sm text-[#fa9a08]" x-cloak></i>
+                    <i x-show="darkMode" class="ri-sun-line text-sm" x-cloak style="color: var(--primary-color);"></i>
                 </button>
 
                 <!-- Profile Dropdown -->
             <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" class="flex items-center gap-2.5 group">
                         <img class="w-8 h-8 rounded-md object-cover border border-slate-200 dark:border-white/10"
-                            src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()?->name) }}&background=fa9a08&color=000&bold=true"
+                            src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()?->name) }}&background={{ str_replace('#', '', auth()->user()->primary_color ?? '#fa9a08') }}&color=000&bold=true"
                             alt="">
                         <div class="text-left hidden md:block">
                             <p
-                                class="text-[11px] font-bold dark:text-white leading-none group-hover:text-[#fa9a08] transition-colors">
+                                class="text-[11px] font-bold dark:text-white leading-none transition-colors"
+                                @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''">
                                 {{ Auth::user()?->name }}</p>
                         </div>
                 </button>
@@ -260,7 +322,7 @@
                         class="absolute right-0 mt-3 w-52 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/10 rounded-lg shadow-xl p-1 z-50">
                     <a href="{{ route('admin.profile.edit') }}"
                             class="flex items-center gap-3 px-3 py-2 rounded-md text-xs font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
-                            <i class="ri-user-line text-sm text-[#fa9a08]"></i> Edit Profile
+                            <i class="ri-user-line text-sm" style="color: var(--primary-color);"></i> Edit Profile
                     </a>
                         <button @click="handleLogout"
                             class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-bold text-red-500 hover:bg-red-500/5 transition-all text-left">
@@ -367,6 +429,7 @@
                 },
 
                 handleLogout() {
+                    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
             Swal.fire({
                         title: 'Confirm Logout',
                         text: "Sesi administrasi akan diakhiri.",
@@ -374,7 +437,7 @@
                 showCancelButton: true,
                         background: this.darkMode ? '#0A0A0A' : '#fff',
                         color: this.darkMode ? '#fff' : '#000',
-                confirmButtonColor: '#fa9a08',
+                confirmButtonColor: primaryColor || '#fa9a08',
                         cancelButtonColor: '#1e1e1e',
                         confirmButtonText: 'Yes, Sign Out',
                 customClass: {
@@ -399,6 +462,7 @@
 
             if (alertType && alertTitle && alertMessage) {
                 const isDarkMode = document.documentElement.classList.contains('dark');
+                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
                 
                 Swal.fire({
                     title: alertTitle,
@@ -406,7 +470,7 @@
                     icon: alertIcon,
                     background: isDarkMode ? '#0A0A0A' : '#fff',
                     color: isDarkMode ? '#fff' : '#000',
-                    confirmButtonColor: '#fa9a08',
+                    confirmButtonColor: primaryColor || '#fa9a08',
                     confirmButtonText: 'Mengerti',
                     customClass: {
                         popup: 'rounded-lg border border-white/5',
@@ -419,10 +483,11 @@
         // Helper function untuk SweetAlert2 dengan theme konsisten
         window.showAlert = function(config = {}) {
             const isDark = document.documentElement.classList.contains('dark');
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
             const defaultConfig = {
                 background: isDark ? '#0A0A0A' : '#fff',
                 color: isDark ? '#fff' : '#000',
-                confirmButtonColor: '#fa9a08',
+                confirmButtonColor: primaryColor || '#fa9a08',
                 customClass: {
                     popup: 'rounded-lg border border-white/5',
                     confirmButton: 'rounded-md text-xs font-bold px-5 py-2.5',

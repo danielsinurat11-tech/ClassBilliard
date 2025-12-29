@@ -29,7 +29,7 @@
             <div class="lg:col-span-4">
                 <div class="sticky top-24 space-y-6">
                     <div class="flex items-center gap-2 mb-2">
-                        <span class="w-1 h-4 bg-[#fa9a08] rounded-full"></span>
+                        <span class="w-1 h-4 rounded-full" style="background-color: var(--primary-color);"></span>
                         <h2 class="text-xs font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">Create New
                             Category</h2>
                     </div>
@@ -41,7 +41,9 @@
                                 class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-[0.15em] ml-1">Category
                                 Name</label>
                             <input type="text" name="name" required placeholder="Ex: Main Course"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white focus:border-[#fa9a08] outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-gray-700 font-medium">
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white outline-none transition-all placeholder:text-slate-300 dark:placeholder:text-gray-700 font-medium"
+                                @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                @blur="$el.style.borderColor = ''">
                         </div>
 
                         <div class="space-y-2">
@@ -49,13 +51,18 @@
                                 class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-[0.15em] ml-1">Order
                                 Priority</label>
                             <input type="number" name="order_priority" value="0" required
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white focus:border-[#fa9a08] outline-none transition-all font-bold">
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white outline-none transition-all font-bold"
+                                @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                @blur="$el.style.borderColor = ''">
                             <p class="text-[9px] text-slate-400 dark:text-gray-600 italic font-medium">Angka lebih kecil
                                 akan muncul lebih awal di website.</p>
                         </div>
 
                         <button type="submit"
-                            class="w-full bg-[#fa9a08] hover:bg-orange-600 text-black font-extrabold py-3.5 rounded-md transition-all shadow-lg shadow-orange-500/10 uppercase tracking-[0.2em] text-[10px]">
+                            class="w-full text-black font-extrabold py-3.5 rounded-md transition-all shadow-lg uppercase tracking-[0.2em] text-[10px]"
+                            style="background-color: var(--primary-color); box-shadow: 0 10px 15px -3px rgba(var(--primary-color-rgb), 0.1);"
+                            @mouseenter="$el.style.opacity = '0.85'"
+                            @mouseleave="$el.style.opacity = '1'">
                             Save Category
                         </button>
                     </form>
@@ -73,11 +80,15 @@
                 <div class="grid grid-cols-1 gap-3">
                     @foreach($categories as $category)
                         <div
-                            class="group flex items-center justify-between p-4 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg hover:border-[#fa9a08]/40 transition-all duration-300">
+                            class="group flex items-center justify-between p-4 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg transition-all duration-300"
+                            @mouseenter="$el.style.borderColor = 'rgba(var(--primary-color-rgb), 0.4)'"
+                            @mouseleave="$el.style.borderColor = ''">
                             <div class="flex items-center gap-5">
                                 <!-- Priority Badge -->
                                 <div
-                                    class="w-12 h-12 flex flex-col items-center justify-center rounded-md bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 group-hover:bg-[#fa9a08]/5 transition-colors">
+                                    class="w-12 h-12 flex flex-col items-center justify-center rounded-md bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 transition-colors"
+                                    @mouseenter="$el.style.backgroundColor = 'rgba(var(--primary-color-rgb), 0.05)'"
+                                    @mouseleave="$el.style.backgroundColor = ''">
                                     <span class="text-[8px] font-black text-slate-400 uppercase leading-none mb-1">Pos</span>
                                     <span
                                         class="text-sm font-black text-slate-900 dark:text-white">{{ $category->order_priority }}</span>
@@ -85,7 +96,9 @@
 
                                 <div class="space-y-0.5">
                                     <h3
-                                        class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#fa9a08] transition-colors uppercase tracking-tight">
+                                        class="text-sm font-bold text-slate-900 dark:text-white transition-colors uppercase tracking-tight"
+                                        @mouseenter="$el.style.color = 'var(--primary-color)'"
+                                        @mouseleave="$el.style.color = ''">
                                         {{ $category->name }}
                                     </h3>
                                     <div class="flex items-center gap-3">
@@ -93,7 +106,7 @@
                                             class="text-[10px] font-medium text-slate-400 tracking-wider">/{{ $category->slug }}</span>
                                         <span class="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/10"></span>
                                         <span
-                                            class="text-[10px] font-bold text-[#fa9a08] uppercase">{{ $category->menus->count() }}
+                                            class="text-[10px] font-bold uppercase" style="color: var(--primary-color);">{{ $category->menus->count() }}
                                             Items</span>
                                     </div>
                                 </div>
@@ -102,7 +115,9 @@
                             <div class="flex items-center gap-2">
                                 <button
                                     onclick="openEditModal('{{ $category->id }}', '{{ $category->name }}', '{{ $category->order_priority }}')"
-                                    class="w-9 h-9 flex items-center justify-center rounded border border-slate-200 dark:border-white/10 text-slate-400 hover:border-[#fa9a08] hover:text-[#fa9a08] transition-all">
+                                    class="w-9 h-9 flex items-center justify-center rounded border border-slate-200 dark:border-white/10 text-slate-400 transition-all"
+                                    @mouseenter="$el.style.borderColor = 'var(--primary-color)'; $el.style.color = 'var(--primary-color)'"
+                                    @mouseleave="$el.style.borderColor = ''; $el.style.color = ''">
                                     <i class="ri-pencil-line"></i>
                                 </button>
 
@@ -136,20 +151,29 @@
                         class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">Category
                         Name</label>
                     <input type="text" name="name" id="editName" required
-                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white focus:border-[#fa9a08] outline-none">
+                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white outline-none"
+                        @focus="$el.style.borderColor = 'var(--primary-color)'"
+                        @blur="$el.style.borderColor = ''">
+                        @focus="$el.style.borderColor = 'var(--primary-color)'"
+                        @blur="$el.style.borderColor = ''">
                 </div>
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-widest">Order
                         Priority</label>
                     <input type="number" name="order_priority" id="editPriority" required
-                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white focus:border-[#fa9a08] outline-none">
+                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm dark:text-white outline-none\"
+                        @focus=\"$el.style.borderColor = 'var(--primary-color)'\"
+                        @blur=\"$el.style.borderColor = ''\">
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-100 dark:border-white/5">
                     <button type="button" onclick="closeModal()"
                         class="flex-1 px-4 py-3 rounded-md border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 transition-all">Cancel</button>
                     <button type="submit"
-                        class="flex-1 px-4 py-3 rounded-md bg-[#fa9a08] text-black text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all">Apply
+                        class="flex-1 px-4 py-3 rounded-md text-black text-[10px] font-black uppercase tracking-widest transition-all"
+                        style="background-color: var(--primary-color);"
+                        @mouseenter="$el.style.opacity = '0.85'"
+                        @mouseleave="$el.style.opacity = '1'">Apply
                         Changes</button>
                 </div>
             </form>

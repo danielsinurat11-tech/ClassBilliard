@@ -19,7 +19,8 @@
 
             <div class="flex items-center gap-4">
                 <a href="{{ route('admin.menus.create') }}"
-                    class="inline-flex items-center gap-2 bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md transition-all shadow-sm">
+                    class="inline-flex items-center gap-2 btn-primary text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md transition-all shadow-sm"
+                    style="background-color: var(--primary-color);">
                     <i class="ri-add-circle-line text-lg"></i>
                     <span>Add New Menu</span>
                 </a>
@@ -30,7 +31,8 @@
         <div
             class="flex items-center gap-6 border-b border-slate-100 dark:border-white/5 pb-2 overflow-x-auto no-scrollbar">
             <button
-                class="pb-2 px-1 border-b-2 border-[#fa9a08] text-[#fa9a08] text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                class="pb-2 px-1 border-b-2 text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
+                style="border-color: var(--primary-color); color: var(--primary-color);">
                 All Items
             </button>
             @foreach($categories as $category)
@@ -50,12 +52,14 @@
                     <div
                         class="relative aspect-square overflow-hidden rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5">
                         <img src="{{ asset($menu->image_path) }}"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            alt="{{ $menu->name }}">
 
                         <!-- Floating Price -->
                         <div class="absolute bottom-3 right-3">
                             <div
-                                class="bg-[#fa9a08] text-black px-2.5 py-1 rounded text-[10px] font-black shadow-lg uppercase tracking-tighter">
+                                class="text-black px-2.5 py-1 rounded text-[10px] font-black shadow-lg uppercase tracking-tighter"
+                                style="background-color: var(--primary-color);">
                                 IDR {{ number_format($menu->price, 0, ',', '.') }}
                             </div>
                         </div>
@@ -73,7 +77,7 @@
                     <div class="py-4 space-y-2 flex-1 flex flex-col">
                         <div class="flex flex-wrap gap-1.5">
                             @forelse($menu->labels ?? [] as $label)
-                                <span class="text-[8px] font-black text-[#fa9a08] uppercase tracking-widest">{{ $label }}</span>
+                                <span style="color: var(--primary-color);" class="text-[8px] font-black uppercase tracking-widest">{{ $label }}</span>
                                 @if(!$loop->last) <span class="text-slate-300 dark:text-gray-700">•</span> @endif
                             @empty
                                 <span
@@ -82,7 +86,10 @@
                         </div>
 
                         <h3
-                            class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#fa9a08] transition-colors leading-tight">
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white transition-colors leading-tight"
+                            style="color: inherit;"
+                            @mouseenter="$el.style.color = 'var(--primary-color)'"
+                            @mouseleave="$el.style.color = ''">
                             {{ $menu->name }}
                         </h3>
 
@@ -97,7 +104,10 @@
 
                             <div class="flex items-center gap-1">
                                 <a href="{{ route('admin.menus.edit', $menu) }}"
-                                    class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 dark:border-white/10 text-slate-400 hover:border-[#fa9a08] hover:text-[#fa9a08] transition-all">
+                                    class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 dark:border-white/10 text-slate-400 transition-all"
+                                    style="--hover-color: var(--primary-color);"
+                                    @mouseenter="$el.style.borderColor = 'var(--primary-color)'; $el.style.color = 'var(--primary-color)';"
+                                    @mouseleave="$el.style.borderColor = ''; $el.style.color = '';">
                                     <i class="ri-pencil-line"></i>
                                 </a>
 

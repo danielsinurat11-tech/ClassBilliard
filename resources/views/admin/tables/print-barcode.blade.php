@@ -62,7 +62,7 @@
             }
 
             .mesh-gradient {
-                background: #fa9a08 !important;
+                background: var(--primary-color) !important;
                 -webkit-print-color-adjust: exact;
             }
         }
@@ -70,7 +70,7 @@
 </head>
 
 <body
-    class="min-h-screen flex flex-col items-center justify-center p-6 lg:p-12 selection:bg-[#fa9a08] selection:text-black">
+    class="min-h-screen flex flex-col items-center justify-center p-6 lg:p-12 selection:text-black" style="selection:background-color: var(--primary-color);">
 
     <!-- NAVIGATION BAR -->
     <div
@@ -81,7 +81,7 @@
         </a>
         <div class="w-px h-4 bg-white/10"></div>
         <button onclick="window.print()"
-            class="flex items-center gap-2 px-8 py-2.5 bg-[#fa9a08] text-black rounded-md font-black uppercase tracking-widest text-[10px] hover:bg-orange-500 hover:shadow-[0_0_20px_rgba(250,154,8,0.3)] transition-all duration-300 active:scale-95">
+            class="flex items-center gap-2 px-8 py-2.5 text-black rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 active:scale-95 btn-primary" style="box-shadow: 0 0 20px rgba(var(--primary-color-rgb), 0.3);">
             <i class="ri-printer-line text-sm"></i> Print Masterpiece
         </button>
     </div>
@@ -124,15 +124,17 @@
 
                 <!-- Corner Accents -->
                 <div
-                    class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#fa9a08]/30 -translate-x-1 -translate-y-1">
+                    class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 -translate-x-1 -translate-y-1"
+                    style="border-color: rgba(var(--primary-color-rgb), 0.3);">
                 </div>
                 <div
-                    class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#fa9a08]/30 translate-x-1 translate-y-1">
+                    class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 translate-x-1 translate-y-1"
+                    style="border-color: rgba(var(--primary-color-rgb), 0.3);">
                 </div>
             </div>
 
             <div class="text-center">
-                <p class="text-[10px] uppercase tracking-[0.3em] font-black text-[#fa9a08] mb-3">Authentication Link</p>
+                <p class="text-[10px] uppercase tracking-[0.3em] font-black mb-3" style="color: var(--primary-color);">Authentication Link</p>
                 <h2 class="text-6xl font-black text-slate-900 uppercase tracking-tighter italic leading-none">
                     {{ $table->name }}
                 </h2>
@@ -150,7 +152,10 @@
             <div class="flex items-center justify-between gap-4 mb-10">
                 <div class="flex flex-col items-center gap-2 group cursor-default">
                     <div
-                        class="w-10 h-10 rounded-md bg-white/[0.03] border border-white/5 flex items-center justify-center text-[#fa9a08] group-hover:bg-[#fa9a08] group-hover:text-black transition-all duration-500">
+                        class="w-10 h-10 rounded-md bg-white/[0.03] border border-white/5 flex items-center justify-center text-black group-hover:text-black transition-all duration-500"
+                        style="color: var(--primary-color);"
+                        @mouseenter="$el.style.backgroundColor = 'var(--primary-color)'"
+                        @mouseleave="$el.style.backgroundColor = 'rgba(255,255,255,0.03)'">
                         <i class="ri-restaurant-2-line text-lg"></i>
                     </div>
                     <span class="text-[8px] font-black uppercase text-white/40 tracking-[0.2em]">Eatery</span>
@@ -158,7 +163,10 @@
                 <div class="h-8 w-px bg-white/5"></div>
                 <div class="flex flex-col items-center gap-2 group cursor-default">
                     <div
-                        class="w-10 h-10 rounded-md bg-white/[0.03] border border-white/5 flex items-center justify-center text-[#fa9a08] group-hover:bg-[#fa9a08] group-hover:text-black transition-all duration-500">
+                        class="w-10 h-10 rounded-md bg-white/[0.03] border border-white/5 flex items-center justify-center text-black group-hover:text-black transition-all duration-500"
+                        style="color: var(--primary-color);"
+                        @mouseenter="$el.style.backgroundColor = 'var(--primary-color)'"
+                        @mouseleave="$el.style.backgroundColor = 'rgba(255,255,255,0.03)'">
                         <i class="ri-billiards-line text-lg"></i>
                     </div>
                     <span class="text-[8px] font-black uppercase text-white/40 tracking-[0.2em]">Billiard</span>
@@ -166,7 +174,10 @@
                 <div class="h-8 w-px bg-white/5"></div>
                 <div class="flex flex-col items-center gap-2 group cursor-default">
                     <div
-                        class="w-10 h-10 rounded-md bg-white/[0.03] border border-white/5 flex items-center justify-center text-[#fa9a08] group-hover:bg-[#fa9a08] group-hover:text-black transition-all duration-500">
+                        class="w-10 h-10 rounded-md bg-white/[0.03] border border-white/5 flex items-center justify-center text-black group-hover:text-black transition-all duration-500"
+                        style="color: var(--primary-color);"
+                        @mouseenter="$el.style.backgroundColor = 'var(--primary-color)'"
+                        @mouseleave="$el.style.backgroundColor = 'rgba(255,255,255,0.03)'">
                         <i class="ri-wifi-line text-lg"></i>
                     </div>
                     <span class="text-[8px] font-black uppercase text-white/40 tracking-[0.2em]">Wifi</span>
@@ -190,12 +201,13 @@
     <div class="no-print mt-10 flex items-center gap-4 text-slate-500">
         <div class="flex -space-x-2">
             <div
-                class="w-8 h-8 rounded-full bg-[#fa9a08]/20 border border-[#fa9a08]/20 flex items-center justify-center text-[#fa9a08]">
+                class="w-8 h-8 rounded-full flex items-center justify-center"
+                style="background-color: rgba(var(--primary-color-rgb), 0.2); border: 1px solid rgba(var(--primary-color-rgb), 0.2); color: var(--primary-color);">
                 <i class="ri-lightbulb-flash-line"></i>
             </div>
         </div>
         <p class="text-[10px] font-medium tracking-tight">
-            Use <span class="text-white font-bold italic underline decoration-[#fa9a08]">Glossy Heavyweight Paper</span>
+            Use <span class="text-white font-bold italic underline" style="text-decoration-color: var(--primary-color);">Glossy Heavyweight Paper</span>
             for the best modern result.
         </p>
     </div>
