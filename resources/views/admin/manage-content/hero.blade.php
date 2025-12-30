@@ -104,9 +104,8 @@
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Main Display Title</label>
                             <span class="text-[9px] font-bold uppercase tracking-widest" style="color: var(--primary-color);">Large Text</span>
                         </div>
-                        <input type="text" name="title" value="{{ $hero->title ?? 'CLASS' }}" required
+                        <input type="text" name="title" placeholder="e.g. CLASS" value="{{ $hero->title ?? 'CLASS' }}" required
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-4 text-2xl font-bold tracking-tight text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
-                               placeholder="e.g. CLASS">
                     </div>
 
                     <!-- Subtitle -->
@@ -115,25 +114,22 @@
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Banner Subtitle</label>
                             <span class="text-[9px] font-bold uppercase tracking-widest" style="color: var(--primary-color);">Red Banner Text</span>
                         </div>
-                        <input type="text" name="subtitle" value="{{ $hero->subtitle ?? 'BILLIARD' }}" required
+                        <input type="text" name="subtitle" placeholder="e.g. BILLIARD" value="{{ $hero->subtitle ?? 'BILLIARD' }}" required
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
-                               placeholder="e.g. BILLIARD">
                     </div>
 
                     <!-- Tagline -->
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Tagline</label>
-                        <input type="text" name="tagline" value="{{ $hero->tagline ?? 'Premium Billiard Lounge & Bar' }}"
+                        <input type="text" name="tagline" placeholder="e.g. Premium Billiard Lounge & Bar" value="{{ $hero->tagline ?? 'Premium Billiard Lounge & Bar' }}"
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
-                               placeholder="e.g. Premium Billiard Lounge & Bar">
                     </div>
 
                     <!-- CTA Text 1 -->
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">CTA Button 1 Text</label>
-                        <input type="text" name="cta_text_1" value="{{ $hero->cta_text_1 ?? 'BOOK A TABLE' }}"
+                        <input type="text" name="cta_text_1" placeholder="e.g. BOOK A TABLE" value="{{ $hero->cta_text_1 ?? 'BOOK A TABLE' }}"
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
-                               placeholder="e.g. BOOK A TABLE">
                     </div>
 
                     <!-- CTA Text 2 -->
@@ -165,11 +161,8 @@
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-    /* Focus State Standard */
-    input:focus {
-        border-color: #fa9a08 !important;
-        box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
-    }
+    /* Focus State - handled by Alpine directives @focus/@blur for dynamic colors */
+    /* No hardcoded focus styles needed - using CSS variables instead */
 </style>
 
 <script>

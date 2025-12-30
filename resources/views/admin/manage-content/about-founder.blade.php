@@ -10,11 +10,11 @@
             class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
             <div class="space-y-1">
                 <a href="{{ route('admin.dashboard') }}"
-                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#fa9a08] transition-all duration-300 mb-2">
+                    class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 mb-2" @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''">
                     <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Back to Dashboard
                 </a>
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Edit <span
-                        class="text-[#fa9a08]">About Founder</span></h1>
+                        style="color: var(--primary-color);">About Founder</span></h1>
                 <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Manajemen profil naratif dan identitas
                     digital pendiri perusahaan.</p>
             </div>
@@ -29,7 +29,7 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.about-founder.update') }}" method="POST" enctype="multipart/form-data"
+        <form action="{{ route('admin.cms.about-founder.update') }}" method="POST" enctype="multipart/form-data"
             class="grid grid-cols-1 lg:grid-cols-12 gap-12">
             @csrf
 
@@ -44,7 +44,7 @@
                         <input type="file" name="photo" id="photoInput"
                             class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
                         <div id="preview"
-                            class="w-full h-full flex flex-col items-center justify-center text-slate-400 group-hover:text-[#fa9a08] transition-all duration-300">
+                            class="w-full h-full flex flex-col items-center justify-center text-slate-400 transition-all duration-300" @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''">
                             @if($aboutFounder && ($aboutFounder->photo || $aboutFounder->image))
                                 <img src="{{ asset('storage/' . ($aboutFounder->image ?? $aboutFounder->photo)) }}"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
@@ -82,7 +82,7 @@
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="is_active" value="1" {{ ($aboutFounder && $aboutFounder->is_active) ? 'checked' : '' }} class="sr-only peer">
                             <div
-                                class="w-11 h-6 bg-slate-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fa9a08]">
+                                class="w-11 h-6 bg-slate-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style="background-color: var(--primary-color);" @change="$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''">
                             </div>
                         </label>
                     </div>
@@ -100,7 +100,7 @@
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Section
                                 Title</label>
                             <input type="text" name="title" value="{{ $aboutFounder->title ?? 'Tentang Founder' }}"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all font-bold"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all font-bold" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
                                 placeholder="e.g. Meet Our Visionary">
                         </div>
 
@@ -110,7 +110,7 @@
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Founder
                                 Full Name</label>
                             <input type="text" name="name" value="{{ $aboutFounder->name ?? '' }}"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all font-bold"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all font-bold" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
                                 placeholder="Enter name here">
                         </div>
 
@@ -120,7 +120,7 @@
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Subtitle
                                 / Short Catchphrase</label>
                             <textarea name="subtitle" rows="2"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed">{{ $aboutFounder->subtitle ?? '' }}</textarea>
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all leading-relaxed" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">{{ $aboutFounder->subtitle ?? '' }}</textarea>
                         </div>
 
                         <!-- Position -->
@@ -128,7 +128,7 @@
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Position / Role</label>
                             <input type="text" name="position" value="{{ $aboutFounder->position ?? 'Founder & CEO' }}"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all font-bold"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all font-bold" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
                                 placeholder="e.g. Founder & CEO">
                         </div>
 
@@ -137,7 +137,7 @@
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Signature</label>
                             <input type="text" name="signature" value="{{ $aboutFounder->signature ?? '' }}"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all font-serif italic"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all font-serif italic" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
                                 placeholder="e.g. L.Ipsum">
                         </div>
 
@@ -146,35 +146,35 @@
                             <label
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Quote / Statement</label>
                             <textarea name="quote" rows="4"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all leading-relaxed"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all leading-relaxed" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
                                 placeholder="Billiards is not just a game; it is an art of precision, patience, and strategy.">{{ $aboutFounder->quote ?? '' }}</textarea>
                         </div>
                     </div>
 
                     <!-- SOCIAL MEDIA SECTION -->
                     <div class="mt-10 pt-10 border-t border-slate-100 dark:border-white/5">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-[#fa9a08] block mb-6">Social
+                        <label class="text-[10px] font-black uppercase tracking-widest block mb-6" style="color: var(--primary-color);">Social
                             Connectors</label>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="space-y-2">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-slate-400"><i
                                         class="ri-facebook-fill mr-1"></i> Facebook</label>
                                 <input type="url" name="facebook_url" value="{{ $aboutFounder->facebook_url ?? '' }}"
-                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
                                     placeholder="https://facebook.com/...">
                             </div>
                             <div class="space-y-2">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-slate-400"><i
                                         class="ri-instagram-line mr-1"></i> Instagram</label>
                                 <input type="url" name="instagram_url" value="{{ $aboutFounder->instagram_url ?? '' }}"
-                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
                                     placeholder="https://instagram.com/...">
                             </div>
                             <div class="space-y-2">
                                 <label class="text-[9px] font-black uppercase tracking-widest text-slate-400"><i
                                         class="ri-linkedin-box-fill mr-1"></i> LinkedIn</label>
                                 <input type="url" name="linkedin_url" value="{{ $aboutFounder->linkedin_url ?? '' }}"
-                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white focus:border-[#fa9a08] outline-none transition-all"
+                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-[11px] text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
                                     placeholder="https://linkedin.com/in/...">
                             </div>
                         </div>
@@ -183,7 +183,7 @@
                     <!-- SAVE BUTTON -->
                     <div class="mt-12 flex justify-end">
                         <button type="submit"
-                            class="w-full md:w-auto bg-[#fa9a08] hover:bg-orange-600 text-black text-[10px] font-black uppercase tracking-widest py-4 px-12 rounded-md transition-all shadow-sm active:scale-95">
+                            class="w-full md:w-auto text-black text-[10px] font-black uppercase tracking-widest py-4 px-12 rounded-md transition-all shadow-sm active:scale-95" style="background-color: var(--primary-color);" @mouseenter="$el.style.opacity = '0.85'" @mouseleave="$el.style.opacity = '1'">
                             Commit Changes
                         </button>
                     </div>
@@ -199,12 +199,8 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* Focus State Standard */
-        input:focus,
-        textarea:focus {
-            border-color: #fa9a08 !important;
-            box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
-        }
+        /* Focus states handled by Alpine directives @focus/@blur for dynamic colors */
+        /* No hardcoded styles needed - using CSS variables instead */
     </style>
 
     <script>
