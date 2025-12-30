@@ -32,7 +32,7 @@
         <div class="lg:col-span-5 space-y-8">
             <div class="space-y-2">
                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Brand Logo Asset</label>
-                <div class="relative group aspect-video rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] overflow-hidden flex items-center justify-center p-8 transition-all duration-500 hover:border-[#fa9a08]/30">
+                <div class="relative group aspect-video rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] overflow-hidden flex items-center justify-center p-8 transition-all duration-500" @mouseenter="$el.style.borderColor = 'rgba(var(--primary-color-rgb), 0.3)'" @mouseleave="$el.style.borderColor = ''">
                     <input type="file" name="logo_image" id="logoInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/*">
                     
                     <div id="preview" class="w-full h-full flex items-center justify-center">
@@ -57,7 +57,7 @@
             <!-- Background Image Upload -->
             <div class="space-y-2">
                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Background Image</label>
-                <div class="relative group aspect-video rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] overflow-hidden flex items-center justify-center p-8 transition-all duration-500 hover:border-[#fa9a08]/30">
+                <div class="relative group aspect-video rounded-lg border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] overflow-hidden flex items-center justify-center p-8 transition-all duration-500" @mouseenter="$el.style.borderColor = 'rgba(var(--primary-color-rgb), 0.3)'" @mouseleave="$el.style.borderColor = ''">
                     <input type="file" name="background_image" id="backgroundInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/*">
                     
                     <div id="backgroundPreview" class="w-full h-full flex items-center justify-center">
