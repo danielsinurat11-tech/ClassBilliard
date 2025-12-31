@@ -183,6 +183,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
     });
 
+    // Menu Sales Chart API (Super Admin only)
+    Route::get('/menu-sales-data', [App\Http\Controllers\AdminController::class, 'getMenuSalesData'])->name('menu-sales-data');
+    
+    // Sales Analytics Page (Super Admin only)
+    Route::get('/sales-analytics', [App\Http\Controllers\AdminController::class, 'salesAnalytics'])->name('sales-analytics');
+
     // Permission Management (super_admin only)
     Route::prefix('permissions')->name('permissions.')->group(function () {
         Route::get('/select-user', [App\Http\Controllers\PermissionController::class, 'selectUser'])->name('select-user');
