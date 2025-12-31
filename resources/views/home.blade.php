@@ -73,27 +73,16 @@
         /* Marquee Animation */
         @keyframes marquee {
             0% {
-                transform: translateX(0);
-            }
-            100% {
                 transform: translateX(-100%);
             }
-        }
 
-        .marquee-container {
-            width: 100%;
-            overflow: hidden;
+            100% {
+                transform: translateX(0%);
+            }
         }
 
         .animate-marquee {
             animation: marquee 20s linear infinite;
-            display: inline-flex;
-            white-space: nowrap;
-        }
-
-        /* Pause animation on hover (optional) */
-        .marquee-container:hover .animate-marquee {
-            animation-play-state: paused;
         }
     </style>
 </head>
@@ -120,7 +109,38 @@
     <!-- Team Section Component -->
     @include('components.team-section', ['teamMembers' => $teamMembers])
 
-   
+    <!-- Running Text Strip -->
+    <div class="bg-gold-400 overflow-hidden py-3 transform -skew-y-1 relative z-20">
+        <div class="flex whitespace-nowrap">
+            <div class="animate-marquee flex-shrink-0 flex items-center pr-8">
+                <span class="text-black font-bold text-xl tracking-widest uppercase flex items-center gap-8">
+                    PREMIUM TABLES <span class="text-2xl">•</span>
+                    PRO COACHING <span class="text-2xl">•</span>
+                    TOURNAMENTS <span class="text-2xl">•</span>
+                    VIP LOUNGE <span class="text-2xl">•</span>
+                    FINE DINING <span class="text-2xl">•</span>
+                </span>
+            </div>
+            <div class="animate-marquee flex-shrink-0 flex items-center pr-8">
+                <span class="text-black font-bold text-xl tracking-widest uppercase flex items-center gap-8">
+                    PREMIUM TABLES <span class="text-2xl">•</span>
+                    PRO COACHING <span class="text-2xl">•</span>
+                    TOURNAMENTS <span class="text-2xl">•</span>
+                    VIP LOUNGE <span class="text-2xl">•</span>
+                    FINE DINING <span class="text-2xl">•</span>
+                </span>
+            </div>
+            <div class="animate-marquee flex-shrink-0 flex items-center pr-8">
+                <span class="text-black font-bold text-xl tracking-widest uppercase flex items-center gap-8">
+                    PREMIUM TABLES <span class="text-2xl">•</span>
+                    PRO COACHING <span class="text-2xl">•</span>
+                    TOURNAMENTS <span class="text-2xl">•</span>
+                    VIP LOUNGE <span class="text-2xl">•</span>
+                    FINE DINING <span class="text-2xl">•</span>
+                </span>
+            </div>
+        </div>
+    </div>
 
     <!-- Testimonials Section Component -->
     @include('components.testimonials-section', ['testimonials' => $testimonials])

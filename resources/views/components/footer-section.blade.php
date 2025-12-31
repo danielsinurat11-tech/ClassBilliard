@@ -1,5 +1,7 @@
 {{-- Footer Section Component --}}
 @php
+    use App\Services\MapsUrlConverter;
+    
     // Jika $footer tidak dikirim dari controller, cari yang aktif
     // Tapi jika dikirim dari controller (meskipun is_active = false), gunakan yang dikirim
     if (!isset($footer)) {
@@ -17,13 +19,24 @@
     $email = $footer && $footer->email && trim($footer->email) !== '' ? trim($footer->email) : '';
     // Hanya gunakan opening_hours jika ada, tidak fallback ke monday_friday_hours/saturday_sunday_hours
     $openingHours = $footer && $footer->opening_hours && trim($footer->opening_hours) !== '' ? trim($footer->opening_hours) : '';
-    // Prioritaskan google_maps_url jika ada (untuk embed), jika tidak gunakan map_url
+    
+    // Handle Maps URL conversion
     $mapUrl = '';
+    $mapsShareLink = '';
+    $isEmbeddable = false;
+    
     if ($footer && $footer->google_maps_url && trim($footer->google_maps_url) !== '') {
-        $mapUrl = trim($footer->google_maps_url);
+        $mapsData = MapsUrlConverter::convert(trim($footer->google_maps_url));
+        $isEmbeddable = $mapsData['isEmbeddable'];
+        $mapUrl = $mapsData['embedUrl'] ?? '';
+        $mapsShareLink = $mapsData['shareUrl'];
     } elseif ($footer && $footer->map_url && trim($footer->map_url) !== '') {
-        $mapUrl = trim($footer->map_url);
+        $mapsData = MapsUrlConverter::convert(trim($footer->map_url));
+        $isEmbeddable = $mapsData['isEmbeddable'];
+        $mapUrl = $mapsData['embedUrl'] ?? '';
+        $mapsShareLink = $mapsData['shareUrl'];
     }
+    
     $instagram = $footer && $footer->instagram_url && trim($footer->instagram_url) !== '' ? trim($footer->instagram_url) : '';
     $facebook = $footer && $footer->facebook_url && trim($footer->facebook_url) !== '' ? trim($footer->facebook_url) : '';
     $whatsapp = $footer && $footer->whatsapp && trim($footer->whatsapp) !== '' ? trim($footer->whatsapp) : '';
@@ -51,8 +64,8 @@
 
                 <!-- Stylized Map Container -->
                 <div class="relative w-full h-[300px] rounded-2xl overflow-hidden border border-white/10 group">
-                    <!-- Placeholder Map Image/Iframe -->
-                    @if($mapUrl)
+                    <!-- Embeddable Maps (Google Embed URL) -->
+                    @if($isEmbeddable && $mapUrl)
                     <iframe
                         src="{{ $mapUrl }}"
                         width="100%" height="100%"
@@ -62,6 +75,23 @@
                         referrerpolicy="no-referrer-when-downgrade"
                         title="Location Map">
                     </iframe>
+                    @elseif($mapsShareLink)
+                    <!-- Non-Embeddable Maps (show link button instead) -->
+                    <a href="{{ $mapsShareLink }}" target="_blank" rel="noopener noreferrer"
+                        class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex flex-col items-center justify-center hover:from-slate-700 hover:to-slate-800 transition-all duration-300 group">
+                        <div class="text-center space-y-4">
+                            <div class="w-16 h-16 bg-gold-400/20 rounded-full flex items-center justify-center mx-auto group-hover:bg-gold-400/30 transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gold-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-white font-bold">Open Location</p>
+                                <p class="text-gray-400 text-sm">Click to view on Google Maps</p>
+                            </div>
+                        </div>
+                    </a>
                     @else
                     <div class="w-full h-full bg-gray-900 flex items-center justify-center">
                         <div class="text-center">
@@ -72,7 +102,7 @@
                     @endif
 
                     <!-- Overlay Card -->
-                    @if($locationName || $address || $mapUrl)
+                    @if($locationName || $address || $mapsShareLink)
                     <div
                         class="absolute bottom-4 left-4 right-4 bg-black/90 backdrop-blur-md p-4 rounded-xl border border-white/10 flex items-center justify-between">
                         <div>
@@ -83,9 +113,9 @@
                             <p class="text-gray-400 text-xs mt-1">{{ $address }}</p>
                             @endif
                         </div>
-                        @if($mapUrl)
-                        <a href="{{ $mapUrl }}" target="_blank"
-                            class="w-10 h-10 bg-gold-400 rounded-full flex items-center justify-center text-black hover:scale-110 transition-transform">
+                        @if($mapsShareLink)
+                        <a href="{{ $mapsShareLink }}" target="_blank"
+                            class="w-10 h-10 bg-gold-400 rounded-full flex items-center justify-center text-black hover:scale-110 transition-transform flex-shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

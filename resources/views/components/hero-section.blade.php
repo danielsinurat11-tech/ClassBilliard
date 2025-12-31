@@ -49,7 +49,7 @@
         @if($title || $subtitle)
         <h1 class="text-white text-4xl md:text-6xl font-serif font-light tracking-wide mb-4" data-aos="fade-up"
             data-aos-delay="300">
-            @if($title){{ $title }}@endif @if($subtitle)<span class="text-gold-400 font-rumonds italic pr-2">{{ $subtitle }}</span>@endif
+            @if($title){{ $title }}@endif @if($subtitle)<span class="text-gold-400 font-serif italic pr-2">{{ $subtitle }}</span>@endif
         </h1>
         @endif
 
