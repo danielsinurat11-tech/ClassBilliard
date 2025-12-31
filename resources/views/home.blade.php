@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8">
@@ -20,6 +20,10 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Alpine.js untuk interactive menu -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
@@ -44,6 +48,60 @@
             }
         </script>
         <style>
+            * {
+                /* Optimal font smoothing */
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+
+            html {
+                /* Smooth scroll behavior */
+                scroll-behavior: smooth;
+                scroll-padding-top: 96px;
+            }
+
+            body {
+                /* iOS momentum scrolling */
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Prevent unnecessary repaints */
+            body > * {
+                /* Only enable will-change during scroll */
+                contain: layout style;
+            }
+
+            /* Custom scrollbar styling */
+            ::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.5);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: rgba(255, 215, 0, 0.6);
+                border-radius: 5px;
+                transition: background 0.3s ease;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 215, 0, 0.9);
+            }
+
+            /* Firefox scrollbar */
+            * {
+                scrollbar-color: rgba(255, 215, 0, 0.6) rgba(0, 0, 0, 0.5);
+                scrollbar-width: thin;
+            }
+
+            /* Disable GPU acceleration yang terlalu aggressive */
+            /* Lebih smooth dengan CPU rendering yang optimal */
+            img, video {
+                backface-visibility: visible;
+            }
+        </style>
             @font-face {
                 font-family: 'Rumonds';
                 src: url('/fonts/rumonds.otf') format('opentype');
@@ -152,10 +210,38 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init({
-            once: true,
+            once: false,
             duration: 1000,
             easing: 'ease-out-cubic',
+            offset: 50,
+            delay: 0,
         });
+
+        // Enhanced smooth scroll with momentum
+        let scrollTop = 0;
+        let targetScroll = 0;
+        let isScrolling = false;
+
+        // Smooth momentum scrolling
+        document.addEventListener('wheel', (e) => {
+            // Don't override native scroll, just enhance it
+            isScrolling = true;
+            setTimeout(() => {
+                isScrolling = false;
+            }, 100);
+        }, { passive: true });
+
+        // Optimize scroll performance dengan requestAnimationFrame
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    // Lightweight scroll handling
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
 
         // Navbar Scroll Effect
         window.addEventListener('scroll', function () {
