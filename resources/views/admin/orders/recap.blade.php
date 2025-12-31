@@ -1,21 +1,26 @@
 @extends('layouts.admin')
 
-@section('title', 'Tutup Hari')
+@section('title', 'Tutup Hari - Admin')
 
 @push('styles')
 <style>
     .recap-card {
-        background: linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(20, 20, 20, 0.95) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 1rem;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
         padding: 1.5rem;
         transition: all 0.3s ease;
+    }
+
+    .dark .recap-card {
+        background: #0A0A0A;
+        border-color: rgba(255, 255, 255, 0.05);
     }
 
     .recap-card:hover {
         border-color: rgba(255, 255, 255, 0.2);
         transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .stat-card {
@@ -218,30 +223,46 @@
     }
 
     .btn-print {
-        background: #22c55e;
+        background: #10b981;
         color: white;
     }
 
     .btn-print:hover {
-        background: #16a34a;
+        background: #059669;
     }
 
     .btn-download {
-        background: #3b82f6;
+        background: #0ea5e9;
         color: white;
     }
 
     .btn-download:hover {
-        background: #2563eb;
+        background: #0284c7;
     }
 
     .btn-email {
-        background: #8b5cf6;
         color: white;
     }
 
     .btn-email:hover {
-        background: #7c3aed;
+        opacity: 0.85;
+    }
+
+    /* Date Input Styling */
+    input[type="date"] {
+        accent-color: var(--primary-color);
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        border-radius: 4px;
+        margin-right: 2px;
+        opacity: 0.6;
+        filter: invert(0.8);
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
     }
 
     /* Print Styles */
@@ -280,37 +301,36 @@
 
 @section('content')
 <div class="space-y-6 animate-in fade-in duration-500">
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold text-white tracking-tight">Tutup Hari</h1>
-            <p class="text-gray-500 text-sm">Histori tutup hari yang sudah dibuat. Order dapat di-rekap langsung dari halaman Manajemen Order.</p>
-        </div>
-        <a href="{{ route('admin.orders.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-2">
-            <i class="ri-arrow-left-line"></i>
-            Kembali ke Manajemen Order
-        </a>
-    </div>
+    <div class="min-h-screen bg-white dark:bg-[#050505] p-6 lg:p-10 transition-colors duration-300">
 
-    {{-- Filter Tanggal --}}
-    <div class="recap-card">
-        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-            <i class="ri-filter-line text-purple-400"></i>
-            Filter Tanggal
+    <!-- HEADER STANDARD -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 dark:border-white/5 pb-8 mb-10">
+        <div class="space-y-1">
+            <a href="{{ route('admin.orders.index') }}" class="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 mb-2" @mouseenter="$el.style.color = 'var(--primary-color)'" @mouseleave="$el.style.color = ''">
+                <i class="ri-arrow-left-line transition-transform group-hover:-translate-x-1"></i> Kembali ke Order
+            </a>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Tutup <span style="color: var(--primary-color);">Hari</span></h1>
+            <p class="text-xs text-slate-500 dark:text-gray-500 font-medium">Histori penutupan hari dan rekap penjualan harian sistem.</p>
+        </div>
+    </div>
+<!-- FILTER SECTION -->
+    <div class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 mb-10">
+        <h2 class="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <i class="ri-filter-line"></i> Filter Tanggal
         </h2>
-        <form method="GET" action="{{ route('admin.orders.recap.index') }}" class="flex flex-col md:flex-row gap-4 items-end">
+        <form method="GET" action="{{ route('admin.orders.recap.index') }}" class="flex flex-col md:flex-row gap-6 items-end">
             <div class="flex-1">
-                <label class="block text-sm font-medium text-gray-400 mb-2">Pilih Tanggal</label>
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 mb-2 block">Pilih Tanggal</label>
                 <input type="date" name="filter_date" value="{{ request('filter_date', \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d')) }}"
-                    class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-600 transition-all">
+                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
             </div>
-            <div class="flex gap-2">
-                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2">
-                    <i class="ri-search-line"></i>
-                    Filter
+            <div class="flex gap-3">
+                <button type="submit" class="text-black text-[10px] font-black uppercase tracking-widest py-3 px-8 rounded-md transition-all active:scale-95" style="background-color: var(--primary-color);" @mouseenter="$el.style.opacity = '0.85'" @mouseleave="$el.style.opacity = '1'">
+                    <i class="ri-search-line mr-2"></i>Cari
                 </button>
                 @if(request('filter_date'))
-                <a href="{{ route('admin.orders.recap.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2">
-                    <i class="ri-close-line"></i>
+                <a href="{{ route('admin.orders.recap.index') }}" class="text-slate-900 dark:text-white text-[10px] font-black uppercase tracking-widest py-3 px-8 rounded-md border border-slate-200 dark:border-white/10 transition-all hover:bg-slate-100 dark:hover:bg-white/5">
+                    <i class="ri-refresh-line mr-2"></i><i class="ri-close-line"></i>
                     Reset
                 </a>
                 @endif
@@ -318,34 +338,32 @@
         </form>
     </div>
 
-    {{-- Daftar Tutup Hari --}}
-    <div class="space-y-4">
-        <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="ri-history-line text-purple-400"></i>
-                Histori Tutup Hari
+    <!-- REPORTS LIST -->
+    <div class="space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h2 class="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="ri-history-line"></i> Histori Tutup Hari
                 @if(request('filter_date'))
-                <span class="text-sm font-normal text-gray-400 ml-2">
+                <span class="text-[10px] font-normal text-slate-500 dark:text-gray-400 ml-2">
                     ({{ \Carbon\Carbon::parse(request('filter_date'))->setTimezone('Asia/Jakarta')->format('d M Y') }})
                 </span>
                 @endif
             </h2>
             @if(!$reports->isEmpty())
-            <div class="text-sm text-gray-400">
+            <div class="text-[10px] text-slate-500 dark:text-gray-400 font-medium">
                 Menampilkan {{ $reports->firstItem() ?? 0 }}-{{ $reports->lastItem() ?? 0 }} dari {{ $reports->total() }} rekap
             </div>
             @endif
         </div>
 
         @if($reports->isEmpty())
-        <div class="recap-card text-center py-12">
-            <i class="ri-file-list-3-line text-6xl text-gray-600 mb-4"></i>
-            <p class="text-gray-400">Belum ada tutup hari yang dibuat.</p>
+        <div class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-12 text-center">
+            <i class="ri-file-list-3-line text-5xl text-slate-300 dark:text-white/10 mb-4 block"></i>
+            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Belum ada tutup hari yang dibuat</p>
         </div>
         @else
         @foreach($reports as $report)
         <div class="receipt-container print-container" id="recap-{{ $report->id }}">
-            <div class="receipt-content">
                 {{-- Header --}}
                 <div class="receipt-header">
                     <h2 class="receipt-title">BILLIARD CLASS</h2>
@@ -430,24 +448,24 @@
             <div class="receipt-actions no-print">
                 <button onclick="printRecap({{ $report->id }})" class="btn-print">
                     <i class="ri-printer-line"></i>
-                    Print Nota
+                    Print
                 </button>
                 <button onclick="downloadRecap({{ $report->id }})" class="btn-download">
                     <i class="ri-download-line"></i>
-                    Download Excel
+                    Excel
                 </button>
-                <button onclick="sendRecapEmail({{ $report->id }})" class="btn-email">
+                <button onclick="sendRecapEmail({{ $report->id }})" class="btn-email" style="background-color: var(--primary-color);">
                     <i class="ri-mail-line"></i>
-                    Kirim Email
+                    Email
                 </button>
             </div>
         </div>
         @endforeach
 
-        {{-- Pagination --}}
+        <!-- Pagination -->
         @if($reports->hasPages())
         <div class="mt-8 flex justify-center">
-            <div class="bg-[#1A1A1A] border border-white/10 rounded-xl p-4">
+            <div class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-4">
                 {{ $reports->links() }}
             </div>
         </div>
@@ -457,48 +475,44 @@
 </div>
 
 {{-- Modal Update Recap --}}
-<div id="updateRecapModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-gray-900 border border-white/10 rounded-2xl max-w-2xl w-full">
-        <div class="p-6">
+<div id="updateRecapModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg max-w-2xl w-full">
+        <div class="p-8">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                    <i class="ri-refresh-line text-orange-400"></i>
-                    Perbarui Tutup Hari
+                <h3 class="text-lg font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="ri-refresh-line"></i> Perbarui Tutup Hari
                 </h3>
-                <button onclick="closeUpdateRecapModal()" class="text-gray-400 hover:text-white transition-colors">
-                    <i class="ri-close-line text-2xl"></i>
+                <button onclick="closeUpdateRecapModal()" class="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <i class="ri-close-line text-xl"></i>
                 </button>
             </div>
-            <form id="updateRecapForm" class="space-y-4">
+            <form id="updateRecapForm" class="space-y-6">
                 @csrf
                 <input type="hidden" id="updateRecapId" name="report_id">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Tanggal Mulai</label>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 mb-2 block">Tanggal Mulai</label>
                         <input type="date" id="updateStartDate" name="start_date" required
-                            class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:border-[color:var(--primary-color)] transition-all"
-                            style="focus-color: var(--primary-color);">
+                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-400 mb-2">Tanggal Akhir</label>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 mb-2 block">Tanggal Akhir</label>
                         <input type="date" id="updateEndDate" name="end_date" required
-                            class="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:border-[color:var(--primary-color)] transition-all"
-                            style="focus-color: var(--primary-color);">
+                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                     </div>
                 </div>
-                <div style="background-color: var(--primary-color); background-color: rgba(var(--primary-color-rgb), 0.1); border-color: rgba(var(--primary-color-rgb), 0.3);" class="border rounded-xl p-4">
-                    <p style="color: var(--primary-color);" class="text-sm flex items-start gap-2">
-                        <i class="ri-information-line text-lg mt-0.5"></i>
-                        <span>Tutup hari akan diperbarui dengan data terbaru. Order baru yang completed untuk periode ini akan ditambahkan ke tutup hari.</span>
+                <div style="background-color: rgba(var(--primary-color-rgb), 0.1); border-color: rgba(var(--primary-color-rgb), 0.3);" class="border rounded-lg p-4">
+                    <p style="color: var(--primary-color);" class="text-[10px] font-medium flex items-start gap-2">
+                        <i class="ri-information-line text-lg mt-0.5 flex-shrink-0"></i>
+                        <span>Tutup hari akan diperbarui dengan data terbaru. Order baru yang completed untuk periode ini akan ditambahkan.</span>
                     </p>
                 </div>
-                <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeUpdateRecapModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-xl transition-all">
+                <div class="flex gap-3 pt-4 border-t border-slate-200 dark:border-white/5">
+                    <button type="button" onclick="closeUpdateRecapModal()" class="flex-1 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-900 dark:text-white font-black text-[10px] uppercase tracking-widest py-3 px-6 rounded-md transition-all">
                         Batal
                     </button>
-                    <button type="submit" class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
-                        <i class="ri-refresh-line"></i>
-                        Perbarui Tutup Hari
+                    <button type="submit" class="flex-1 text-black font-black text-[10px] uppercase tracking-widest py-3 px-6 rounded-md transition-all flex items-center justify-center gap-2" style="background-color: var(--primary-color);" @mouseenter="$el.style.opacity = '0.85'" @mouseleave="$el.style.opacity = '1'">
+                        <i class="ri-refresh-line"></i> Perbarui
                     </button>
                 </div>
             </form>
@@ -507,35 +521,34 @@
 </div>
 
 {{-- Modal Detail Report --}}
-<div id="reportDetailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-gray-900 border border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div class="sticky top-0 bg-gray-900 border-b border-white/10 p-6">
+<div id="reportDetailModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white dark:bg-[#0A0A0A] border-b border-slate-200 dark:border-white/5 p-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-white">Detail Tutup Hari</h3>
-                <button onclick="closeReportDetail()" class="text-gray-400 hover:text-white transition-colors">
-                    <i class="ri-close-line text-2xl"></i>
+                <h3 class="text-lg font-black uppercase tracking-widest text-slate-900 dark:text-white">Detail Tutup Hari</h3>
+                <button onclick="closeReportDetail()" class="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <i class="ri-close-line text-xl"></i>
                 </button>
             </div>
             {{-- Filter Section --}}
-            <div class="flex gap-3 items-end">
+            <div class="flex flex-col md:flex-row gap-3 items-end">
                 <div class="flex-1">
-                    <label class="block text-xs font-medium text-gray-400 mb-2">Filter Berdasarkan Meja</label>
-                    <select id="filterTable" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-600 transition-all">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 mb-2 block">Filter Meja</label>
+                    <select id="filterTable" class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-2 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                         <option value="">Semua Meja</option>
                     </select>
                 </div>
                 <div class="flex-1">
-                    <label class="block text-xs font-medium text-gray-400 mb-2">Filter Berdasarkan Ruangan</label>
-                    <select id="filterRoom" class="w-full bg-black/40 border border-white/10 rounded-xl py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-600 transition-all">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 mb-2 block">Filter Ruangan</label>
+                    <select id="filterRoom" class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-2 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                         <option value="">Semua Ruangan</option>
                     </select>
                 </div>
-                <button onclick="resetFilter()" class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-xl transition-all flex items-center gap-2">
-                    <i class="ri-refresh-line"></i>
-                    Reset
+                <button onclick="resetFilter()" class="text-black font-black text-[10px] uppercase tracking-widest py-2 px-6 rounded-md transition-all flex items-center gap-2" style="background-color: var(--primary-color);" @mouseenter="$el.style.opacity = '0.85'" @mouseleave="$el.style.opacity = '1'">
+                    <i class="ri-refresh-line"></i> Reset
                 </button>
             </div>
-            <div id="filterStats" class="mt-4 text-sm text-gray-400">
+            <div id="filterStats" class="mt-4 text-[10px] font-medium text-slate-600 dark:text-gray-400">
                 <!-- Stats akan diisi via JavaScript -->
             </div>
         </div>

@@ -15,7 +15,10 @@
             </div>
 
             <a href="{{ route('admin.tables.create') }}"
-                class="text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95 btn-primary">
+                class="text-black text-[10px] font-black uppercase tracking-widest py-3 px-6 rounded-md transition-all shadow-sm flex items-center gap-2 active:scale-95 btn-primary"
+                style="background-color: var(--primary-color);"
+                @mouseenter="$el.style.opacity = '0.85'"
+                @mouseleave="$el.style.opacity = '1'">
                 <i class="ri-add-circle-line text-lg"></i>
                 Tambah Meja Baru
             </a>
@@ -38,7 +41,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse($tables as $table)
                 <div
-                    class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden transition-all duration-300 flex flex-col" style="border-color: var(--primary-color);" @mouseenter="$el.style.borderColor = 'var(--primary-color)'" @mouseleave="$el.style.borderColor = ''">
+                    class="group bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden transition-all duration-300 flex flex-col"
+                    @mouseenter="$el.style.borderColor = 'var(--primary-color)'"
+                    @mouseleave="$el.style.borderColor = ''">
 
                     <!-- QR CODE AREA -->
                     <div class="p-6 pb-0">
@@ -75,7 +80,8 @@
                             <div
                                 class="absolute inset-0 bg-[#050505]/90 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 z-20 backdrop-blur-sm">
                                 <a href="{{ route('admin.tables.barcode', $table->id) }}"
-                                    class="w-10 h-10 text-black rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg btn-primary" style="background-color: var(--primary-color);">
+                                    class="w-10 h-10 text-black rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                                    style="background-color: var(--primary-color);"
                                     title="Print Poster">
                                     <i class="ri-printer-line text-lg"></i>
                                 </a>
@@ -96,7 +102,8 @@
                                 @endphp
                                 <a href="{{ route('menu') }}?table={{ urlencode($tableNumber) }}&room={{ urlencode($table->room ?? '') }}"
                                     target="_blank"
-                                    class="w-10 h-10 bg-blue-600 text-white rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                                    class="w-10 h-10 text-white rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                                    style="background-color: var(--primary-color);"
                                     title="Live Preview">
                                     <i class="ri-external-link-line text-lg"></i>
                                 </a>
@@ -109,12 +116,16 @@
                         <div class="flex justify-between items-start mb-6">
                             <div class="space-y-1">
                                 <h3
-                                    class="text-sm font-bold text-slate-900 dark:text-white transition-colors uppercase tracking-tight" style="color: var(--primary-color);" @mouseenter="$el.style.color = 'var(--primary-hover)'" @mouseleave="$el.style.color = 'var(--primary-color)'">
+                                    class="text-sm font-bold text-slate-900 dark:text-white transition-colors uppercase tracking-tight"
+                                    style="color: var(--primary-color);">
                                     {{ $table->name }}
                                 </h3>
-                                <p class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em]">
-                                    ID: {{ $table->slug }}
-                                </p>
+                                <div class="text-[10px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-[0.2em] space-y-0.5">
+                                    <p>ID: #{{ $table->id }}</p>
+                                    @if($table->room)
+                                        <p>ROOM: {{ $table->room }}</p>
+                                    @endif
+                                </div>
                             </div>
                             <div
                                 class="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">
@@ -126,14 +137,17 @@
                         <!-- FOOTER ACTIONS -->
                         <div class="mt-auto flex gap-2 pt-4 border-t border-slate-100 dark:border-white/5">
                             <a href="{{ route('admin.tables.barcode', $table->id) }}"
-                                class="flex-1 flex items-center justify-center gap-2 py-2.5 text-black rounded-md text-[10px] font-black uppercase tracking-widest transition-all border border-slate-200 dark:border-white/10 group/btn btn-primary" style="background-color: var(--primary-color);" @mouseenter="$el.style.backgroundColor = 'var(--primary-hover)'" @mouseleave="$el.style.backgroundColor = 'var(--primary-color)'">
+                                class="flex-1 flex items-center justify-center gap-2 py-2.5 text-black rounded-md text-[10px] font-black uppercase tracking-widest transition-all border border-slate-200 dark:border-white/10"
+                                style="background-color: var(--primary-color);"
+                                @mouseenter="$el.style.opacity = '0.85'"
+                                @mouseleave="$el.style.opacity = '1'">
                                 <i class="ri-fullscreen-line"></i> Detail QR
                             </a>
 
-                            <form action="{{ route('admin.tables.destroy', $table->id) }}" method="POST" class="shrink-0">
+                            <form action="{{ route('admin.tables.destroy', $table->id) }}" method="POST" class="shrink-0 delete-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" onclick="return confirm('Hapus data meja secara permanen?')"
+                                <button type="button" onclick="confirmDelete(this)"
                                     class="w-10 h-10 flex items-center justify-center bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white rounded-md transition-all border border-red-500/10">
                                     <i class="ri-delete-bin-line"></i>
                                 </button>
@@ -153,7 +167,10 @@
                     <p class="text-xs text-slate-500 dark:text-gray-500 mt-1">Sistem belum mendeteksi adanya meja operasional
                         yang terdaftar.</p>
                     <a href="{{ route('admin.tables.create') }}"
-                        class="mt-6 text-black px-8 py-3 rounded-md text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm btn-primary" style="background-color: var(--primary-color);">
+                        class="mt-6 text-black px-8 py-3 rounded-md text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm"
+                        style="background-color: var(--primary-color);"
+                        @mouseenter="$el.style.opacity = '0.85'"
+                        @mouseleave="$el.style.opacity = '1'">
                         Inisialisasi Meja Baru
                     </a>
                 </div>
@@ -161,11 +178,64 @@
         </div>
     </div>
 
+    {{-- SweetAlert2 Custom Styling & Script --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(button) {
+            const form = button.closest('.delete-form');
+            const tableNameElement = form.closest('[class*="group"]').querySelector('h3');
+            const tableName = tableNameElement ? tableNameElement.textContent.trim() : 'Meja';
+
+            Swal.fire({
+                title: 'KONFIRMASI HAPUS',
+                text: `Meja "${tableName}" akan dihapus secara permanen beserta semua data QR Code-nya.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
+                cancelButtonColor: '#1a1a1a',
+                confirmButtonText: 'YA, HAPUS MEJA',
+                cancelButtonText: 'BATAL',
+                background: '#0a0a0a',
+                color: '#ffffff',
+                borderRadius: '8px',
+                customClass: {
+                    title: 'text-sm font-black tracking-widest',
+                    htmlContainer: 'text-xs text-gray-400 font-medium',
+                    confirmButton: 'text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md',
+                    cancelButton: 'text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+
+        // Success Alert after redirect
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'BERHASIL',
+                text: "{{ session('success') }}",
+                background: '#0a0a0a',
+                color: '#ffffff',
+                showConfirmButton: false,
+                timer: 2000,
+                borderRadius: '8px'
+            });
+        @endif
+    </script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .swal2-popup {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
         }
     </style>
 @endsection

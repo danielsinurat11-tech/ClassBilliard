@@ -93,51 +93,56 @@
                                             <textarea name="testimonial" rows="3"
                                                 class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2 text-sm text-slate-900 dark:text-white outline-none transition-all leading-relaxed"
                                                 @focus="$el.style.borderColor = 'var(--primary-color)'"
-                                                @blur="$el.style.borderColor = ''\">{{ $testimoni->testimonial }}</textarea>
+                                                @blur="$el.style.borderColor = ''">{{ $testimoni->testimonial }}</textarea>
                                         </div>
-                                        <div class="space-y-6">
+                                        <div class="space-y-4">
                                             <div class="grid grid-cols-2 gap-4">
-                                                <div class="space-y-1">
+                                                <div class="space-y-2">
                                                     <label
-                                                        class="text-[9px] font-black uppercase tracking-widest text-slate-400">Rating</label>
+                                                        class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Rating</label>
                                                     <input type="number" name="rating" min="1" max="5"
                                                         value="{{ $testimoni->rating }}"
-                                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm font-bold outline-none\"
-                                                        style=\"color: var(--primary-color);\"
-                                                        @focus=\"$el.style.borderColor = 'var(--primary-color)'\"
-                                                        @blur=\"$el.style.borderColor = ''\"
+                                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm font-bold text-slate-900 dark:text-white outline-none transition-all"
+                                                        style="color: var(--primary-color);"
+                                                        @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                                        @blur="$el.style.borderColor = ''">
                                                 </div>
-                                                <div class="space-y-1">
+                                                <div class="space-y-2">
                                                     <label
-                                                        class="text-[9px] font-black uppercase tracking-widest text-slate-400">Order</label>
+                                                        class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Order</label>
                                                     <input type="number" name="order" value="{{ $testimoni->order }}"
-                                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm font-bold text-slate-900 dark:text-white outline-none">
+                                                        class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm font-bold text-slate-900 dark:text-white outline-none transition-all"
+                                                        @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                                        @blur="$el.style.borderColor = ''">
                                                 </div>
                                             </div>
-                                            <div class="space-y-1">
+                                            <div class="space-y-2">
                                                 <label
-                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400">Photo
-                                                    Update</label>
+                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Photo Update</label>
                                                 <input type="file" name="photo" accept="image/*"
-                                                    class="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-slate-200 dark:file:bg-white/10 file:text-[9px] file:font-black file:uppercase">
+                                                    class="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-[9px] file:font-black file:uppercase file:text-black file:cursor-pointer file:transition-all">
                                             </div>
-                                            <div class="space-y-1">
+                                            <div class="space-y-2">
                                                 <label
-                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400">Image (Alternative)</label>
+                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Image (Alternative)</label>
                                                 <input type="file" name="image" accept="image/*"
-                                                    class="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-slate-200 dark:file:bg-white/10 file:text-[9px] file:font-black file:uppercase">
+                                                    class="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-[9px] file:font-black file:uppercase file:text-black file:cursor-pointer file:transition-all">
                                             </div>
-                                            <div class="space-y-1">
+                                            <div class="space-y-2">
                                                 <label
-                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400">Name (Alternative)</label>
+                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Name (Alternative)</label>
                                                 <input type="text" name="name" value="{{ $testimoni->name ?? '' }}"
-                                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white outline-none">
+                                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                                    @blur="$el.style.borderColor = ''">
                                             </div>
-                                            <div class="space-y-1">
+                                            <div class="space-y-2">
                                                 <label
-                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400">Role (Alternative)</label>
+                                                    class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Role (Alternative)</label>
                                                 <input type="text" name="role" value="{{ $testimoni->role ?? '' }}"
-                                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white outline-none">
+                                                    class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-3 py-1.5 text-sm text-slate-900 dark:text-white outline-none transition-all"
+                                                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                                    @blur="$el.style.borderColor = ''">
                                             </div>
                                         </div>
                                     </div>
@@ -146,12 +151,12 @@
                                     <div
                                         class="mt-8 flex flex-wrap items-center justify-between gap-6 pt-6 border-t border-slate-100 dark:border-white/5">
                                         <div class="flex items-center gap-6">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" name="is_active" {{ $testimoni->is_active ? 'checked' : '' }} value="1" class="sr-only peer">
+                                            <label class="relative inline-flex items-center cursor-pointer"
+                                                x-data="{ isActive: {{ $testimoni->is_active ? 'true' : 'false' }} }">
+                                                <input type="checkbox" name="is_active" {{ $testimoni->is_active ? 'checked' : '' }} value="1" class="sr-only peer" @change="isActive = !isActive">
                                                 <div
-                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all\"
-                                                    style=\"background-color: var(--primary-color);\"
-                                                    @change=\"$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''\">
+                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"
+                                                    :style="{ backgroundColor: isActive ? 'var(--primary-color)' : '#cbd5e1' }">
                                                 </div>
                                                 <span
                                                     class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Visible</span>
@@ -167,12 +172,18 @@
 
                                         <div class="flex items-center gap-3">
                                             <button type="submit"
-                                                class="bg-slate-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md hover:bg-slate-800 dark:hover:bg-slate-200 transition-all active:scale-95 shadow-sm">
+                                                style="background-color: var(--primary-color);"
+                                                class="text-black text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md transition-all active:scale-95 shadow-sm"
+                                                @mouseenter="$el.style.opacity = '0.85'"
+                                                @mouseleave="$el.style.opacity = '1'">
                                                 Update Feedback
                                             </button>
                                             <button type="button"
                                                 onclick="if(confirm('Data testimoni akan dihapus permanen. Lanjutkan?')) document.getElementById('delete-form-{{ $testimoni->id }}').submit();"
-                                                class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md hover:bg-red-500 hover:text-white transition-all active:scale-95">
+                                                style="background-color: rgba(239, 68, 68, 0.2); color: #ef4444;"
+                                                class="text-[10px] font-black uppercase tracking-widest py-2.5 px-6 rounded-md transition-all active:scale-95"
+                                                @mouseenter="$el.style.backgroundColor = '#ef4444'; $el.style.color = 'white'"
+                                                @mouseleave="$el.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'; $el.style.color = '#ef4444'">
                                                 Purge
                                             </button>
                                         </div>
@@ -203,6 +214,28 @@
         textarea:focus {
             border-color: var(--primary-color) !important;
             box-shadow: 0 0 0 1px rgba(250, 154, 8, 0.1) !important;
+        }
+
+        input[type="file"]::file-selector-button {
+            background-color: var(--primary-color);
+            color: black;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            opacity: 0.85;
+        }
+
+        input[type="file"]::file-selector-button:active {
+            transform: scale(0.95);
         }
     </style>
 @endsection

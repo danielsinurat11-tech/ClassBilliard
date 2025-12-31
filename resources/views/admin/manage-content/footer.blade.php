@@ -172,9 +172,11 @@
 
                 <!-- GLOBAL VISIBILITY TOGGLE -->
                 <div class="mt-10 pt-8 border-t border-slate-100 dark:border-white/5">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="is_active" value="1" {{ ($footer && $footer->is_active) ? 'checked' : '' }} class="sr-only peer">
-                        <div class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" style="--tw-bg-opacity: 1;" :class="$el.previousElementSibling.checked ? 'peer-checked:' : ''" @change="$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''"></div>
+                    <label class="relative inline-flex items-center cursor-pointer"
+                        x-data="{ isActive: {{ ($footer && $footer->is_active) ? 'true' : 'false' }} }">
+                        <input type="checkbox" name="is_active" value="1" {{ ($footer && $footer->is_active) ? 'checked' : '' }} class="sr-only peer" @change="isActive = !isActive">
+                        <div class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"
+                            :style="{ backgroundColor: isActive ? 'var(--primary-color)' : '#cbd5e1' }"></div>
                         <span class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Footer Visibility Active</span>
                     </label>
                 </div>

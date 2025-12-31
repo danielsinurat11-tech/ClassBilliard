@@ -139,10 +139,12 @@
 
                     <!-- MODULE STATUS -->
                     <div class="pt-8 border-t border-slate-100 dark:border-white/5">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="is_active" value="1" {{ ($tentangKami && $tentangKami->is_active) ? 'checked' : '' }} class="sr-only peer">
+                        <label class="relative inline-flex items-center cursor-pointer" x-data="{ isActive: {{ ($tentangKami && $tentangKami->is_active) ? 'true' : 'false' }} }">
+                            <input type="checkbox" name="is_active" value="1" {{ ($tentangKami && $tentangKami->is_active) ? 'checked' : '' }} class="sr-only peer" @change="isActive = !isActive">
                             <div
-                                class="w-11 h-6 bg-slate-200 dark:bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" style="--tw-bg-opacity: 1;" @change="$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''">
+                                class="w-11 h-6 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all transition-colors" 
+                                :style="{ backgroundColor: isActive ? 'var(--primary-color)' : 'var(--tw-bg-slate-200)' }"
+                                class="w-11 h-6 bg-slate-200 dark:bg-white/10">
                             </div>
                             <span
                                 class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500 italic">Publish

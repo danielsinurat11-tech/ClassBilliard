@@ -68,25 +68,33 @@
                                     $role = $user->getRoleNames()->first() ?? 'no-role';
                                     $roleColors = [
                                         'super_admin' => 'text-red-500 bg-red-500/5 border-red-500/10',
-                                        'admin' => 'bg-[color:var(--primary-color)] bg-opacity-5 border-opacity-10 text-opacity-100',
+                                        'admin' => 'text-black bg-opacity-100 border-opacity-100',
                                         'kitchen' => 'text-blue-500 bg-blue-500/5 border-blue-500/10',
                                         'no-role' => 'text-gray-500 bg-gray-500/5 border-gray-500/10',
                                     ];
                                 @endphp
                                 <span
                                     :class="'admin' === '{{ $role }}' ? 'inline-block px-2 py-0.5 border rounded text-[9px] font-black uppercase tracking-widest' : ''"
-                                    :style="'admin' === '{{ $role }}' ? { color: 'var(--primary-color)', backgroundColor: 'var(--primary-color)', borderColor: 'var(--primary-color)', opacity: '0.15' } : {}"
+                                    :style="'admin' === '{{ $role }}' ? { color: 'black', backgroundColor: 'var(--primary-color)', borderColor: 'var(--primary-color)' } : {}"
                                     class="inline-block px-2 py-0.5 border rounded text-[9px] font-black uppercase tracking-widest {{ $roleColors[$role] ?? $roleColors['no-role'] }}">
                                     {{ str_replace('_', ' ', $role) }}
                                 </span>
                             </td>
                             <td class="px-4 py-4">
                                 @if($user->shift)
-                                    <div class="text-[11px] font-bold text-slate-700 dark:text-gray-300 uppercase tracking-tight">
-                                        {{ $user->shift->name }}
-                                    </div>
-                                    <div class="text-[10px] text-slate-500 dark:text-gray-500">
-                                        {{ $user->shift->start_time->format('H:i') }} - {{ $user->shift->end_time->format('H:i') }}
+                                    @php
+                                        $shiftName = $user->shift->name;
+                                        $isShift1 = str_contains(strtolower($shiftName), 'shift 1') || str_contains(strtolower($shiftName), 'shift1');
+                                        $shiftBg = $isShift1 ? 'bg-blue-500/10 border-blue-500/20' : 'bg-purple-500/10 border-purple-500/20';
+                                        $shiftTextColor = $isShift1 ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400';
+                                    @endphp
+                                    <div class="inline-block px-3 py-1.5 rounded border {{ $shiftBg }}">
+                                        <div class="text-[11px] font-bold {{ $shiftTextColor }} uppercase tracking-tight">
+                                            {{ $user->shift->name }}
+                                        </div>
+                                        <div class="text-[9px] {{ $isShift1 ? 'text-blue-500 dark:text-blue-300' : 'text-purple-500 dark:text-purple-300' }}">
+                                            {{ $user->shift->start_time->format('H:i') }} - {{ $user->shift->end_time->format('H:i') }}
+                                        </div>
                                     </div>
                                 @else
                                     <span

@@ -104,11 +104,12 @@
                                 style="focus-color: var(--primary-color);">
                         </div>
                         <div class="flex items-center pt-6">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="is_active" checked value="1" class="sr-only peer">
+                            <label class="relative inline-flex items-center cursor-pointer"
+                                x-data="{ isActive: true }">
+                                <input type="checkbox" name="is_active" checked value="1" class="sr-only peer" @change="isActive = !isActive">
                                 <div
                                     class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"
-                                    style="background-color: var(--primary-color); background-color: var(--primary-color) !important; opacity: 0.8;">
+                                    :style="{ backgroundColor: isActive ? 'var(--primary-color)' : '#cbd5e1' }">
                                 </div>
                                 <span class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Aktifkan
                                     Sekarang</span>
@@ -200,13 +201,13 @@
                                     <div
                                         class="md:col-span-2 flex flex-wrap items-center justify-between gap-6 pt-4 border-t border-slate-100 dark:border-white/5">
                                         <div class="flex items-center gap-6">
-                                            <label class="relative inline-flex items-center cursor-pointer">
+<label class="relative inline-flex items-center cursor-pointer"
+                                                x-data="{ isActive: {{ $event->is_active ? 'true' : 'false' }} }">
                                                 <input type="checkbox" name="is_active" {{ $event->is_active ? 'checked' : '' }}
-                                                    value="1" class="sr-only peer">
+                                                    value="1" class="sr-only peer" @change="isActive = !isActive">
                                                 <div
-                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all\"
-                                                    style=\"background-color: var(--primary-color);\"
-                                                    @change=\"$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''\">
+                                                    class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"
+                                                    :style="{ backgroundColor: isActive ? 'var(--primary-color)' : '#cbd5e1' }">
                                                 </div>
                                                 <span
                                                     class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Active</span>
@@ -215,8 +216,10 @@
                                             <div class="flex items-center gap-2">
                                                 <i class="ri-link text-slate-400"></i>
                                                 <input type="url" name="link_url" value="{{ $event->link_url }}"
-                                                    class="bg-transparent border-none p-0 text-[11px] focus:ring-0 w-48 truncate"
+                                                    class="bg-transparent border-b border-slate-200 dark:border-white/10 p-0 text-[11px] focus:ring-0 w-48 truncate outline-none transition-all"
                                                     style="color: var(--primary-color);"
+                                                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                                                    @blur="$el.style.borderColor = ''"
                                                     placeholder="No link set">
                                             </div>
                                         </div>

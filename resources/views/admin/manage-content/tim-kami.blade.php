@@ -65,7 +65,7 @@
                                 class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Profile
                                 Photo</label>
                             <input type="file" name="photo" accept="image/*"
-                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:text-black" style="file:background-color: var(--primary-color);">
+                                class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-[10px] file:font-black file:uppercase file:text-black file:cursor-pointer file:transition-all">
                         </div>
                         <div class="space-y-2">
                             <label
@@ -106,11 +106,11 @@
 
                         <div
                             class="lg:col-span-4 flex items-center justify-between pt-6 border-t border-slate-100 dark:border-white/5">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="is_active" checked value="1" class="sr-only peer">
+                            <label class="relative inline-flex items-center cursor-pointer" x-data="{ isActive: true }">
+                                <input type="checkbox" name="is_active" checked value="1" class="sr-only peer" @change="isActive = !isActive">
                                 <div
-                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" style="--tw-bg-opacity: 1;" @change="$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''"></div>
-                                </div>
+                                    class="w-11 h-6 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"
+                                    :style="{ backgroundColor: isActive ? 'var(--primary-color)' : '#cbd5e1' }"></div>
                                 <span class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Status
                                     Aktif</span>
                             </label>
@@ -178,7 +178,7 @@
                                             class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Update
                                             Photo</label>
                                         <input type="file" name="photo" accept="image/*"
-                                            class="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-slate-200 dark:file:bg-white/10 file:text-[9px] file:font-black file:uppercase">
+                                            class="text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-[9px] file:font-black file:uppercase file:text-black file:cursor-pointer file:transition-all">
                                     </div>
                                     <div class="space-y-2">
                                         <label
@@ -223,12 +223,12 @@
                                     <!-- Final Actions -->
                                     <div
                                         class="lg:col-span-4 flex items-center justify-between pt-6 mt-2 border-t border-slate-100 dark:border-white/5">
-                                        <label class="relative inline-flex items-center cursor-pointer">
+                                        <label class="relative inline-flex items-center cursor-pointer" x-data="{ isActive: {{ $member->is_active ? 'true' : 'false' }} }">
                                             <input type="checkbox" name="is_active" {{ $member->is_active ? 'checked' : '' }}
-                                                value="1" class="sr-only peer">
+                                                value="1" class="sr-only peer" @change="isActive = !isActive">
                                             <div
-                                                class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" style="--tw-bg-opacity: 1;" @change="$el.style.backgroundColor = $el.previousElementSibling.checked ? 'var(--primary-color)' : ''"></div>
-                                            </div>
+                                                class="w-10 h-5 bg-slate-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"
+                                                :style="{ backgroundColor: isActive ? 'var(--primary-color)' : '#cbd5e1' }"></div>
                                             <span
                                                 class="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">Visible
                                                 on Site</span>
@@ -270,6 +270,22 @@
         input:focus {
             border-color: var(--primary-color) !important;
             box-shadow: 0 0 0 1px rgba(var(--primary-color-rgb), 0.1) !important;
+        }
+        
+        input[type="file"]::file-selector-button {
+            background-color: var(--primary-color);
+            color: black;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover::file-selector-button {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        input[type="file"]:active::file-selector-button {
+            transform: scale(0.95);
         }
     </style>
 @endsection

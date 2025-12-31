@@ -42,7 +42,8 @@
                 <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
                 <input type="text" name="name" value="{{ old('name') }}" placeholder="e.g. Alexander Graham" required
                     class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-600"
-                    style="focus-color: var(--primary-color);">
+                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                    @blur="$el.style.borderColor = ''">
             </div>
 
             <!-- EMAIL -->
@@ -50,7 +51,8 @@
                 <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Email Kredensial</label>
                 <input type="email" name="email" value="{{ old('email') }}" placeholder="staff@enterprise.com" required
                     class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white focus:ring-0 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-gray-600"
-                    style="focus-color: var(--primary-color);">
+                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                    @blur="$el.style.borderColor = ''">
             </div>
         </div>
 
@@ -72,8 +74,8 @@
                     <input type="hidden" name="role" :value="selected">
                     <button type="button" @click="open = !open" @click.away="open = false"
                         class="w-full flex items-center justify-between bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-left text-slate-900 dark:text-white transition-all"
-                        @mouseenter="$el.style.borderColor = 'rgba(var(--primary-color-rgb), 0.3)';"
-                        @mouseleave="$el.style.borderColor = '';">
+                        @mouseenter="$el.style.borderColor = 'var(--primary-color)'"
+                        @mouseleave="$el.style.borderColor = ''">
                         <span x-text="options[selected]"></span>
                         <i class="ri-arrow-down-s-line text-slate-400 transition-transform duration-300" :class="open ? 'rotate-180' : ''"></i>
                     </button>
@@ -85,9 +87,9 @@
                          class="absolute z-50 w-full mt-2 bg-[#0A0A0A] border border-white/10 rounded-md shadow-xl overflow-hidden backdrop-blur-md">
                         <template x-for="(label, value) in options">
                             <div @click="selected = value; open = false" 
-                                 class="px-4 py-3 text-sm text-gray-400 cursor-pointer transition-colors font-medium"
-                                 :class="selected === value ? 'text-black' : 'hover:text-black'"
-                                 :style="{ backgroundColor: selected === value ? 'var(--primary-color)' : 'hover' ? 'var(--primary-color)' : '' }">
+                                 class="px-4 py-3 text-sm cursor-pointer transition-colors font-medium"
+                                 :class="selected === value ? 'text-black' : 'text-gray-400 hover:text-gray-200'"
+                                 :style="{ backgroundColor: selected === value ? 'var(--primary-color)' : '' }">
                                 <span x-text="label"></span>
                             </div>
                         </template>
@@ -99,16 +101,23 @@
             <div class="space-y-2" x-data="{ 
                 open: false, 
                 selected: '{{ old('shift_id', '') }}',
-                selectedLabel: 'Pilih Shift'
+                shiftOptions: {
+                    @foreach($shifts as $shift)
+                        '{{ $shift->id }}': '{{ $shift->name }} ({{ $shift->start_time->format('H:i') }} - {{ $shift->end_time->format('H:i') }})',
+                    @endforeach
+                },
+                get selectedLabel() {
+                    return this.selected === '' ? 'None' : this.shiftOptions[this.selected] || 'Pilih Shift';
+                }
             }">
                 <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Shift Operasional</label>
                 <div class="relative">
                     <input type="hidden" name="shift_id" :value="selected">
                     <button type="button" @click="open = !open" @click.away="open = false"
                         class="w-full flex items-center justify-between bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-left text-slate-900 dark:text-white transition-all"
-                        @mouseenter="$el.style.borderColor = 'rgba(var(--primary-color-rgb), 0.5)'"
+                        @mouseenter="$el.style.borderColor = 'var(--primary-color)'"
                         @mouseleave="$el.style.borderColor = ''">
-                        <span x-text="selectedLabel"></span>
+                        <span x-text="selectedLabel" :class="selected === '' ? 'text-slate-400' : ''"></span>
                         <i class="ri-arrow-down-s-line text-slate-400 transition-transform duration-300" :class="open ? 'rotate-180' : ''"></i>
                     </button>
                     
@@ -118,15 +127,17 @@
                          x-transition:enter-end="opacity-100 scale-100"
                          class="absolute z-50 w-full mt-2 bg-[#0A0A0A] border border-white/10 rounded-md shadow-xl max-h-60 overflow-y-auto backdrop-blur-md">
                         
-                        <div @click="selected = ''; selectedLabel = 'Pilih Shift'; open = false" 
-                             class="px-4 py-3 text-sm text-gray-500 hover:bg-white/5 cursor-pointer italic">
+                        <div @click="selected = ''; open = false" 
+                             class="px-4 py-3 text-sm text-gray-400 hover:text-gray-200 cursor-pointer transition-colors italic"
+                             :class="selected === '' ? 'text-black' : ''"
+                             :style="{ backgroundColor: selected === '' ? 'var(--primary-color)' : '' }">
                             None
                         </div>
 
                         @foreach($shifts as $shift)
-                            <div @click="selected = '{{ $shift->id }}'; selectedLabel = '{{ $shift->name }}'; open = false" 
-                                 class="px-4 py-3 text-sm text-gray-400 cursor-pointer transition-colors font-medium"
-                                 :class="selected === '{{ $shift->id }}' ? 'text-black' : 'hover:text-black'"
+                            <div @click="selected = '{{ $shift->id }}'; open = false" 
+                                 class="px-4 py-3 text-sm cursor-pointer transition-colors font-medium"
+                                 :class="selected === '{{ $shift->id }}' ? 'text-black' : 'text-gray-400 hover:text-gray-200'"
                                  :style="{ backgroundColor: selected === '{{ $shift->id }}' ? 'var(--primary-color)' : '' }">
                                 <div class="flex justify-between items-center">
                                     <span>{{ $shift->name }}</span>
@@ -145,14 +156,16 @@
                 <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Password Awal</label>
                 <input type="password" name="password" required placeholder="••••••••"
                     class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all"
-                    style="focus-color: var(--primary-color);">
+                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                    @blur="$el.style.borderColor = ''">
             </div>
 
             <div class="space-y-2">
                 <label class="text-[10px] font-black text-slate-500 dark:text-gray-500 uppercase tracking-widest ml-1">Konfirmasi Password</label>
                 <input type="password" name="password_confirmation" required placeholder="••••••••"
                     class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md py-3 px-4 text-sm text-slate-900 dark:text-white outline-none transition-all"
-                    style="focus-color: var(--primary-color);">
+                    @focus="$el.style.borderColor = 'var(--primary-color)'"
+                    @blur="$el.style.borderColor = ''">
             </div>
         </div>
 

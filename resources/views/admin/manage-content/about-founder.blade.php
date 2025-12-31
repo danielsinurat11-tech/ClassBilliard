@@ -199,6 +199,23 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
+        /* File Input Dynamic Color */
+        input[type="file"]::file-selector-button {
+            background-color: var(--primary-color);
+            color: black;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]:hover::file-selector-button {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        input[type="file"]:active::file-selector-button {
+            transform: scale(0.95);
+        }
+
         /* Focus states handled by Alpine directives @focus/@blur for dynamic colors */
         /* No hardcoded styles needed - using CSS variables instead */
     </style>

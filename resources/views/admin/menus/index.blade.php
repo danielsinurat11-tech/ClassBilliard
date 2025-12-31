@@ -28,16 +28,34 @@
         </div>
 
         <!-- FILTER BAR: Dynamic Categories -->
-        <div
-            class="flex items-center gap-6 border-b border-slate-100 dark:border-white/5 pb-2 overflow-x-auto no-scrollbar">
-            <button
-                class="pb-2 px-1 border-b-2 text-[10px] font-black uppercase tracking-widest whitespace-nowrap"
-                style="border-color: var(--primary-color); color: var(--primary-color);">
+        <div class="flex items-center gap-6 border-b border-slate-100 dark:border-white/5 pb-2 overflow-x-auto no-scrollbar"
+            x-data="{
+                selectedCategory: 'all',
+                filterItems(category) {
+                    this.selectedCategory = category;
+                    const items = document.querySelectorAll('[data-menu-category]');
+                    items.forEach(item => {
+                        if (category === 'all' || item.dataset.menuCategory === category) {
+                            item.classList.remove('hidden');
+                            item.classList.add('block');
+                        } else {
+                            item.classList.add('hidden');
+                            item.classList.remove('block');
+                        }
+                    });
+                }
+            }">
+            <button @click="filterItems('all')"
+                class="pb-2 px-1 border-b-2 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all"
+                :style="selectedCategory === 'all' ? { borderColor: 'var(--primary-color)', color: 'var(--primary-color)' } : { borderColor: 'transparent', color: '' }"
+                :class="selectedCategory === 'all' ? '' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'">
                 All Items
             </button>
             @foreach($categories as $category)
-                <button
-                    class="pb-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap">
+                <button @click="filterItems('{{ $category->id }}')"
+                    class="pb-2 px-1 border-b-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap"
+                    :style="selectedCategory === '{{ $category->id }}' ? { borderColor: 'var(--primary-color)', color: 'var(--primary-color)' } : { borderColor: 'transparent', color: '' }"
+                    :class="selectedCategory === '{{ $category->id }}' ? '' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'">
                     {{ $category->name }}
                 </button>
             @endforeach
@@ -46,7 +64,7 @@
         <!-- MAIN GRID: Professional Sleek Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @foreach($menus as $menu)
-                <div class="group flex flex-col transition-all duration-300">
+                <div class="group flex flex-col transition-all duration-300 block" data-menu-category="{{ $menu->category_menu_id }}">
 
                     <!-- Image Area: Precise Radius -->
                     <div
@@ -85,7 +103,6 @@
                             @endforelse
                         </div>
 
-                        <h3
                         <h3 class="text-sm font-bold text-slate-900 dark:text-white transition-colors leading-tight"
                             style="color: inherit;"
                             @mouseenter="$el.style.color = 'var(--primary-color)'"
@@ -111,7 +128,7 @@
                                     <i class="ri-pencil-line"></i>
                                 </a>
 
-                                <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" class="inline">
+                                <form action="{{ route('admin.menus.destroy', $menu) }}" method="POST" class="inline delete-form">
                                     @csrf @method('DELETE')
                                     <button type="button" onclick="confirmDelete(this)"
                                         class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-500 hover:text-red-500 transition-all">
@@ -131,23 +148,44 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
-            function confirmDelete(button) {
-                showAlert({
-                    title: 'Hapus Item?',
-                    text: "Data ini akan dihapus permanen dari katalog menu.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        button.closest('form').submit();
-                    }
-                });
-            }
-        </script>
-    @endpush
+    {{-- SweetAlert2 Custom Styling & Script --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(button) {
+            const form = button.closest('.delete-form');
+            const menuNameElement = form.closest('[data-menu-category]').querySelector('h3');
+            const menuName = menuNameElement ? menuNameElement.textContent.trim() : 'Menu';
+
+            Swal.fire({
+                title: 'KONFIRMASI HAPUS',
+                text: `Menu "${menuName}" akan dihapus secara permanen dari katalog.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
+                cancelButtonColor: '#1a1a1a',
+                confirmButtonText: 'YA, HAPUS MENU',
+                cancelButtonText: 'BATAL',
+                background: '#0a0a0a',
+                color: '#ffffff',
+                borderRadius: '8px',
+                customClass: {
+                    title: 'text-sm font-black tracking-widest',
+                    htmlContainer: 'text-xs text-gray-400 font-medium',
+                    confirmButton: 'text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md',
+                    cancelButton: 'text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    </script>
+
+    <style>
+        .swal2-popup {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+    </style>
 @endsection
