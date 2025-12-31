@@ -823,6 +823,96 @@ class OrderController extends Controller
         ]);
     }
 
+    /**
+     * Server-Sent Events endpoint untuk real-time orders
+     */
+    public function ordersStream()
+    {
+        $user = Auth::user();
+        
+        // Validation: User must be assigned to a shift or be super_admin
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+            return response('', 403);
+        }
+
+        // Set headers for SSE
+        return response()->stream(function () use ($user) {
+            $lastOrderId = 0;
+            $checkInterval = 0.5; // Check every 500ms for faster response
+            
+            while (true) {
+                // Check if client is still connected
+                if (connection_aborted()) {
+                    break;
+                }
+
+                // Get latest orders (pending atau processing)
+                $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'status', 'created_at', 'updated_at', 'shift_id')
+                    ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+                    ->whereIn('status', ['pending', 'processing'])
+                    ->where('id', '>', $lastOrderId)
+                    ->orderBy('created_at', 'asc');
+                
+                $orders = $this->applyShiftFilter($query, $user)->get();
+                
+                // If there are new orders, send them
+                if ($orders->count() > 0) {
+                    $ordersData = $orders->map(function ($order) {
+                        return [
+                            'id' => $order->id,
+                            'customer_name' => $order->customer_name,
+                            'table_number' => $order->table_number,
+                            'room' => $order->room,
+                            'total_price' => $order->total_price,
+                            'payment_method' => $order->payment_method,
+                            'status' => $order->status,
+                            'created_at' => $order->created_at->toIso8601String(),
+                            'updated_at' => $order->updated_at->toIso8601String(),
+                            'order_items' => $order->orderItems->map(function ($item) {
+                                return [
+                                    'menu_name' => $item->menu_name,
+                                    'price' => $item->price,
+                                    'quantity' => $item->quantity,
+                                    'image' => $item->image
+                                ];
+                            })
+                        ];
+                    });
+                    
+                    // Update last order ID
+                    $lastOrderId = $orders->max('id');
+                    
+                    // Send SSE event
+                    echo "data: " . json_encode([
+                        'type' => 'new_orders',
+                        'orders' => $ordersData
+                    ]) . "\n\n";
+                    
+                    // Flush output immediately
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
+                    flush();
+                } else {
+                    // Send heartbeat to keep connection alive
+                    echo ": heartbeat\n\n";
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
+                    flush();
+                }
+                
+                // Sleep before next check
+                usleep($checkInterval * 1000000); // Convert to microseconds
+            }
+        }, 200, [
+            'Content-Type' => 'text/event-stream',
+            'Cache-Control' => 'no-cache',
+            'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no', // Disable buffering in nginx
+        ]);
+    }
+
     public function reports(Request $request)
     {
         // Return view untuk laporan

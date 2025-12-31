@@ -25,6 +25,7 @@ Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(fu
     Route::post('/tutup-hari/kirim-email', [App\Http\Controllers\OrderController::class, 'sendStrukHarianEmail'])->name('tutup-hari.kirim-email');
     Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
 Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
+Route::get('/orders/stream', [App\Http\Controllers\OrderController::class, 'ordersStream'])->name('orders.stream');
 Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
 Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::class, 'getCategoryStats'])->name('reports.category-stats');
 Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');

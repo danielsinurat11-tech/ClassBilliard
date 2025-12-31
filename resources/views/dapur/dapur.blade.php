@@ -600,115 +600,170 @@
             `;
         }
 
-        // Variable to store interval ID
-        let refreshInterval = null;
-        let refreshDelay = 3000; // Default refresh delay: 3 seconds
+        // Variable untuk SSE connection
+        let eventSource = null;
+        let reconnectTimeout = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 10;
 
-        // Function to start auto refresh
-        function startAutoRefresh() {
-            // Stop existing interval if any
-            if (refreshInterval !== null) {
-                clearInterval(refreshInterval);
+        // Function untuk update orders display
+        function updateOrdersDisplay(orders) {
+            const ordersSection = document.getElementById('ordersSection');
+            if (!ordersSection) return;
+            
+            if (orders.length === 0) {
+                ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-600 dark:text-gray-500 text-lg"><p>Belum ada pesanan</p></div>';
+            } else {
+                const ordersGrid = ordersSection.querySelector('.grid');
+                if (ordersGrid) {
+                    ordersGrid.innerHTML = orders.map(order => renderOrderCard(order)).join('');
+                } else {
+                    ordersSection.innerHTML = `
+                        <div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
+                            ${orders.map(order => renderOrderCard(order)).join('')}
+                        </div>
+                    `;
+                }
+                // Update stopwatches immediately after rendering
+                updateStopwatches();
+            }
+        }
+
+        // Function untuk handle new orders dari SSE
+        function handleNewOrders(newOrders) {
+            if (!newOrders || newOrders.length === 0) return;
+            
+            const ordersSection = document.getElementById('ordersSection');
+            if (!ordersSection) return;
+            
+            let ordersGrid = ordersSection.querySelector('.grid');
+            if (!ordersGrid) {
+                ordersSection.innerHTML = '<div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4"></div>';
+                ordersGrid = ordersSection.querySelector('.grid');
             }
             
-            // Start new interval with current delay
-            refreshInterval = setInterval(fetchAndUpdateOrders, refreshDelay);
+            newOrders.forEach(order => {
+                if (!currentOrderIds.has(order.id)) {
+                    // New order detected!
+                    currentOrderIds.add(order.id);
+                    showNotification(order);
+                    
+                    // Insert new order at the beginning
+                    const newOrderCard = renderOrderCard(order);
+                    ordersGrid.insertAdjacentHTML('afterbegin', newOrderCard);
+                } else {
+                    // Order sudah ada, update jika perlu (misalnya status berubah)
+                    const existingCard = ordersSection.querySelector(`[data-order-id="${order.id}"]`);
+                    if (existingCard) {
+                        // Update card jika status berubah
+                        const newOrderCard = renderOrderCard(order);
+                        existingCard.outerHTML = newOrderCard;
+                    }
+                }
+            });
+            
+            updateStopwatches();
         }
 
-        // Function to stop auto refresh
-        function stopAutoRefresh() {
-            if (refreshInterval !== null) {
-                clearInterval(refreshInterval);
-                refreshInterval = null;
-            }
-        }
-
-        // Function to fetch and update orders
-        async function fetchAndUpdateOrders() {
+        // Function untuk fetch initial orders
+        async function fetchInitialOrders() {
             try {
                 const response = await fetch('/orders/active');
                 const data = await response.json();
                 
-                if (!response.ok || !data.orders) {
-                    // Continue refresh even on error (retry)
-                    return;
-                }
-                
-                const ordersSection = document.getElementById('ordersSection');
-                if (!ordersSection) return;
-                
-                const newOrderIds = new Set(data.orders.map(o => o.id));
-                let hasNewOrder = false;
-                
-                // Detect new orders
-                if (!isFirstLoad) {
-                    data.orders.forEach(order => {
-                        if (!currentOrderIds.has(order.id)) {
-                            // New order detected!
-                            hasNewOrder = true;
-                            showNotification(order);
-                        }
-                    });
-                } else {
+                if (response.ok && data.orders) {
+                    const orderIds = new Set(data.orders.map(o => o.id));
+                    currentOrderIds = orderIds;
+                    updateOrdersDisplay(data.orders);
                     isFirstLoad = false;
                 }
-                
-                // Update current order IDs
-                currentOrderIds = newOrderIds;
-                
-                // Adjust refresh speed based on order status
-                if (hasNewOrder) {
-                    // New order detected - refresh faster (1 second)
-                    refreshDelay = 1000;
-                    stopAutoRefresh();
-                    startAutoRefresh();
-                    
-                    // After 5 fast refreshes, return to normal speed
-                    setTimeout(() => {
-                        refreshDelay = 3000;
-                        stopAutoRefresh();
-                        startAutoRefresh();
-                    }, 5000);
-                } else if (data.orders.length > 0) {
-                    // Has orders but no new ones - normal speed (3 seconds)
-                    if (refreshDelay !== 3000) {
-                        refreshDelay = 3000;
-                        stopAutoRefresh();
-                        startAutoRefresh();
-                    }
-                } else {
-                    // No orders - slower refresh (5 seconds) but keep checking
-                    if (refreshDelay !== 5000) {
-                        refreshDelay = 5000;
-                        stopAutoRefresh();
-                        startAutoRefresh();
-                    }
-                }
-                
-                // Update orders display only if we're in orders section
-                if (!ordersSection.classList.contains('hidden')) {
-                    if (data.orders.length === 0) {
-                        ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-600 dark:text-gray-500 text-lg"><p>Belum ada pesanan</p></div>';
-                    } else {
-                        const ordersGrid = ordersSection.querySelector('.grid');
-                        if (ordersGrid) {
-                            ordersGrid.innerHTML = data.orders.map(order => renderOrderCard(order)).join('');
-                        } else {
-                            ordersSection.innerHTML = `
-                                <div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
-                                    ${data.orders.map(order => renderOrderCard(order)).join('')}
-                                </div>
-                            `;
-                        }
-                        // Update stopwatches immediately after rendering
-                        updateStopwatches();
-                    }
-                }
             } catch (error) {
-                console.error('Error fetching orders:', error);
-                // Stop refresh on error
-                stopAutoRefresh();
+                console.error('Error fetching initial orders:', error);
             }
+        }
+
+        // Function untuk connect ke SSE
+        function connectSSE() {
+            // Close existing connection if any
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            try {
+                eventSource = new EventSource('/orders/stream');
+                
+                eventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.type === 'new_orders' && data.orders) {
+                            handleNewOrders(data.orders);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing SSE data:', error);
+                    }
+                };
+                
+                eventSource.onerror = function(error) {
+                    console.error('SSE connection error:', error);
+                    eventSource.close();
+                    
+                    // Reconnect dengan exponential backoff
+                    reconnectAttempts++;
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
+                        reconnectTimeout = setTimeout(() => {
+                            console.log('Reconnecting to SSE...');
+                            connectSSE();
+                        }, delay);
+                    } else {
+                        console.error('Max reconnect attempts reached. Falling back to polling.');
+                        // Fallback ke polling jika SSE gagal
+                        startPollingFallback();
+                    }
+                };
+                
+                eventSource.onopen = function() {
+                    console.log('SSE connection established');
+                    reconnectAttempts = 0; // Reset reconnect attempts on successful connection
+                };
+                
+            } catch (error) {
+                console.error('Error creating SSE connection:', error);
+                // Fallback ke polling jika SSE tidak didukung
+                startPollingFallback();
+            }
+        }
+
+        // Fallback polling jika SSE tidak tersedia
+        let pollingInterval = null;
+        function startPollingFallback() {
+            if (pollingInterval) return; // Already polling
+            
+            console.log('Using polling fallback');
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/orders/active');
+                    const data = await response.json();
+                    
+                    if (response.ok && data.orders) {
+                        const newOrderIds = new Set(data.orders.map(o => o.id));
+                        let hasNewOrder = false;
+                        
+                        data.orders.forEach(order => {
+                            if (!currentOrderIds.has(order.id)) {
+                                hasNewOrder = true;
+                                showNotification(order);
+                            }
+                        });
+                        
+                        currentOrderIds = newOrderIds;
+                        updateOrdersDisplay(data.orders);
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 2000); // Poll every 2 seconds as fallback
         }
 
         // Stopwatch timer function
@@ -770,13 +825,25 @@
                 currentOrderIds.add(order.id);
             });
             
-            // Initial fetch after 1 second
-            setTimeout(() => {
-                fetchAndUpdateOrders();
-                // Always start auto refresh (will adjust speed based on orders)
-                startAutoRefresh();
-            }, 1000);
+            // Initial fetch dan setup SSE
+            fetchInitialOrders().then(() => {
+                // Connect to SSE after initial load
+                connectSSE();
+            });
         })();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (eventSource) {
+                eventSource.close();
+            }
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+            }
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+        });
 
         // Handle start cooking button
         document.addEventListener('click', async (e) => {
