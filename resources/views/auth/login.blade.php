@@ -25,7 +25,7 @@
 
         /* Standard Precision Radius & Smooth Transitions */
         .input-field {
-            @apply bg-white/[0.02] border border-white/10 rounded-md py-3 px-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[#fa9a08]/50 focus:ring-1 focus:ring-[#fa9a08]/20 transition-all duration-300;
+            @apply bg-white/[0.02] border border-white/10 rounded-md py-3 px-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-gold-400/50 focus:ring-1 focus:ring-gold-400/20 transition-all duration-300;
         }
 
         @keyframes shake {
@@ -56,8 +56,8 @@
         <!-- HEADER: Typography Hierarchy Standard -->
         <div class="text-center mb-10 space-y-3">
             <div
-                class="inline-flex items-center justify-center w-14 h-14 rounded-md bg-white/[0.03] border border-white/10 mb-2 group transition-all duration-500 hover:border-[#fa9a08]/30">
-                <svg class="w-7 h-7 text-[#fa9a08]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="inline-flex items-center justify-center w-14 h-14 rounded-md bg-white/[0.03] border border-white/10 mb-2 group transition-all duration-500 hover:border-gold-400/30">
+                <svg class="w-7 h-7 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -87,11 +87,11 @@
 
         @if (session('status'))
             <div id="status-alert" class="mb-6">
-                <div class="bg-[#fa9a08]/5 border border-[#fa9a08]/20 px-4 py-3 rounded-md flex items-center gap-3">
-                    <svg class="w-4 h-4 text-[#fa9a08]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-gold-400/5 border border-gold-400/20 px-4 py-3 rounded-md flex items-center gap-3">
+                    <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    <p class="text-[10px] font-bold text-[#fa9a08] uppercase tracking-wider">{{ session('status') }}</p>
+                    <p class="text-[10px] font-bold text-gold-400 uppercase tracking-wider">{{ session('status') }}</p>
                 </div>
             </div>
         @endif
@@ -100,13 +100,13 @@
         <div class="relative group">
             <!-- Subtle Glow Decor -->
             <div
-                class="absolute -inset-0.5 bg-[#fa9a08]/10 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-1000">
+                class="absolute -inset-0.5 bg-gold-400/10 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-1000">
             </div>
 
             <div class="relative bg-[#0A0A0A] border border-white/5 rounded-lg p-8 shadow-2xl">
                 <!-- Top Accent Line -->
                 <div
-                    class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#fa9a08]/50 to-transparent">
+                    class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-400/50 to-transparent">
                 </div>
 
                 <form method="POST" action="{{ route('login') }}" class="space-y-6"
@@ -119,7 +119,7 @@
                             Work Email
                         </label>
                         <input type="email" name="email" value="{{ old('email') }}" required autofocus
-                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none"
+                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-gold-400 focus:ring-0 transition-all outline-none"
                             placeholder="name@classbilliard.com">
                     </div>
 
@@ -132,11 +132,11 @@
                         </div>
                         <div class="relative">
                             <input :type="showPass ? 'text' : 'password'" name="password" required
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none input-field pr-12"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-gold-400 focus:ring-0 transition-all outline-none input-field pr-12"
                                 placeholder="••••••••">
 
                             <button type="button" @click="showPass = !showPass"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-[#fa9a08] transition-colors focus:outline-none">
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-gold-400 transition-colors focus:outline-none">
                                 <svg x-show="!showPass" class="w-4 h-4" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -166,7 +166,7 @@
 
                     <!-- Submit Button: Interactive Feedback Standard -->
                     <button type="submit" :disabled="loading"
-                        class="w-full bg-[#fa9a08] hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-black text-[10px] font-black uppercase tracking-[0.2em] py-4 rounded-md transition-all duration-300 shadow-lg shadow-orange-950/20 flex items-center justify-center gap-2 group overflow-hidden relative">
+                        class="w-full bg-gold-400 hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-black text-[10px] font-black uppercase tracking-[0.2em] py-4 rounded-md transition-all duration-300 shadow-lg shadow-yellow-950/20 flex items-center justify-center gap-2 group overflow-hidden relative">
 
                         <span x-show="!loading" class="flex items-center gap-2">
                             Authorize Access

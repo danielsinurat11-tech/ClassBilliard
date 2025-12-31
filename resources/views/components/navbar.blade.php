@@ -20,11 +20,21 @@
                 class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">MENU</a>
             <a href="#reservation"
                 class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">RESERVATION</a>
+
             <a href="#contact"
                 class="px-6 py-2 border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-black text-sm font-bold tracking-widest transition duration-300 rounded-sm">
                 CONTACT US
             </a>
+
+            @auth
+                @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'kitchen']))
+                    <a href="{{ route('admin.dashboard') }}"
+                        class="px-6 py-2 border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-black text-sm font-bold tracking-widest transition duration-300 rounded-sm">
+                        DASHBOARD
+                    </a>
+                @endif
+            @endauth
+
         </div>
     </div>
 </nav>
-
