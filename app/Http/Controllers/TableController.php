@@ -80,7 +80,7 @@ class TableController extends Controller
         }
         
         // Generate URL for QR Code
-        $url = route('menu') . '?table=' . urlencode($tableNumber) . '&room=' . urlencode($validated['room']);
+        $url = route('orders.create') . '?table=' . urlencode($tableNumber) . '&room=' . urlencode($validated['room']);
         
         // Generate QR Code
         $result = (new Builder(
@@ -125,7 +125,7 @@ class TableController extends Controller
         }
         
         // Generate URL untuk QR Code dengan parameter table (nomor saja) dan room
-        $url = route('menu') . '?table=' . urlencode($tableNumber) . '&room=' . urlencode($table->room ?? '');
+        $url = route('orders.create') . '?table=' . urlencode($tableNumber) . '&room=' . urlencode($table->room ?? '');
         
         // Generate QR Code menggunakan package endroid/qr-code
         $result = (new Builder(
@@ -168,7 +168,7 @@ class TableController extends Controller
             $tableNumber = $table->name; // Fallback ke nama jika tidak ada angka
         }
         
-        $url = route('menu') . '?table=' . urlencode($tableNumber) . '&room=' . urlencode($table->room ?? '');
+        $url = route('orders.create') . '?table=' . urlencode($tableNumber) . '&room=' . urlencode($table->room ?? '');
         
         return view('admin.tables.print-barcode', compact('table', 'url'));
     }

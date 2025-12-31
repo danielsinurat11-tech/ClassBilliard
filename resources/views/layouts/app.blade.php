@@ -80,7 +80,7 @@
                         <a href="#fasilitas" class="text-sm font-semibold transition-colors duration-200 hover:text-[#fa9a08] text-gray-300">Fasilitas</a>
                         <a href="#portfolio" class="text-sm font-semibold transition-colors duration-200 hover:text-[#fa9a08] text-gray-300">Portfolio</a>
                         <a href="#event" class="text-sm font-semibold transition-colors duration-200 hover:text-[#fa9a08] text-gray-300">Event</a>
-                        <a href="{{ route('menu') }}" class="bg-gradient-to-r from-[#fa9a08] to-[#e19e2b] text-black px-6 py-2.5 rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:shadow-[#fa9a08]/30 hover:scale-105">
+                        <a href="{{ route('orders.create') }}" class="bg-gradient-to-r from-[#fa9a08] to-[#e19e2b] text-black px-6 py-2.5 rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:shadow-[#fa9a08]/30 hover:scale-105">
                             <i class="ri-shopping-cart-line mr-1"></i> Pesan
                         </a>
                     </nav>
@@ -109,7 +109,7 @@
                     <a href="#event" class="block py-3 px-4 rounded-lg transition-colors duration-200 text-gray-300 hover:bg-white/5 font-semibold">
                         <i class="ri-calendar-event-line mr-2"></i> Event
                     </a>
-                    <a href="{{ route('menu') }}" class="block py-3 px-4 rounded-lg bg-gradient-to-r from-[#fa9a08] to-[#e19e2b] text-black font-bold text-center mt-4">
+                    <a href="{{ route('orders.create') }}" class="block py-3 px-4 rounded-lg bg-gradient-to-r from-[#fa9a08] to-[#e19e2b] text-black font-bold text-center mt-4">
                         <i class="ri-shopping-cart-line mr-2"></i> Pesan Sekarang
                     </a>
                 </nav>

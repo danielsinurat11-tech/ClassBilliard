@@ -130,7 +130,7 @@ class OrderController extends Controller
         
         // Hanya bisa lihat order yang masih processing atau pending
         if (!in_array($order->status, ['pending', 'processing'])) {
-            return redirect()->route('menu')->with('error', 'Order sudah selesai dan tidak dapat diedit.');
+            return redirect()->route('orders.create')->with('error', 'Order sudah selesai dan tidak dapat diedit.');
         }
         
         return view('orders.show', compact('order'));

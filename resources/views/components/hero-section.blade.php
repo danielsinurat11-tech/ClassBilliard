@@ -15,10 +15,11 @@
 @if($isActive && ($backgroundImage || $logoImage || $title || $subtitle))
 <header class="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
     <!-- Background Image with Parallax Feel -->
-    <div class="absolute inset-0 z-0">
+    <div class="absolute inset-0 z-0" id="heroParallaxBg">
         @if($backgroundImage)
         <img src="{{ $backgroundImage }}" alt="Background"
-            class="w-full h-full object-cover scale-105 filter brightness-[0.3] contrast-125">
+            class="w-full h-full object-cover scale-105 filter brightness-[0.3] contrast-125"
+            id="heroParallaxImage">
         @else
         <div class="w-full h-full bg-black"></div>
         @endif
@@ -49,7 +50,7 @@
         @if($title || $subtitle)
         <h1 class="text-white text-4xl md:text-6xl font-serif font-light tracking-wide mb-4" data-aos="fade-up"
             data-aos-delay="300">
-            @if($title){{ $title }}@endif @if($subtitle)<span class="text-gold-400 font-rumonds italic pr-2">{{ $subtitle }}</span>@endif
+            @if($title){{ $title }}@endif @if($subtitle)<span class="text-gold-400 font-serif italic pr-2">{{ $subtitle }}</span>@endif
         </h1>
         @endif
 
@@ -93,5 +94,39 @@
     <!-- Scroll Indicator -->
    
 </header>
+
+<!-- Parallax Scroll Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const bgImage = document.getElementById('heroParallaxImage');
+        const header = document.querySelector('header');
+        
+        if (!bgImage || !header) return;
+        
+        // Parallax speed multiplier (0.5 = moves at 50% of scroll speed)
+        const parallaxSpeed = 0.5;
+        
+        // Smoothing animation frame for better performance
+        let ticking = false;
+        let scrollY = 0;
+        
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+            
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    // Only apply parallax while header is in view
+                    const headerRect = header.getBoundingClientRect();
+                    if (headerRect.bottom > 0) {
+                        const offset = scrollY * parallaxSpeed;
+                        bgImage.style.transform = `translateY(${offset}px)`;
+                    }
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+    });
+</script>
 @endif
 

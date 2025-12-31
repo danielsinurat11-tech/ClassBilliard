@@ -8,6 +8,18 @@
     $videoUrl = $about && $about->video_url && trim($about->video_url) !== '' ? trim($about->video_url) : '';
     $videoDescription = $about && $about->video_description && trim($about->video_description) !== '' ? trim($about->video_description) : '';
     $isActive = $about ? $about->is_active : false;
+
+    // Extract YouTube video ID from various URL formats
+    $youtubeId = '';
+    if ($videoUrl) {
+        // Support multiple YouTube URL formats
+        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/', $videoUrl, $matches)) {
+            $youtubeId = $matches[1];
+        } elseif (preg_match('/([a-zA-Z0-9_-]{11})/', $videoUrl, $matches)) {
+            // Fallback: if it looks like a video ID
+            $youtubeId = $matches[1];
+        }
+    }
 @endphp
 
 @if($isActive && ($title || $content || $image))
@@ -52,7 +64,7 @@
 @endif
 
 {{-- Video Section (Below About) --}}
-@if($isActive && $videoUrl)
+@if($isActive && $youtubeId)
 <section class="relative py-24 bg-[#0a0a0a] overflow-hidden">
     <!-- Background Elements -->
     <div class="absolute inset-0 opacity-5 pointer-events-none">
@@ -77,10 +89,12 @@
 
             <!-- Video Container -->
             <div class="relative w-full aspect-video rounded-2xl overflow-hidden border-4 border-gold-400/30 shadow-2xl group" data-aos="fade-up" data-aos-delay="200">
-                <!-- Video Iframe -->
+                <!-- YouTube Iframe with Autoplay -->
                 <iframe
-                    src="{{ $videoUrl }}"
-                    class="w-full h-full"
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/{{ $youtubeId }}?autoplay=1&mute=1&loop=1&playlist={{ $youtubeId }}&controls=1&modestbranding=1"
+                    class="w-full h-full absolute top-0 left-0"
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen

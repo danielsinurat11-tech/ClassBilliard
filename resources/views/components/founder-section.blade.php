@@ -7,14 +7,27 @@
     $subtitle = $founder && $founder->subtitle && trim($founder->subtitle) !== '' ? trim($founder->subtitle) : '';
     $quote = $founder && $founder->quote && trim($founder->quote) !== '' ? trim($founder->quote) : '';
     $image = ($founder && $founder->image ? asset('storage/' . $founder->image) : ($founder && $founder->photo ? asset('storage/' . $founder->photo) : ''));
+    $videoUrl = $founder && $founder->video_url && trim($founder->video_url) !== '' ? trim($founder->video_url) : '';
     $signature = $founder && $founder->signature && trim($founder->signature) !== '' ? trim($founder->signature) : '';
     $facebookUrl = $founder && $founder->facebook_url && trim($founder->facebook_url) !== '' ? trim($founder->facebook_url) : '';
     $instagramUrl = $founder && $founder->instagram_url && trim($founder->instagram_url) !== '' ? trim($founder->instagram_url) : '';
     $linkedinUrl = $founder && $founder->linkedin_url && trim($founder->linkedin_url) !== '' ? trim($founder->linkedin_url) : '';
     $isActive = $founder ? $founder->is_active : false;
+
+    // Extract YouTube video ID from URL
+    $youtubeId = '';
+    if ($videoUrl) {
+        // Support multiple YouTube URL formats
+        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/', $videoUrl, $matches)) {
+            $youtubeId = $matches[1];
+        } elseif (preg_match('/([a-zA-Z0-9_-]{11})/', $videoUrl, $matches)) {
+            // Fallback: if it looks like a video ID
+            $youtubeId = $matches[1];
+        }
+    }
 @endphp
 
-@if($isActive && ($name || $position || $subtitle || $quote || $image))
+@if($isActive && ($name || $position || $subtitle || $quote || $image || $videoUrl))
 <section id="founder" class="py-24 bg-[#0F0F0F] relative overflow-hidden">
     <!-- Background Typography (Watermark) -->
     <div class="absolute top-10 left-0 w-full select-none pointer-events-none overflow-hidden leading-none"
@@ -29,10 +42,24 @@
         <div class="flex flex-col md:flex-row items-center justify-center relative">
 
             <!-- Image Section (Right Side, but rendered first for stacking context usually, but here we want text on top) -->
-            @if($image)
+            @if($image || $youtubeId)
             <div class="md:w-1/2 relative order-1 md:order-2 group md:-mt-16" data-aos="fade-up"
                 data-aos-duration="1200">
                 <div class="relative w-full h-[450px] md:h-[550px] overflow-hidden rounded-lg shadow-2xl">
+                    {{-- YouTube Video (Priority if video_url exists) --}}
+                    @if($youtubeId)
+                    <iframe 
+                        width="100%" 
+                        height="100%" 
+                        src="https://www.youtube.com/embed/{{ $youtubeId }}?autoplay=1&mute=1&loop=1&playlist={{ $youtubeId }}&controls=1&modestbranding=1"
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen
+                        class="absolute top-0 left-0 w-full h-full"
+                        style="border-radius: 8px;">
+                    </iframe>
+                    @else
+                    {{-- Fallback to Image --}}
                     <!-- Main Image -->
                     <img src="{{ $image }}" alt="Founder"
                         class="w-full h-full object-cover filter grayscale contrast-125 transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-105"
@@ -40,6 +67,7 @@
 
                     <!-- Gradient Overlay -->
                     <div class="absolute inset-0 bg-gradient-to-l from-transparent via-black/20 to-black/80"></div>
+                    @endif
 
                     <!-- Gold Border Frame -->
                     <div

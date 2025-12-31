@@ -11,9 +11,12 @@ use App\Models\TimKami;
 use App\Models\TestimoniPelanggan;
 use App\Models\Event;
 use App\Models\Footer;
+use App\Models\orders;
+use App\Models\order_items;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -31,6 +34,72 @@ class AdminController extends Controller
     public function index()
     {
         return view('admin.dashboard');
+    }
+
+    /**
+     * Sales Analytics page (Super Admin only)
+     */
+    public function salesAnalytics()
+    {
+        // Only super admin can access
+        if (!auth()->user()->hasRole('super_admin') && auth()->user()->role !== 'super_admin') {
+            abort(403, 'Unauthorized');
+        }
+        
+        return view('admin.sales-analytics');
+    }
+
+    /**
+     * Get menu sales data for chart (Super Admin only)
+     */
+    public function getMenuSalesData(Request $request)
+    {
+        // Only super admin can access this
+        if (!auth()->user()->hasRole('super_admin')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Get date range from request (default: all time)
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        // Query untuk mendapatkan data penjualan per menu
+        // Menggunakan orders yang sudah completed atau processing
+        $query = order_items::select(
+                'order_items.menu_name',
+                DB::raw('SUM(order_items.quantity) as total_quantity'),
+                DB::raw('SUM(order_items.price * order_items.quantity) as total_revenue')
+            )
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->whereIn('orders.status', ['completed', 'processing'])
+            ->groupBy('order_items.menu_name')
+            ->orderBy('total_quantity', 'desc');
+
+        // Apply date filter if provided
+        if ($startDate) {
+            $query->whereDate('orders.created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('orders.created_at', '<=', $endDate);
+        }
+
+        $menuSales = $query->get();
+
+        // Format data untuk chart
+        $chartData = [
+            'labels' => $menuSales->pluck('menu_name')->toArray(),
+            'quantities' => $menuSales->pluck('total_quantity')->map(function($q) {
+                return (int)$q;
+            })->toArray(),
+            'revenues' => $menuSales->pluck('total_revenue')->map(function($r) {
+                return (float)$r;
+            })->toArray(),
+            'total_items' => (int)$menuSales->sum('total_quantity'),
+            'total_revenue' => (float)$menuSales->sum('total_revenue'),
+            'menu_count' => $menuSales->count()
+        ];
+
+        return response()->json($chartData);
     }
 
     // Hero Section

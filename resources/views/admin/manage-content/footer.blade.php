@@ -110,9 +110,16 @@
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                     </div>
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Google Maps Integration URL</label>
-                        <input type="url" name="google_maps_url" value="{{ $footer->google_maps_url ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Google Maps Integration</label>
+                        <p class="text-[9px] text-slate-500 dark:text-gray-600 mb-2">
+                            <strong>Cara:</strong><br>
+                            1. Buka Google Maps → cari lokasi<br>
+                            2. Click "Share" → "Embed a map"<br>
+                            3. Copy seluruh iframe code (atau hanya URL)<br>
+                            4. Paste di field bawah ini
+                        </p>
+                        <textarea name="google_maps_url" rows="4"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all font-mono" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''" placeholder="Paste full iframe HTML atau embed URL">{{ $footer->google_maps_url ?? '' }}</textarea>
                     </div>
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Map URL (Alternative)</label>

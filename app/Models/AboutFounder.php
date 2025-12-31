@@ -19,6 +19,7 @@ class AboutFounder extends Model
         'signature',
         'photo',
         'image',
+        'video_url',
         'facebook_url',
         'instagram_url',
         'linkedin_url',

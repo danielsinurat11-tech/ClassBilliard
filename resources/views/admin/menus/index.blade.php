@@ -93,15 +93,6 @@
 
                     <!-- Content Area: Text Focused -->
                     <div class="py-4 space-y-2 flex-1 flex flex-col">
-                        <div class="flex flex-wrap gap-1.5">
-                            @forelse($menu->labels ?? [] as $label)
-                                <span style="color: var(--primary-color);" class="text-[8px] font-black uppercase tracking-widest">{{ $label }}</span>
-                                @if(!$loop->last) <span class="text-slate-300 dark:text-gray-700">•</span> @endif
-                            @empty
-                                <span
-                                    class="text-[8px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest">Regular</span>
-                            @endforelse
-                        </div>
 
                         <h3 class="text-sm font-bold text-slate-900 dark:text-white transition-colors leading-tight"
                             style="color: inherit;"
@@ -113,6 +104,30 @@
                         <p class="text-[11px] text-slate-500 dark:text-gray-500 font-medium leading-relaxed line-clamp-2">
                             {{ $menu->short_description }}
                         </p>
+
+                        @if($menu->labels)
+                            @php
+                                $labelText = $menu->labels;
+                                if (str_starts_with($labelText, '[')) {
+                                    $decoded = json_decode($labelText, true);
+                                    $labelText = is_array($decoded) && count($decoded) > 0 ? $decoded[0] : $labelText;
+                                }
+                                $label = strtolower((string)$labelText);
+                                if(strpos($label, 'best seller') !== false || strpos($label, 'rekomendasi') !== false) {
+                                    $bgClass = 'bg-yellow-500/20';
+                                    $textClass = 'text-yellow-600 dark:text-yellow-400';
+                                } elseif(strpos($label, 'new') !== false) {
+                                    $bgClass = 'bg-emerald-500/20';
+                                    $textClass = 'text-emerald-600 dark:text-emerald-400';
+                                } else {
+                                    $bgClass = 'bg-red-500/20';
+                                    $textClass = 'text-red-600 dark:text-red-400';
+                                }
+                            @endphp
+                            <div class="flex gap-2 mt-2">
+                                <span class="text-xs px-2 py-0.5 rounded {{ $bgClass }} {{ $textClass }} font-medium">{{ $labelText }}</span>
+                            </div>
+                        @endif
 
                         <!-- Actions: Discrete -->
                         <div class="pt-4 flex items-center justify-between mt-auto">

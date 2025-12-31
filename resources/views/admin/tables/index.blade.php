@@ -100,7 +100,7 @@
                                         $tableNumber = $table->name;
                                     }
                                 @endphp
-                                <a href="{{ route('menu') }}?table={{ urlencode($tableNumber) }}&room={{ urlencode($table->room ?? '') }}"
+                                <a href="{{ route('orders.create') }}?table={{ urlencode($tableNumber) }}&room={{ urlencode($table->room ?? '') }}"
                                     target="_blank"
                                     class="w-10 h-10 text-white rounded-md flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
                                     style="background-color: var(--primary-color);"
