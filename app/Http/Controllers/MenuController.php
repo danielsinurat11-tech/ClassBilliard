@@ -18,7 +18,7 @@ class MenuController extends Controller
             $query->orderBy('name', 'asc');
         }])->orderBy('order_priority', 'asc')->get();
 
-        return view('menu', compact('categories'));
+        return view('orders.create', compact('categories'));
     }
 }
 

@@ -13,7 +13,13 @@ Route::post('/testimonial/submit', [HomeController::class, 'submitTestimonial'])
 // Logout Route (accessible without shift time check)
 Route::post('/logout', [LogoutController::class, 'logout'])->name('logout')->middleware('auth.custom');
 
+// Customer Orders Routes
+Route::get('/orders/create', [App\Http\Controllers\MenuController::class, 'index'])->name('orders.create');
+Route::post('/orders', [App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
+Route::get('/orders/{id}', [App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
+Route::get('/orders/{id}/data', [App\Http\Controllers\OrderController::class, 'getOrderData'])->name('orders.data');
 
+// Legacy route redirect (untuk backward compatibility)
 Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name('menu');
 
 // Kitchen Routes (Hanya untuk role kitchen)
@@ -45,9 +51,8 @@ Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exp
 });
 
 // Public order route (untuk customer membuat pesanan)
-Route::post('/orders', [App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
-Route::get('/orders/{id}', [App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
-Route::get('/orders/{id}/data', [App\Http\Controllers\OrderController::class, 'getOrderData'])->name('orders.data');
+// Note: routes for orders.create, orders.store, orders.show, orders.data sudah didefinisikan di atas
+
 Route::put('/orders/{id}', [App\Http\Controllers\OrderController::class, 'update'])->name('orders.update');
 Route::post('/orders/{id}/add-item', [App\Http\Controllers\OrderController::class, 'addItem'])->name('orders.add-item');
 Route::delete('/orders/{id}/remove-item/{itemId}', [App\Http\Controllers\OrderController::class, 'removeItem'])->name('orders.remove-item');

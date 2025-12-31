@@ -15,7 +15,6 @@ class Menu extends Model {
     ];
 
     protected $casts = [
-        'labels' => 'array',
         'price' => 'float'
     ];
 

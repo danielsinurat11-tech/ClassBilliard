@@ -141,6 +141,15 @@
                                 placeholder="e.g. L.Ipsum">
                         </div>
 
+                        <!-- YouTube Video URL -->
+                        <div class="space-y-2">
+                            <label
+                                class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">YouTube Video URL</label>
+                            <input type="url" name="video_url" value="{{ $aboutFounder->video_url ?? '' }}"
+                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
+                                placeholder="e.g. https://www.youtube.com/watch?v=VIDEO_ID atau https://youtu.be/VIDEO_ID">
+                        </div>
+
                         <!-- Quote -->
                         <div class="space-y-2 md:col-span-2">
                             <label
