@@ -39,7 +39,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(function (Request $request) {
             // Jika user sudah login, redirect ke dashboard sesuai role
             if (Auth::check()) {
-                $role = Auth::user()->role;
+                $role = Auth::user()->getRoleNames()->first() ?? Auth::user()->role;
                 if ($role === 'admin') {
                     return redirect()->route('admin.dashboard');
                 } elseif ($role === 'kitchen') {
@@ -58,7 +58,7 @@ class FortifyServiceProvider extends ServiceProvider
                 public function toResponse($request)
                 {
                     $user = auth()->user();
-                    $role = $user->role;
+                    $role = $user->getRoleNames()->first() ?? $user->role;
                     
                     // Simpan waktu akhir shift di session untuk auto-logout
                     if ($user->shift_id) {

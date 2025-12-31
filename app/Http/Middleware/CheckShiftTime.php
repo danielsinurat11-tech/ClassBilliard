@@ -19,8 +19,19 @@ class CheckShiftTime
     {
         $user = Auth::user();
 
-        // Check if user is authenticated and has shift_id
-        if (!$user || !$user->shift_id) {
+        // Check if user is authenticated
+        if (!$user) {
+            return $next($request);
+        }
+
+        // If user is super_admin, skip shift time check entirely
+        if ($user->hasRole('super_admin')) {
+            return $next($request);
+        }
+
+        // If user doesn't have a shift assigned, allow access 
+        // (for users without shift restrictions)
+        if (!$user->shift_id) {
             return $next($request);
         }
 
@@ -31,8 +42,8 @@ class CheckShiftTime
             return $next($request);
         }
 
-        // Get current time
-        $now = Carbon::now();
+        // Get current time (with Asia/Jakarta timezone)
+        $now = Carbon::now('Asia/Jakarta');
         $today = $now->copy()->startOfDay();
 
         // Parse shift times
