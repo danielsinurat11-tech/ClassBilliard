@@ -70,7 +70,7 @@
             <a href="#reservation"
                 class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">RESERVATION</a>
 
-            @unless(request()->is('admin/*'))
+            @unless(request()->is('admin*') || request()->is('dapur*'))
             <a href="{{ Route::currentRouteName() === 'home' ? '#contact' : route('home') . '#contact' }}"
                 class="px-6 py-2 text-sm font-bold tracking-widest transition duration-300 rounded-sm hover:text-black"
                 style="border: 1px solid rgba(255, 215, 0, 0.3); color: #FFD700;" 
@@ -141,7 +141,7 @@
             <div class="my-4 h-px bg-gradient-to-r from-transparent via-gold-400/50 to-transparent"></div>
 
             <!-- Contact Us Button -->
-            @unless(request()->is('admin/*'))
+            @unless(request()->is('admin*') || request()->is('dapur*'))
             <a href="{{ Route::currentRouteName() === 'home' ? '#contact' : route('home') . '#contact' }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
                 class="block w-full px-6 py-3 mt-4 border border-gold-400/60 text-gold-400 hover:bg-gold-400 hover:text-black text-sm font-bold tracking-[0.12em] transition duration-400 rounded-lg text-center hover:border-gold-400 hover:shadow-xl hover:shadow-gold-400/40">
                 CONTACT US
