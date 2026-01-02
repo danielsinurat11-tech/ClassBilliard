@@ -123,12 +123,12 @@ class AdminController extends Controller
             }
         }
 
-        // Initialize category stats
-        $categoryStats = [
-            'Makanan' => ['quantity' => 0, 'revenue' => 0],
-            'Minuman' => ['quantity' => 0, 'revenue' => 0],
-            'Cemilan' => ['quantity' => 0, 'revenue' => 0]
-        ];
+        // Initialize category stats DYNAMIS dari database
+        $allCategories = CategoryMenu::pluck('name')->toArray();
+        $categoryStats = [];
+        foreach ($allCategories as $category) {
+            $categoryStats[$category] = ['quantity' => 0, 'revenue' => 0];
+        }
 
         // Process each order item
         foreach ($orderItems as $item) {
@@ -138,7 +138,7 @@ class AdminController extends Controller
             if ($menu && $menu->categoryMenu) {
                 $categoryName = $menu->categoryMenu->name;
                 
-                // Only process if category is Makanan, Minuman, or Cemilan
+                // Process semua category yang ada di database
                 if (isset($categoryStats[$categoryName])) {
                     $categoryStats[$categoryName]['quantity'] += $item->quantity;
                     $categoryStats[$categoryName]['revenue'] += ($item->price * $item->quantity);
@@ -175,19 +175,15 @@ class AdminController extends Controller
         // Convert to indexed array
         $menuSalesDetail = array_values($menuSalesDetail);
 
-        // Format data untuk chart
+        // Format data untuk chart (DYNAMIS)
+        $chartLabels = array_keys($categoryStats);
+        $chartQuantities = array_values(array_map(fn($stat) => (int)$stat['quantity'], $categoryStats));
+        $chartRevenues = array_values(array_map(fn($stat) => (float)$stat['revenue'], $categoryStats));
+
         $chartData = [
-            'labels' => ['Makanan', 'Minuman', 'Cemilan'],
-            'quantities' => [
-                (int)$categoryStats['Makanan']['quantity'],
-                (int)$categoryStats['Minuman']['quantity'],
-                (int)$categoryStats['Cemilan']['quantity']
-            ],
-            'revenues' => [
-                (float)$categoryStats['Makanan']['revenue'],
-                (float)$categoryStats['Minuman']['revenue'],
-                (float)$categoryStats['Cemilan']['revenue']
-            ],
+            'labels' => $chartLabels, // Dynamis dari database
+            'quantities' => $chartQuantities,
+            'revenues' => $chartRevenues,
             'total_items' => (int)array_sum(array_column($categoryStats, 'quantity')),
             'total_revenue' => (float)array_sum(array_column($categoryStats, 'revenue')),
             'menu_count' => count($menuSalesDetail), // Jumlah menu yang terjual
