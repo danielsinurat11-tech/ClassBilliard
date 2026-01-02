@@ -18,6 +18,8 @@ class Contact extends Model
         'phone',
         'email',
         'whatsapp',
+        'navbar_label',
+        'navbar_link',
         'google_maps_url',
         'map_url',
         'opening_hours',

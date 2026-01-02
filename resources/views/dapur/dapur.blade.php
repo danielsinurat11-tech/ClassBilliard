@@ -329,6 +329,39 @@
         // Load active sound on page load
         loadActiveNotificationSound();
 
+        // Sound unlock state (browsers block autoplay) and pending play flag
+        let isSoundUnlocked = false;
+        let pendingNotificationPlay = false;
+
+        // Try to unlock audio on first user interaction
+        function setupSoundUnlock() {
+            const tryUnlock = async () => {
+                if (isSoundUnlocked) return;
+                if (!notificationSound || !notificationSound.querySelector('#notificationSoundSource') || !notificationSound.querySelector('#notificationSoundSource').src) return;
+
+                try {
+                    notificationSound.muted = true;
+                    await notificationSound.play();
+                    notificationSound.pause();
+                    notificationSound.currentTime = 0;
+                    notificationSound.muted = false;
+                    isSoundUnlocked = true;
+
+                    // If there was a pending play requested earlier, play now
+                    if (pendingNotificationPlay) {
+                        pendingNotificationPlay = false;
+                        notificationSound.play().catch(() => {});
+                    }
+                } catch (e) {
+                    // ignore - will try again on next interaction
+                }
+            };
+
+            ['click', 'touchstart', 'keydown'].forEach(evt => {
+                document.addEventListener(evt, tryUnlock, { once: true, capture: true });
+            });
+        }
+
         // Function to update overlay visibility
         function updateNotificationOverlay() {
             if (notificationOverlay) {
@@ -390,10 +423,13 @@
                 const source = notificationSound.querySelector('#notificationSoundSource');
                 // Only play if source has a valid src
                 if (source && source.src && source.src !== '' && source.src !== window.location.href) {
-                notificationSound.currentTime = 0;
-                notificationSound.play().catch(err => {
-                    console.log('Sound play failed:', err);
-                });
+                    // If unlocked, play immediately; otherwise mark pending and prompt unlock via next interaction
+                    if (isSoundUnlocked) {
+                        notificationSound.currentTime = 0;
+                        notificationSound.play().catch(() => {});
+                    } else {
+                        pendingNotificationPlay = true;
+                    }
                 }
             }
         }
@@ -632,10 +668,9 @@
         // Function untuk handle new orders dari SSE
         function handleNewOrders(newOrders) {
             if (!newOrders || newOrders.length === 0) return;
-                
-                const ordersSection = document.getElementById('ordersSection');
-                if (!ordersSection) return;
-                
+            const ordersSection = document.getElementById('ordersSection');
+            if (!ordersSection) return;
+
             let ordersGrid = ordersSection.querySelector('.grid');
             if (!ordersGrid) {
                 ordersSection.innerHTML = '<div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4"></div>';
@@ -643,21 +678,29 @@
             }
             
             newOrders.forEach(order => {
-                        if (!currentOrderIds.has(order.id)) {
-                            // New order detected!
-                    currentOrderIds.add(order.id);
-                            showNotification(order);
-                    
-                    // Insert new order at the beginning
-                    const newOrderCard = renderOrderCard(order);
-                    ordersGrid.insertAdjacentHTML('afterbegin', newOrderCard);
-                } else {
-                    // Order sudah ada, update jika perlu (misalnya status berubah)
-                    const existingCard = ordersSection.querySelector(`[data-order-id="${order.id}"]`);
-                    if (existingCard) {
-                        // Update card jika status berubah
-                        const newOrderCard = renderOrderCard(order);
-                        existingCard.outerHTML = newOrderCard;
+                // Skip if already tracked in memory
+                if (currentOrderIds.has(order.id)) return;
+
+                // Also skip if DOM already contains this order (extra safety)
+                if (ordersGrid.querySelector(`[data-order-id="${order.id}"]`)) return;
+
+                // New order detected
+                currentOrderIds.add(order.id);
+
+                // Insert new order at the beginning
+                const newOrderCard = renderOrderCard(order);
+                ordersGrid.insertAdjacentHTML('afterbegin', newOrderCard);
+
+                // Play notification sound for incoming order (unless this is the very first load)
+                if (!isFirstLoad) {
+                    const source = notificationSound ? notificationSound.querySelector('#notificationSoundSource') : null;
+                    if (notificationSound && source && source.src && source.src !== '' && source.src !== window.location.href) {
+                        if (isSoundUnlocked) {
+                            notificationSound.currentTime = 0;
+                            notificationSound.play().catch(() => {});
+                        } else {
+                            pendingNotificationPlay = true;
+                        }
                     }
                 }
             });

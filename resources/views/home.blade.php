@@ -203,9 +203,6 @@
     <!-- Testimonials Section Component -->
     @include('components.testimonials-section', ['testimonials' => $testimonials])
 
-    <!-- Contact Section Component -->
-    @include('components.contact-section', ['contact' => $contact])
-
     <!-- Footer Section Component -->
     @include('components.footer-section', ['footer' => $footer])
 

@@ -44,25 +44,39 @@
                            placeholder="e.g. Contact Us">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Subtitle</label>
-                    <input type="text" name="subtitle" value="{{ $contact->subtitle ?? '' }}" 
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Navbar Label</label>
+                    <input id="navbarLabelInput" type="text" name="navbar_label" value="{{ $contact->navbar_label ?? 'CONTACT US' }}"
                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                           placeholder="e.g. Get in Touch with Us">
+                           placeholder="Text shown on navbar button, e.g. CONTACT US">
+                    <p class="text-xs text-slate-400 mt-1">Nama yang akan muncul di tombol navbar (mis. CONTACT US atau Chat).</p>
                 </div>
                 <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Description</label>
-                    <textarea name="description" rows="4" 
-                              class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all leading-relaxed"
-                              @focus="$el.style.borderColor = 'var(--primary-color)'"
-                              @blur="$el.style.borderColor = ''"
-                              placeholder="Deskripsi singkat tentang bagaimana pelanggan dapat menghubungi Anda...">{{ $contact->description ?? '' }}</textarea>
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Navbar Link</label>
+                    <input id="navbarLinkInput" type="text" name="navbar_link" value="{{ $contact->navbar_link ?? '' }}"
+                           class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
+                           placeholder="https://wa.me/6281234567890 or /some/page">
+                    <p class="text-xs text-slate-400 mt-1">Link yang akan dibuka saat pengunjung klik tombol navbar. Bisa berupa full URL (https://...) atau nomor/wa short (will be normalized to wa.me jika perlu).</p>
                 </div>
+                
+                
                 <div class="space-y-2">
                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">WhatsApp Link</label>
-                    <input type="text" name="whatsapp" value="{{ $contact->whatsapp ?? '' }}" 
+                    <input id="whatsappInput" type="text" name="whatsapp" value="{{ $contact->whatsapp ?? '' }}" 
                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                           placeholder="https://wa.me/6281234567890 or https://api.whatsapp.com/send?phone=6281234567890">
-                    <p class="text-xs text-slate-400 mt-1">Masukkan link WhatsApp (contoh: <code>https://wa.me/6281234567890</code>) agar pengunjung bisa langsung menghubungi lewat WA.</p>
+                           placeholder="https://wa.me/6281234567890 or 081234567890 (will be normalized)">
+                    <p class="text-xs text-slate-400 mt-1">Masukkan link WhatsApp (contoh: <code>https://wa.me/6281234567890</code> atau nomor lokal seperti <code>081234567890</code>). Sistem akan menormalisasi input menjadi <code>https://wa.me/&lt;number&gt;</code> untuk digunakan di navbar.</p>
+
+                    <!-- Preview of final link that navbar will use -->
+                    <div id="whatsappPreview" class="mt-3 p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md">
+                        <p class="text-xs text-slate-400 mb-2">Navbar akan memakai link berikut jika field diisi:</p>
+                        <div class="flex items-center gap-3">
+                            <a id="whatsappPreviewLink" href="{{ $contact->whatsapp ?? '#' }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-3 py-2 bg-black text-white rounded shadow">
+                                <i class="ri-whatsapp-line"></i>
+                                <span id="whatsappPreviewText" class="text-sm">{{ $contact->whatsapp ?? 'Tidak ada link' }}</span>
+                            </a>
+                            <span id="whatsappPreviewFallback" class="text-xs text-slate-400">{{-- fallback info --}}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -104,5 +118,85 @@
         box-shadow: 0 0 0 1px rgba(var(--primary-color-rgb), 0.1) !important;
     }
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('whatsappInput');
+    const navbarLabelInput = document.getElementById('navbarLabelInput');
+    const navbarLinkInput = document.getElementById('navbarLinkInput');
+    const previewLink = document.getElementById('whatsappPreviewLink');
+    const previewText = document.getElementById('whatsappPreviewText');
+    const previewFallback = document.getElementById('whatsappPreviewFallback');
+
+        function normalizeWhatsApp(inputVal) {
+            if (!inputVal) return null;
+            let v = inputVal.trim();
+            // If starts with http or https, ensure https
+            if (/^https?:\/\//i.test(v)) {
+                v = v.replace(/^http:\/\//i, 'https://');
+                return v;
+            }
+
+                function normalizeAnyLink(inputVal) {
+                    if (!inputVal) return null;
+                    let v = inputVal.trim();
+                    // If starts with http or https, ensure https
+                    if (/^https?:\/\//i.test(v)) {
+                        return v.replace(/^http:\/\//i, 'https://');
+                    }
+                    // If looks like digits or starts with +, normalize to wa.me
+                    const digits = v.replace(/\D+/g, '');
+                    if (!digits) return null;
+                    if (digits.startsWith('0')) {
+                        return 'https://wa.me/62' + digits.slice(1);
+                    }
+                    return 'https://wa.me/' + digits;
+                }
+            // Otherwise, strip non-digits and normalize local leading 0 -> 62 (Indonesia assumption)
+            const digits = v.replace(/\D+/g, '');
+            if (!digits) return null;
+            if (digits.startsWith('0')) {
+                return 'https://wa.me/62' + digits.slice(1);
+            }
+            // Already has country code or full digits
+            return 'https://wa.me/' + digits;
+        }
+
+        function updatePreview() {
+            const waVal = input ? input.value : '';
+            const navLinkVal = navbarLinkInput ? navbarLinkInput.value : '';
+            const navLabelVal = navbarLabelInput ? navbarLabelInput.value : '';
+
+            // navbar link takes precedence if provided
+            let normalized = normalizeAnyLink(navLinkVal) || normalizeWhatsApp(waVal);
+            const label = navLabelVal && navLabelVal.trim() !== '' ? navLabelVal.trim() : 'CONTACT US';
+
+            if (normalized) {
+                previewLink.href = normalized;
+                previewText.textContent = label + ' — ' + normalized;
+                previewFallback.textContent = '';
+            } else {
+                previewLink.href = '#';
+                previewText.textContent = label + ' — Tidak ada link';
+                previewFallback.textContent = 'Jika kosong, navbar akan fallback ke anchor/contact page.';
+            }
+        }
+
+        if (input) {
+            input.addEventListener('input', updatePreview);
+            input.addEventListener('blur', updatePreview);
+        }
+        if (navbarLinkInput) {
+            navbarLinkInput.addEventListener('input', updatePreview);
+            navbarLinkInput.addEventListener('blur', updatePreview);
+        }
+        if (navbarLabelInput) {
+            navbarLabelInput.addEventListener('input', updatePreview);
+            navbarLabelInput.addEventListener('blur', updatePreview);
+        }
+
+        // Initialize
+        updatePreview();
+    });
+</script>
 @endsection
 

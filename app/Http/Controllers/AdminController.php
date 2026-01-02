@@ -712,6 +712,8 @@ class AdminController extends Controller
             'instagram_url' => ['nullable','string','max:255'],
             'twitter_url' => ['nullable','string','max:255'],
             'youtube_url' => ['nullable','string','max:255'],
+            'navbar_label' => ['nullable','string','max:100'],
+            'navbar_link' => ['nullable','string','max:255'],
         ]);
 
         $contact = Contact::firstOrNew();
@@ -753,6 +755,8 @@ class AdminController extends Controller
             'address',
             'phone',
             'email',
+            'navbar_label',
+            'navbar_link',
             'google_maps_url',
             'map_url',
             'opening_hours',
@@ -769,6 +773,31 @@ class AdminController extends Controller
             // If input blank, clear value
             if ($request->has('whatsapp') && ($request->input('whatsapp') === null || trim($request->input('whatsapp')) === '')) {
                 $contact->whatsapp = null;
+            }
+        }
+
+        // Normalize and apply navbar_link if provided (server-side canonicalization)
+        $navbarInput = $request->input('navbar_link');
+        if ($navbarInput && trim($navbarInput) !== '') {
+            $nav = trim($navbarInput);
+            if (preg_match('#^https?://#i', $nav)) {
+                $nav = preg_replace('#^http://#i', 'https://', $nav);
+            } else {
+                // treat as phone/number-like, normalize to wa.me
+                $digits = preg_replace('/\D+/', '', $nav);
+                if (preg_match('/^0/', $digits)) {
+                    $digits = preg_replace('/^0+/', '', $digits);
+                    $digits = '62' . $digits;
+                }
+                if ($digits !== '') {
+                    $nav = 'https://wa.me/' . $digits;
+                }
+            }
+            $contact->navbar_link = $nav;
+        } else {
+            // if explicitly blank, clear navbar_link
+            if ($request->has('navbar_link') && ($request->input('navbar_link') === null || trim($request->input('navbar_link')) === '')) {
+                $contact->navbar_link = null;
             }
         }
 

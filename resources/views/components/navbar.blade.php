@@ -45,6 +45,26 @@
 
 <nav class="fixed top-0 left-0 w-full z-50 h-24 transition-all duration-300" data-aos="fade-down"
     data-aos-duration="1000" id="mainNavbar" x-data="{ mobileMenuOpen: false, isClosing: false }" @click.away="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);">
+    @php
+        // Use admin-managed Contact for navbar. The navbar contact is always active
+        // (user requested always-active behavior). We prefer an explicit navbar_link
+        // and navbar_label if set; otherwise fall back to whatsapp.
+        $contact = \App\Models\Contact::first();
+        $navbarLink = null;
+        $navbarLabel = 'CONTACT US';
+        if ($contact) {
+            if ($contact->navbar_link && trim($contact->navbar_link) !== '') {
+                $navbarLink = trim($contact->navbar_link);
+            } elseif ($contact->whatsapp && trim($contact->whatsapp) !== '') {
+                $navbarLink = trim($contact->whatsapp);
+            }
+            if ($contact->navbar_label && trim($contact->navbar_label) !== '') {
+                $navbarLabel = trim($contact->navbar_label);
+            } elseif ($contact->title && trim($contact->title) !== '') {
+                $navbarLabel = trim($contact->title);
+            }
+        }
+    @endphp
     <div class="container mx-auto px-6 h-full flex items-center justify-between">
         <!-- Left: Brand/Logo (Small) -->
         <div class="flex items-center gap-3">
@@ -71,12 +91,13 @@
                 class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">RESERVATION</a>
 
             @unless(request()->is('admin*') || request()->is('dapur*'))
-            <a href="{{ Route::currentRouteName() === 'home' ? '#contact' : route('home') . '#contact' }}"
+            <a href="{{ $navbarLink ? $navbarLink : (Route::currentRouteName() === 'home' ? '#contact' : route('home') . '#contact') }}"
+                @if($navbarLink) target="_blank" rel="noopener noreferrer" @endif
                 class="px-6 py-2 text-sm font-bold tracking-widest transition duration-300 rounded-sm hover:text-black"
-                style="border: 1px solid rgba(255, 215, 0, 0.3); color: #FFD700;" 
+                style="border: 1px solid rgba(255, 215, 0, 0.3); color: #FFD700;"
                 onmouseenter="this.style.backgroundColor='#FFD700'; this.style.color='black';"
                 onmouseleave="this.style.backgroundColor='transparent'; this.style.color='#FFD700';">
-                CONTACT US
+                {{ $navbarLabel }}
             </a>
             @endunless
 
@@ -142,9 +163,10 @@
 
             <!-- Contact Us Button -->
             @unless(request()->is('admin*') || request()->is('dapur*'))
-            <a href="{{ Route::currentRouteName() === 'home' ? '#contact' : route('home') . '#contact' }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
+            <a href="{{ $navbarLink ? $navbarLink : (Route::currentRouteName() === 'home' ? '#contact' : route('home') . '#contact') }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
+                @if($navbarLink) target="_blank" rel="noopener noreferrer" @endif
                 class="block w-full px-6 py-3 mt-4 border border-gold-400/60 text-gold-400 hover:bg-gold-400 hover:text-black text-sm font-bold tracking-[0.12em] transition duration-400 rounded-lg text-center hover:border-gold-400 hover:shadow-xl hover:shadow-gold-400/40">
-                CONTACT US
+                {{ $navbarLabel }}
             </a>
             @endunless
 
