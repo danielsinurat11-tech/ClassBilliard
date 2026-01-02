@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 use App\Models\orders;
 use App\Models\payments;
@@ -62,7 +63,8 @@ class AppServiceProvider extends ServiceProvider
                     return false;
                 }
 
-                $user = auth()->user();
+                /** @var \App\Models\User|null $user */
+                $user = Auth::user();
                 if (! $user) {
                     return false;
                 }
