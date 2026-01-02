@@ -67,6 +67,13 @@
             "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
         ],
+        "post-deploy": [
+            "@php artisan db:seed --class=RoleAndPermissionSeeder --force",
+            "@php artisan db:seed --class=SetupUsersWithRolesSeeder --force",
+            "@php artisan permission:cache-reset",
+            "@php artisan cache:clear",
+            "@php artisan view:clear"
+        ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ]
