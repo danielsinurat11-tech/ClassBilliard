@@ -681,6 +681,55 @@ class OrderController extends Controller
     }
 
     /**
+     * Start cooking order (change status from pending to processing)
+     * 
+     * Actions:
+     * - Update order status from 'pending' to 'processing'
+     * 
+     * Authorization:
+     * - Only start cooking orders from the user's own shift
+     */
+    public function startCooking($id)
+    {
+        $user = Auth::user();
+        
+        // Validation: User must be assigned to a shift or be super_admin
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
+            ], 403);
+        }
+        
+        $order = orders::findOrFail($id);
+        
+        // Authorization: Check if order belongs to user's shift (or super_admin)
+        if (!$user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki akses ke order ini.'
+            ], 403);
+        }
+        
+        // Validation: Only pending orders can be started
+        if ($order->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order ini tidak dapat dimulai karena statusnya bukan pending.'
+            ], 400);
+        }
+        
+        // Update status
+        $order->update(['status' => 'processing']);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Order berhasil dimulai.',
+            'order' => $order->fresh()
+        ]);
+    }
+
+    /**
      * Mark order as completed
      * 
      * Actions:
@@ -693,83 +742,96 @@ class OrderController extends Controller
      */
     public function complete($id)
     {
-        $user = Auth::user();
-        $this->authorize('update', orders::class);
-        
-        // Eager load orderItems for data manipulation
-        $order = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
-            ->findOrFail($id);
-        
-        // Authorization: Check if order belongs to user's shift
-        if ($order->shift_id !== $user->shift_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak memiliki akses ke order ini.'
-            ], 403);
-        }
-        
-        // Update order status
-        $order->update(['status' => 'completed']);
-
-        // Save to kitchen_reports for persistence (prevent data loss)
         try {
-            // Check if already saved (prevent duplicates)
-            $existingReport = KitchenReport::where('order_id', $order->id)->first();
+            $user = Auth::user();
             
-            if (!$existingReport) {
-                // Prepare order items data
-                $orderItems = $order->orderItems->map(function($item) {
-                    return [
-                        'menu_name' => $item->menu_name,
-                        'price' => $item->price,
-                        'quantity' => $item->quantity,
-                        'image' => $item->image
-                    ];
-                })->toArray();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak terautentikasi'
+                ], 401);
+            }
+            
+            // Eager load orderItems for data manipulation
+            $order = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
+                ->findOrFail($id);
+            
+            // Authorization: Check if order belongs to user's shift or super_admin
+            if (!$user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke order ini.'
+                ], 403);
+            }
 
-                // Create kitchen report
-                KitchenReport::create([
+            // Update order status
+            $order->update(['status' => 'completed']);
+
+            // Save to kitchen_reports for persistence (prevent data loss)
+            try {
+                // Check if already saved (prevent duplicates)
+                $existingReport = KitchenReport::where('order_id', $order->id)->first();
+                
+                if (!$existingReport) {
+                    // Prepare order items data
+                    $orderItems = $order->orderItems->map(function($item) {
+                        return [
+                            'menu_name' => $item->menu_name,
+                            'price' => $item->price,
+                            'quantity' => $item->quantity,
+                            'image' => $item->image
+                        ];
+                    })->toArray();
+
+                    // Create kitchen report
+                    KitchenReport::create([
+                        'order_id' => $order->id,
+                        'customer_name' => $order->customer_name,
+                        'table_number' => $order->table_number,
+                        'room' => $order->room,
+                        'total_price' => $order->total_price,
+                        'payment_method' => $order->payment_method,
+                        'order_items' => json_encode($orderItems),
+                        'order_date' => $order->created_at->format('Y-m-d'),
+                        'completed_at' => Carbon::now('Asia/Jakarta')
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail the operation
+                Log::error('Error saving to kitchen_reports', [
                     'order_id' => $order->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+
+            // Return order data for realtime update
+            return response()->json([
+                'success' => true,
+                'message' => 'Order telah diselesaikan',
+                'order' => [
+                    'id' => $order->id,
                     'customer_name' => $order->customer_name,
                     'table_number' => $order->table_number,
                     'room' => $order->room,
                     'total_price' => $order->total_price,
                     'payment_method' => $order->payment_method,
-                    'order_items' => json_encode($orderItems),
-                    'order_date' => $order->created_at->format('Y-m-d'),
-                    'completed_at' => Carbon::now('Asia/Jakarta')
-                ]);
-            }
-        } catch (\Exception $e) {
-            // Log error but don't fail the operation
-            Log::error('Error saving to kitchen_reports', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage()
+                    'created_at' => $order->created_at->format('d M Y H:i') . ' WIB',
+                    'updated_at' => $order->updated_at->format('d M Y H:i') . ' WIB',
+                    'order_items' => $order->orderItems->map(function($item) {
+                        return [
+                            'menu_name' => $item->menu_name,
+                            'price' => $item->price,
+                            'quantity' => $item->quantity,
+                        ];
+                    })
+                ]
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Return order data for realtime update
-        return response()->json([
-            'success' => true,
-            'message' => 'Order telah diselesaikan',
-            'order' => [
-                'id' => $order->id,
-                'customer_name' => $order->customer_name,
-                'table_number' => $order->table_number,
-                'room' => $order->room,
-                'total_price' => $order->total_price,
-                'payment_method' => $order->payment_method,
-                'created_at' => $order->created_at->format('d M Y H:i') . ' WIB',
-                'updated_at' => $order->updated_at->format('d M Y H:i') . ' WIB',
-                'order_items' => $order->orderItems->map(function($item) {
-                    return [
-                        'menu_name' => $item->menu_name,
-                        'price' => $item->price,
-                        'quantity' => $item->quantity,
-                    ];
-                })
-            ]
-        ]);
     }
 
     /**
@@ -830,80 +892,97 @@ class OrderController extends Controller
     {
         $user = Auth::user();
         
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
         // Validation: User must be assigned to a shift or be super_admin
         if (!$user->hasRole('super_admin') && !$user->shift_id) {
-            return response('', 403);
+            return response()->json(['error' => 'User tidak memiliki shift yang aktif'], 403);
         }
 
         // Set headers for SSE
         return response()->stream(function () use ($user) {
-            $lastOrderId = 0;
-            $checkInterval = 0.5; // Check every 500ms for faster response
-            
-            while (true) {
-                // Check if client is still connected
-                if (connection_aborted()) {
-                    break;
-                }
+            try {
+                $lastOrderId = 0;
+                $checkInterval = 0.5; // Check every 500ms for faster response
+                
+                while (true) {
+                    // Check if client is still connected
+                    if (connection_aborted()) {
+                        break;
+                    }
 
-                // Get latest orders (pending atau processing)
-                $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'status', 'created_at', 'updated_at', 'shift_id')
-                    ->with('orderItems:id,order_id,menu_name,price,quantity,image')
-                    ->whereIn('status', ['pending', 'processing'])
-                    ->where('id', '>', $lastOrderId)
-                    ->orderBy('created_at', 'asc');
-                
-                $orders = $this->applyShiftFilter($query, $user)->get();
-                
-                // If there are new orders, send them
-                if ($orders->count() > 0) {
-                    $ordersData = $orders->map(function ($order) {
-                        return [
-                            'id' => $order->id,
-                            'customer_name' => $order->customer_name,
-                            'table_number' => $order->table_number,
-                            'room' => $order->room,
-                            'total_price' => $order->total_price,
-                            'payment_method' => $order->payment_method,
-                            'status' => $order->status,
-                            'created_at' => $order->created_at->toIso8601String(),
-                            'updated_at' => $order->updated_at->toIso8601String(),
-                            'order_items' => $order->orderItems->map(function ($item) {
-                                return [
-                                    'menu_name' => $item->menu_name,
-                                    'price' => $item->price,
-                                    'quantity' => $item->quantity,
-                                    'image' => $item->image
-                                ];
-                            })
-                        ];
-                    });
+                    // Get latest orders (pending atau processing)
+                    $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'status', 'created_at', 'updated_at', 'shift_id')
+                        ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+                        ->whereIn('status', ['pending', 'processing'])
+                        ->where('id', '>', $lastOrderId)
+                        ->orderBy('created_at', 'asc');
                     
-                    // Update last order ID
-                    $lastOrderId = $orders->max('id');
+                    $orders = $this->applyShiftFilter($query, $user)->get();
                     
-                    // Send SSE event
-                    echo "data: " . json_encode([
-                        'type' => 'new_orders',
-                        'orders' => $ordersData
-                    ]) . "\n\n";
-                    
-                    // Flush output immediately
-                    if (ob_get_level() > 0) {
-                        ob_flush();
+                    // If there are new orders, send them
+                    if ($orders->count() > 0) {
+                        $ordersData = $orders->map(function ($order) {
+                            return [
+                                'id' => $order->id,
+                                'customer_name' => $order->customer_name,
+                                'table_number' => $order->table_number,
+                                'room' => $order->room,
+                                'total_price' => $order->total_price,
+                                'payment_method' => $order->payment_method,
+                                'status' => $order->status,
+                                'created_at' => $order->created_at->toIso8601String(),
+                                'updated_at' => $order->updated_at->toIso8601String(),
+                                'order_items' => $order->orderItems->map(function ($item) {
+                                    return [
+                                        'menu_name' => $item->menu_name,
+                                        'price' => $item->price,
+                                        'quantity' => $item->quantity,
+                                        'image' => $item->image
+                                    ];
+                                })
+                            ];
+                        });
+                        
+                        // Update last order ID
+                        $lastOrderId = $orders->max('id');
+                        
+                        // Send SSE event
+                        echo "data: " . json_encode([
+                            'type' => 'new_orders',
+                            'orders' => $ordersData
+                        ]) . "\n\n";
+                        
+                        // Flush output immediately
+                        if (ob_get_level() > 0) {
+                            ob_flush();
+                        }
+                        flush();
+                    } else {
+                        // Send heartbeat to keep connection alive
+                        echo ": heartbeat\n\n";
+                        if (ob_get_level() > 0) {
+                            ob_flush();
+                        }
+                        flush();
                     }
-                    flush();
-                } else {
-                    // Send heartbeat to keep connection alive
-                    echo ": heartbeat\n\n";
-                    if (ob_get_level() > 0) {
-                        ob_flush();
-                    }
-                    flush();
+                    
+                    // Sleep before next check
+                    usleep($checkInterval * 1000000); // Convert to microseconds
                 }
+            } catch (\Exception $e) {
+                // Send error message via SSE
+                echo "data: " . json_encode([
+                    'type' => 'error',
+                    'message' => 'Error: ' . $e->getMessage()
+                ]) . "\n\n";
                 
-                // Sleep before next check
-                usleep($checkInterval * 1000000); // Convert to microseconds
+                if (ob_get_level() > 0) {
+                    ob_flush();
+                }
+                flush();
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',

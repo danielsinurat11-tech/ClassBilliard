@@ -13,6 +13,9 @@ use App\Models\Event;
 use App\Models\Footer;
 use App\Models\orders;
 use App\Models\order_items;
+use App\Models\Menu;
+use App\Models\CategoryMenu;
+use App\Models\KitchenReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
@@ -50,12 +53,12 @@ class AdminController extends Controller
     }
 
     /**
-     * Get menu sales data for chart (Super Admin only)
+     * Get menu sales data by category for chart (Super Admin only)
      */
     public function getMenuSalesData(Request $request)
     {
         // Only super admin can access this
-        if (!auth()->user()->hasRole('super_admin')) {
+        if (!auth()->user()->hasRole('super_admin') && auth()->user()->role !== 'super_admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -63,40 +66,139 @@ class AdminController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        // Query untuk mendapatkan data penjualan per menu
-        // Menggunakan orders yang sudah completed atau processing
-        $query = order_items::select(
+        // Get order items from both sources:
+        // 1. From orders table (status = completed) - primary source
+        // 2. From kitchen_reports table - backup source for data persistence
+        
+        $orderItems = collect();
+        
+        // Source 1: Get from orders table (completed orders)
+        $orderItemsQuery = order_items::select(
                 'order_items.menu_name',
-                DB::raw('SUM(order_items.quantity) as total_quantity'),
-                DB::raw('SUM(order_items.price * order_items.quantity) as total_revenue')
+                'order_items.quantity',
+                'order_items.price',
+                'orders.created_at',
+                'orders.id as order_id'
             )
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->whereIn('orders.status', ['completed', 'processing'])
-            ->groupBy('order_items.menu_name')
-            ->orderBy('total_quantity', 'desc');
+            ->where('orders.status', 'completed');
 
         // Apply date filter if provided
         if ($startDate) {
-            $query->whereDate('orders.created_at', '>=', $startDate);
+            $orderItemsQuery->whereDate('orders.created_at', '>=', $startDate);
         }
         if ($endDate) {
-            $query->whereDate('orders.created_at', '<=', $endDate);
+            $orderItemsQuery->whereDate('orders.created_at', '<=', $endDate);
         }
 
-        $menuSales = $query->get();
+        $orderItemsFromOrders = $orderItemsQuery->get();
+        $orderItems = $orderItems->merge($orderItemsFromOrders);
+        
+        // Get unique order IDs from orders table
+        $existingOrderIds = $orderItemsFromOrders->pluck('order_id')->unique()->toArray();
+        
+        // Source 2: Get from kitchen_reports table (backup data for deleted orders)
+        $kitchenReportsQuery = KitchenReport::query();
+        
+        if ($startDate) {
+            $kitchenReportsQuery->whereDate('order_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $kitchenReportsQuery->whereDate('order_date', '<=', $endDate);
+        }
+        
+        $kitchenReports = $kitchenReportsQuery->get();
+        
+        // Extract order items from kitchen_reports (only for orders not in orders table)
+        foreach ($kitchenReports as $report) {
+            // Skip if this order already exists in orders table (to avoid duplicates)
+            if (in_array($report->order_id, $existingOrderIds)) {
+                continue;
+            }
+            
+            $items = json_decode($report->order_items, true);
+            if (is_array($items)) {
+                foreach ($items as $item) {
+                    // Add as object-like structure
+                    $orderItems->push((object)[
+                        'menu_name' => $item['menu_name'],
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
+                        'created_at' => \Carbon\Carbon::parse($report->order_date)
+                    ]);
+                }
+            }
+        }
+
+        // Initialize category stats
+        $categoryStats = [
+            'Makanan' => ['quantity' => 0, 'revenue' => 0],
+            'Minuman' => ['quantity' => 0, 'revenue' => 0],
+            'Cemilan' => ['quantity' => 0, 'revenue' => 0]
+        ];
+
+        // Process each order item
+        foreach ($orderItems as $item) {
+            // Find menu by name to get category
+            $menu = Menu::where('name', $item->menu_name)->first();
+            
+            if ($menu && $menu->categoryMenu) {
+                $categoryName = $menu->categoryMenu->name;
+                
+                // Only process if category is Makanan, Minuman, or Cemilan
+                if (isset($categoryStats[$categoryName])) {
+                    $categoryStats[$categoryName]['quantity'] += $item->quantity;
+                    $categoryStats[$categoryName]['revenue'] += ($item->price * $item->quantity);
+                }
+            }
+        }
+
+        // Get menu sales detail (per menu item)
+        $menuSalesDetail = [];
+        foreach ($orderItems as $item) {
+            $menu = Menu::where('name', $item->menu_name)->first();
+            
+            if ($menu && $menu->categoryMenu) {
+                $categoryName = $menu->categoryMenu->name;
+                
+                if (isset($categoryStats[$categoryName])) {
+                    if (!isset($menuSalesDetail[$item->menu_name])) {
+                        $menuSalesDetail[$item->menu_name] = [
+                            'name' => $item->menu_name,
+                            'quantity' => 0,
+                            'category' => $categoryName
+                        ];
+                    }
+                    $menuSalesDetail[$item->menu_name]['quantity'] += $item->quantity;
+                }
+            }
+        }
+
+        // Sort by quantity descending and convert to indexed array
+        usort($menuSalesDetail, function($a, $b) {
+            return $b['quantity'] - $a['quantity'];
+        });
+
+        // Convert to indexed array
+        $menuSalesDetail = array_values($menuSalesDetail);
 
         // Format data untuk chart
         $chartData = [
-            'labels' => $menuSales->pluck('menu_name')->toArray(),
-            'quantities' => $menuSales->pluck('total_quantity')->map(function($q) {
-                return (int)$q;
-            })->toArray(),
-            'revenues' => $menuSales->pluck('total_revenue')->map(function($r) {
-                return (float)$r;
-            })->toArray(),
-            'total_items' => (int)$menuSales->sum('total_quantity'),
-            'total_revenue' => (float)$menuSales->sum('total_revenue'),
-            'menu_count' => $menuSales->count()
+            'labels' => ['Makanan', 'Minuman', 'Cemilan'],
+            'quantities' => [
+                (int)$categoryStats['Makanan']['quantity'],
+                (int)$categoryStats['Minuman']['quantity'],
+                (int)$categoryStats['Cemilan']['quantity']
+            ],
+            'revenues' => [
+                (float)$categoryStats['Makanan']['revenue'],
+                (float)$categoryStats['Minuman']['revenue'],
+                (float)$categoryStats['Cemilan']['revenue']
+            ],
+            'total_items' => (int)array_sum(array_column($categoryStats, 'quantity')),
+            'total_revenue' => (float)array_sum(array_column($categoryStats, 'revenue')),
+            'menu_count' => count($menuSalesDetail), // Jumlah menu yang terjual
+            'menu_details' => $menuSalesDetail // Detail per menu
         ];
 
         return response()->json($chartData);

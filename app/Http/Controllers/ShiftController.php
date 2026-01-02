@@ -104,46 +104,88 @@ class ShiftController extends Controller
      */
     public function checkStatus()
     {
-        $user = Auth::user();
-        
-        if (!$user || !$user->shift_id) {
-            return response()->json([
-                'shift_active' => false,
-                'message' => 'User tidak memiliki shift yang aktif'
-            ]);
-        }
-
-        $shift = $user->shift;
-        
-        if (!$shift || !$shift->is_active) {
-            return response()->json([
-                'shift_active' => false,
-                'message' => 'Shift tidak aktif'
-            ]);
-        }
-
-        $now = Carbon::now();
-        $shiftStart = Carbon::createFromFormat('H:i', $shift->start_time);
-        $shiftEnd = Carbon::createFromFormat('H:i', $shift->end_time);
-        
-        // Adjust for shifts that cross midnight
-        if ($shiftEnd->lt($shiftStart)) {
-            if ($now->lt($shiftStart)) {
-                $shiftStart->subDay();
-            } else {
-                $shiftEnd->addDay();
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'shift_active' => false,
+                    'message' => 'User tidak terautentikasi'
+                ], 401);
             }
+            
+            // Super admin always has access
+            if ($user->hasRole('super_admin')) {
+                return response()->json([
+                    'shift_active' => true,
+                    'shift_name' => 'Super Admin',
+                    'start_time' => '00:00',
+                    'end_time' => '23:59',
+                    'current_time' => Carbon::now()->format('H:i:s')
+                ]);
+            }
+            
+            if (!$user->shift_id) {
+                return response()->json([
+                    'shift_active' => false,
+                    'message' => 'User tidak memiliki shift yang aktif'
+                ]);
+            }
+
+            // Load shift with relationship
+            $shift = Shift::find($user->shift_id);
+            
+            if (!$shift) {
+                return response()->json([
+                    'shift_active' => false,
+                    'message' => 'Shift tidak ditemukan'
+                ]);
+            }
+            
+            if (!$shift->is_active) {
+                return response()->json([
+                    'shift_active' => false,
+                    'message' => 'Shift tidak aktif'
+                ]);
+            }
+
+            $now = Carbon::now('Asia/Jakarta');
+            
+            // Parse shift times - handle both string and Carbon formats
+            $startTimeStr = $shift->start_time instanceof Carbon ? $shift->start_time->format('H:i') : $shift->start_time;
+            $endTimeStr = $shift->end_time instanceof Carbon ? $shift->end_time->format('H:i') : $shift->end_time;
+            
+            $shiftStart = Carbon::createFromFormat('H:i', $startTimeStr, 'Asia/Jakarta');
+            $shiftEnd = Carbon::createFromFormat('H:i', $endTimeStr, 'Asia/Jakarta');
+            
+            // Set to today
+            $shiftStart->setDate($now->year, $now->month, $now->day);
+            $shiftEnd->setDate($now->year, $now->month, $now->day);
+            
+            // Adjust for shifts that cross midnight
+            if ($shiftEnd->lt($shiftStart)) {
+                if ($now->lt($shiftStart)) {
+                    $shiftStart->subDay();
+                } else {
+                    $shiftEnd->addDay();
+                }
+            }
+
+            $isWithinShiftTime = $now->between($shiftStart, $shiftEnd);
+
+            return response()->json([
+                'shift_active' => $isWithinShiftTime,
+                'shift_name' => $shift->name,
+                'start_time' => $shift->start_time,
+                'end_time' => $shift->end_time,
+                'current_time' => $now->format('H:i:s')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'shift_active' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
-
-        $isWithinShiftTime = $now->between($shiftStart, $shiftEnd);
-
-        return response()->json([
-            'shift_active' => $isWithinShiftTime,
-            'shift_name' => $shift->name,
-            'start_time' => $shift->start_time,
-            'end_time' => $shift->end_time,
-            'current_time' => $now->format('H:i:s')
-        ]);
     }
 
 }

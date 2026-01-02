@@ -24,6 +24,14 @@ class CheckShiftTime
             return $next($request);
         }
 
+        // Allow API routes to pass through FIRST (they handle their own validation)
+        // This must be checked before any shift time validation
+        $path = $request->path();
+        if (str_starts_with($path, 'dapur/orders/') || 
+            str_starts_with($path, 'shift/check')) {
+            return $next($request);
+        }
+
         // If user is super_admin, skip shift time check entirely
         if ($user->hasRole('super_admin')) {
             return $next($request);
@@ -126,6 +134,19 @@ class CheckShiftTime
                         $order->save();
                     }
                 }
+            }
+
+            // For API routes, return JSON response instead of redirect
+            if ($request->expectsJson() || $request->is('orders/*') || $request->is('shift/*')) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                
+                return response()->json([
+                    'error' => true,
+                    'message' => "⏛ Anda hanya bisa login saat jam shift aktif. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).",
+                    'redirect' => '/'
+                ], 403);
             }
 
             // Force logout

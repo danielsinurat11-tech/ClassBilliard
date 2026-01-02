@@ -54,7 +54,7 @@ class UserController extends Controller
             'shift_id' => ['nullable', 'exists:shifts,id'],
         ]);
 
-        User::create([
+        $newUser = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
@@ -62,16 +62,17 @@ class UserController extends Controller
             'shift_id' => $validated['shift_id'] ?? null,
         ]);
 
+        // Assign role using Spatie
+        $newUser->assignRole($validated['role']);
+
         return redirect()->route('admin.manage-users.index')
             ->with('success', "Akses operasional untuk {$validated['name']} telah diaktifkan.");
     }
 
     public function edit(User $user)
     {
-        // Check permission: user.update
-        if (!auth()->user()->hasPermissionTo('user.update')) {
-            abort(403, 'Anda tidak memiliki akses untuk mengedit pengguna.');
-        }
+        // Use policy authorization (super admin only)
+        $this->authorize('update', $user);
 
         // Proteksi tambahan: Jangan izinkan edit diri sendiri lewat URL manual
         if ($user->id === auth()->id()) {
@@ -84,10 +85,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        // Check permission: user.update
-        if (!auth()->user()->hasPermissionTo('user.update')) {
-            abort(403, 'Anda tidak memiliki akses untuk mengedit pengguna.');
-        }
+        // Use policy authorization (super admin only)
+        $this->authorize('update', $user);
 
         $validated = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
@@ -97,17 +96,24 @@ class UserController extends Controller
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
+        // Update user data
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        // Use spatie roles instead of column
-        $user->syncRoles([$validated['role']]);
         $user->shift_id = $validated['shift_id'] ?? null;
+        
+        // Update role using Spatie and also update column for backward compatibility
+        $user->syncRoles([$validated['role']]);
+        $user->role = $validated['role']; // Update column as well
 
+        // Update password if provided
         if ($request->filled('password')) {
             $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
+
+        // Clear permission cache to ensure changes take effect
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         return redirect()->route('admin.manage-users.index')
             ->with('success', "Data kredensial {$user->name} berhasil diperbarui.");

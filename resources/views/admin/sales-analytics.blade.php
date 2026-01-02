@@ -68,7 +68,7 @@
                                 <i class="ri-restaurant-line text-blue-500"></i>
                             </div>
                             <div>
-                                <p class="text-xs text-slate-500 dark:text-gray-400 font-medium">Total Menu</p>
+                                <p class="text-xs text-slate-500 dark:text-gray-400 font-medium">Per Item</p>
                                 <p class="text-lg font-bold text-slate-900 dark:text-white" id="totalMenuCount">0</p>
                             </div>
                         </div>
@@ -94,6 +94,28 @@
                                 <p class="text-lg font-bold text-slate-900 dark:text-white" id="totalRevenue">Rp 0</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Orderan -->
+            <div class="bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Detail Orderan</h3>
+                        <p class="text-xs text-slate-500 dark:text-gray-400">Rincian menu yang telah terjual</p>
+                    </div>
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-md">
+                        <i class="ri-list-check text-green-500"></i>
+                        <span class="text-xs font-bold text-green-500">Live</span>
+                    </div>
+                </div>
+
+                <!-- Detail List -->
+                <div id="menuDetailsList" class="space-y-2">
+                    <div class="text-center py-8 text-slate-500 dark:text-gray-400">
+                        <i class="ri-inbox-line text-4xl mb-2"></i>
+                        <p>Belum ada data orderan</p>
                     </div>
                 </div>
             </div>
@@ -160,6 +182,7 @@
                 if (response.ok && data) {
                     updateChart(data);
                     updateSummary(data);
+                    updateMenuDetails(data);
                 } else {
                     console.error('Error loading chart data:', data);
                 }
@@ -178,41 +201,65 @@
                 menuSalesChart.destroy();
             }
 
-            // Limit to top 10 menus for better visualization
-            const topMenus = data.labels.slice(0, 10);
-            const topQuantities = data.quantities.slice(0, 10);
-            const topRevenues = data.revenues.slice(0, 10);
-
             const isDark = document.documentElement.classList.contains('dark');
             const textColor = isDark ? '#e2e8f0' : '#0f172a';
             const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
 
+            // Warna untuk setiap kategori
+            // Biru: Makanan, Oranye: Minuman, Abu-abu: Cemilan
+            const categoryColors = {
+                'Makanan': {
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)', // Biru
+                    borderColor: 'rgba(59, 130, 246, 1)'
+                },
+                'Minuman': {
+                    backgroundColor: 'rgba(251, 146, 60, 0.8)', // Oranye
+                    borderColor: 'rgba(251, 146, 60, 1)'
+                },
+                'Cemilan': {
+                    backgroundColor: 'rgba(107, 114, 128, 0.8)', // Abu-abu
+                    borderColor: 'rgba(107, 114, 128, 1)'
+                }
+            };
+
             menuSalesChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: topMenus,
+                    labels: data.labels, // ['Makanan', 'Minuman', 'Cemilan']
                     datasets: [
                         {
-                            label: 'Jumlah Terjual',
-                            data: topQuantities,
-                            backgroundColor: 'rgba(250, 154, 8, 0.8)',
-                            borderColor: 'rgba(250, 154, 8, 1)',
+                            label: 'Jumlah Terjual (Item)',
+                            data: data.quantities,
+                            backgroundColor: [
+                                categoryColors['Makanan'].backgroundColor,
+                                categoryColors['Minuman'].backgroundColor,
+                                categoryColors['Cemilan'].backgroundColor
+                            ],
+                            borderColor: [
+                                categoryColors['Makanan'].borderColor,
+                                categoryColors['Minuman'].borderColor,
+                                categoryColors['Cemilan'].borderColor
+                            ],
                             borderWidth: 2,
                             borderRadius: 6,
                             yAxisID: 'y',
                         },
                         {
                             label: 'Revenue (Rp)',
-                            data: topRevenues,
-                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                            borderColor: 'rgba(59, 130, 246, 1)',
+                            data: data.revenues,
+                            backgroundColor: [
+                                categoryColors['Makanan'].backgroundColor.replace('0.8', '0.5'),
+                                categoryColors['Minuman'].backgroundColor.replace('0.8', '0.5'),
+                                categoryColors['Cemilan'].backgroundColor.replace('0.8', '0.5')
+                            ],
+                            borderColor: [
+                                categoryColors['Makanan'].borderColor,
+                                categoryColors['Minuman'].borderColor,
+                                categoryColors['Cemilan'].borderColor
+                            ],
                             borderWidth: 2,
                             borderRadius: 6,
                             yAxisID: 'y1',
-                            type: 'line',
-                            tension: 0.4,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
                         }
                     ]
                 },
@@ -267,10 +314,9 @@
                             ticks: {
                                 color: textColor,
                                 font: {
-                                    size: 11
-                                },
-                                maxRotation: 45,
-                                minRotation: 45
+                                    size: 12,
+                                    weight: 'bold'
+                                }
                             },
                             grid: {
                                 color: gridColor,
@@ -335,17 +381,104 @@
             document.getElementById('totalRevenue').textContent = 'Rp ' + parseInt(data.total_revenue || 0).toLocaleString('id-ID');
         }
 
+        // Function to update menu details
+        function updateMenuDetails(data) {
+            const detailsList = document.getElementById('menuDetailsList');
+            if (!detailsList) return;
+
+            if (!data.menu_details || data.menu_details.length === 0) {
+                detailsList.innerHTML = `
+                    <div class="text-center py-8 text-slate-500 dark:text-gray-400">
+                        <i class="ri-inbox-line text-4xl mb-2"></i>
+                        <p>Belum ada data orderan</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by category with colors
+            const categoryColors = {
+                'Makanan': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+                'Minuman': 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
+                'Cemilan': 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20'
+            };
+
+            let html = '';
+            data.menu_details.forEach(item => {
+                const categoryClass = categoryColors[item.category] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
+                html += `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5">
+                        <div class="flex items-center gap-3">
+                            <span class="px-2 py-1 rounded text-xs font-bold border ${categoryClass}">
+                                ${item.category}
+                            </span>
+                            <span class="text-sm font-medium text-slate-900 dark:text-white">
+                                ${item.quantity}x ${item.name}
+                            </span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-300">
+                            ${item.quantity} item
+                        </span>
+                    </div>
+                `;
+            });
+
+            detailsList.innerHTML = html;
+        }
+
+        // Realtime update interval
+        let updateInterval = null;
+
+        // Function to start realtime updates
+        function startRealtimeUpdates() {
+            // Clear existing interval
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+
+            // Update every 3 seconds
+            updateInterval = setInterval(() => {
+                const dateRange = document.getElementById('dateRange')?.value || 'all';
+                loadChartData(dateRange);
+            }, 3000);
+        }
+
+        // Function to stop realtime updates
+        function stopRealtimeUpdates() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        }
+
         // Initialize chart on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadChartData('all');
+            startRealtimeUpdates();
 
             // Date range selector change
             const dateRangeSelect = document.getElementById('dateRange');
             if (dateRangeSelect) {
                 dateRangeSelect.addEventListener('change', function() {
                     loadChartData(this.value);
+                    // Restart realtime updates with new filter
+                    startRealtimeUpdates();
                 });
             }
+
+            // Stop updates when page is hidden
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    stopRealtimeUpdates();
+                } else {
+                    startRealtimeUpdates();
+                }
+            });
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            stopRealtimeUpdates();
         });
     </script>
     @endpush

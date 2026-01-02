@@ -24,25 +24,25 @@ Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name
 
 // Kitchen Routes (Hanya untuk role kitchen)
 Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(function () {
-    Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
+    // Dashboard Dapur
+    Route::get('/dapur', [App\Http\Controllers\DapurController::class, 'index'])->name('dapur');
+    
+    // API Routes untuk Dapur
+    Route::get('/dapur/orders/active', [App\Http\Controllers\DapurController::class, 'activeOrders'])->name('dapur.orders.active');
+    Route::get('/dapur/orders/stream', [App\Http\Controllers\DapurController::class, 'ordersStream'])->name('dapur.orders.stream');
+    Route::post('/dapur/orders/{id}/start-cooking', [App\Http\Controllers\DapurController::class, 'startCooking'])->name('dapur.orders.start-cooking');
+    Route::post('/dapur/orders/{id}/complete', [App\Http\Controllers\DapurController::class, 'complete'])->name('dapur.orders.complete');
+    
+    // Shift Check
     Route::get('/shift/check', [App\Http\Controllers\ShiftController::class, 'checkStatus'])->name('shift.check');
-    Route::get('/tutup-hari', [App\Http\Controllers\OrderController::class, 'tutupHari'])->name('tutup-hari');
-    Route::get('/tutup-hari/struk', [App\Http\Controllers\OrderController::class, 'generateStrukHarian'])->name('tutup-hari.struk');
-    Route::post('/tutup-hari/kirim-email', [App\Http\Controllers\OrderController::class, 'sendStrukHarianEmail'])->name('tutup-hari.kirim-email');
-    Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
-Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
-Route::get('/orders/stream', [App\Http\Controllers\OrderController::class, 'ordersStream'])->name('orders.stream');
-Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
-Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::class, 'getCategoryStats'])->name('reports.category-stats');
-Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
-    Route::post('/reports/send-email', [App\Http\Controllers\OrderController::class, 'sendReportEmail'])->name('reports.send-email');
-    Route::get('/test-email', [App\Http\Controllers\OrderController::class, 'testEmail'])->name('test.email');
+    
+    // Pengaturan Audio
     Route::get('/pengaturan-audio', function () {
         return view('dapur.pengaturan-audio');
     })->name('pengaturan-audio');
     Route::get('/notification-sounds/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('notification-sounds.active');
     
-    // Notification Sounds Management untuk Kitchen
+    // Notification Sounds Management
     Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
