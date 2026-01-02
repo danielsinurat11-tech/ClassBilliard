@@ -162,13 +162,13 @@ class CheckShiftTime
 
         // Check if within 30 min before start or 30 min after end for warning
         // Hanya tampilkan warning di halaman dapur/admin, bukan di halaman pelanggan
-        if ($request->routeIs('dapur') || $request->routeIs('reports') || $request->routeIs('pengaturan-audio') || $request->routeIs('tutup-hari') || $request->is('admin*')) {
-        if ($now < $startTime && $now >= $toleranceStart) {
-            $minutesUntil = $startTime->diffInMinutes($now);
-            session()->flash('warning', "⏰ Shift Anda belum dimulai. Mulai dalam {$minutesUntil} menit.");
-        } elseif ($now > $endTime && $now <= $toleranceEnd) {
-            $minutesAfter = $now->diffInMinutes($endTime);
-            session()->flash('warning', "⏰ Shift Anda sudah berakhir {$minutesAfter} menit lalu. Segera selesaikan pekerjaan.");
+        if ($request->routeIs('dapur') || $request->routeIs('reports') || $request->routeIs('pengaturan-audio') || $request->is('admin*')) {
+            if ($now < $startTime && $now >= $toleranceStart) {
+                $minutesUntil = $startTime->diffInMinutes($now);
+                session()->flash('warning', "⏰ Shift Anda belum dimulai. Mulai dalam {$minutesUntil} menit.");
+            } elseif ($now > $endTime && $now <= $toleranceEnd) {
+                $minutesAfter = $now->diffInMinutes($endTime);
+                session()->flash('warning', "⏰ Shift Anda sudah berakhir {$minutesAfter} menit lalu. Segera selesaikan pekerjaan.");
             }
         }
 

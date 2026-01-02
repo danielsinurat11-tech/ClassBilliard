@@ -46,7 +46,7 @@
                 // Show browser notification
                 if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification('⏰ Peringatan Shift', {
-                        body: `Shift akan berakhir dalam ${minutesUntilEnd} menit. Jangan lupa untuk Tutup Hari!`,
+                        body: `Shift akan berakhir dalam ${minutesUntilEnd} menit. Pastikan semua order sudah selesai.`,
                         icon: '{{ asset("logo.png") }}',
                         tag: 'shift-warning',
                         requireInteraction: true
@@ -58,15 +58,9 @@
                     showAlert({
                         icon: 'warning',
                         title: '⏰ Peringatan!',
-                        html: `<p class="text-lg mb-2">Shift akan berakhir dalam <strong>${minutesUntilEnd} menit</strong>!</p><p class="text-sm">Jangan lupa untuk <strong>Tutup Hari</strong> sebelum shift berakhir.</p>`,
-                        confirmButtonText: 'Ke Halaman Tutup Hari',
-                        showCancelButton: true,
-                        cancelButtonText: 'Nanti',
-                        cancelButtonColor: '#64748b'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = '{{ route("tutup-hari") }}';
-                        }
+                        html: `<p class="text-lg mb-2">Shift akan berakhir dalam <strong>${minutesUntilEnd} menit</strong>!</p><p class="text-sm">Pastikan semua order sudah selesai sebelum shift berakhir.</p>`,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#fa9a08'
                     });
                 }
                 
@@ -170,4 +164,3 @@
     }
 </script>
 @endpush
-

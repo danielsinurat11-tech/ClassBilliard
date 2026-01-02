@@ -623,9 +623,50 @@
             document.body.style.overflow = 'auto';
         }
 
+        let isSubmittingOrder = false;
+        const pendingOrderStorageKey = 'pending_order_request_v1';
+
+        function generateIdempotencyKey() {
+            if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+                return crypto.randomUUID();
+            }
+
+            const bytes = new Uint8Array(16);
+            if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+                crypto.getRandomValues(bytes);
+            } else {
+                for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+            }
+
+            bytes[6] = (bytes[6] & 0x0f) | 0x40;
+            bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+            const hex = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+            return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+        }
+
         // Handle form submission
         document.getElementById('checkoutForm')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            if (isSubmittingOrder) return;
+            isSubmittingOrder = true;
+
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const submitButtonText = submitButton ? submitButton.textContent : null;
+
+            const restoreSubmitState = () => {
+                isSubmittingOrder = false;
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    if (submitButtonText !== null) submitButton.textContent = submitButtonText;
+                }
+            };
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Memproses...';
+            }
 
             const customerName = document.getElementById('customerName').value.trim();
             const tableNumber = document.getElementById('tableNumber').value.trim();
@@ -634,16 +675,19 @@
 
             if (!customerName) {
                 alert('Mohon masukkan nama Anda');
+                restoreSubmitState();
                 return;
             }
 
             if (!tableNumber) {
                 alert('Mohon masukkan nomor meja');
+                restoreSubmitState();
                 return;
             }
 
             if (!room) {
                 alert('Mohon masukkan ruangan');
+                restoreSubmitState();
                 return;
             }
 
@@ -666,7 +710,55 @@
 
             if (items.length === 0) {
                 alert('Keranjang masih kosong');
+                restoreSubmitState();
                 return;
+            }
+
+            const paymentMethod = 'cash';
+            const normalizedItems = items
+                .map(item => ({
+                    menu_name: item.menu_name,
+                    price: item.price,
+                    quantity: item.quantity
+                }))
+                .sort((a, b) => {
+                    const nameCompare = a.menu_name.localeCompare(b.menu_name);
+                    if (nameCompare !== 0) return nameCompare;
+                    if (a.price !== b.price) return a.price - b.price;
+                    return a.quantity - b.quantity;
+                });
+
+            const fingerprint = JSON.stringify({
+                customerName,
+                tableNumber,
+                room,
+                orderId,
+                paymentMethod,
+                items: normalizedItems
+            });
+
+            let idempotencyKey = null;
+            try {
+                const stored = localStorage.getItem(pendingOrderStorageKey);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed && parsed.fingerprint === fingerprint && typeof parsed.key === 'string') {
+                        idempotencyKey = parsed.key;
+                    }
+                }
+            } catch (err) {
+                idempotencyKey = null;
+            }
+
+            if (!idempotencyKey) {
+                idempotencyKey = generateIdempotencyKey();
+                try {
+                    localStorage.setItem(pendingOrderStorageKey, JSON.stringify({
+                        key: idempotencyKey,
+                        fingerprint,
+                        createdAt: Date.now()
+                    }));
+                } catch (err) {}
             }
 
             // Prepare form data
@@ -674,7 +766,7 @@
             formData.append('customer_name', customerName);
             formData.append('table_number', tableNumber);
             formData.append('room', room);
-            formData.append('payment_method', 'cash'); // Default payment method
+            formData.append('payment_method', paymentMethod);
 
             items.forEach((item, index) => {
                 formData.append(`items[${index}][name]`, item.menu_name);
@@ -689,11 +781,14 @@
 
             // Submit to backend
             try {
+                if (submitButton) submitButton.textContent = 'Mengirim...';
+
                 const response = await fetch('{{ route("orders.store") }}', {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+                        'Idempotency-Key': idempotencyKey
                     }
                 });
 
@@ -712,6 +807,7 @@
                     // Check order_id or id field
                     const orderId = data.order_id || data.id;
                     if (orderId) {
+                        try { localStorage.removeItem(pendingOrderStorageKey); } catch (err) {}
                         window.location.href = '/orders/' + orderId;
                     } else {
                         alert('Order created but ID missing. Response: ' + JSON.stringify(data));
@@ -723,6 +819,8 @@
             } catch (error) {
                 console.error('Fetch error:', error);
                 alert('Terjadi kesalahan: ' + error.message);
+            } finally {
+                restoreSubmitState();
             }
         });
 

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Carbon\Carbon;
 
 class OrderController extends Controller
@@ -64,6 +65,34 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
+        $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+        if (is_string($idempotencyKey)) {
+            $idempotencyKey = trim($idempotencyKey);
+            if ($idempotencyKey === '') {
+                $idempotencyKey = null;
+            } elseif (strlen($idempotencyKey) > 100) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Idempotency key tidak valid',
+                    'error' => 'invalid_idempotency_key'
+                ], 422);
+            }
+        } else {
+            $idempotencyKey = null;
+        }
+
+        if ($idempotencyKey) {
+            $existingOrder = orders::where('idempotency_key', $idempotencyKey)->first();
+            if ($existingOrder) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order berhasil dibuat',
+                    'order_id' => $existingOrder->id,
+                    'redirect_url' => route('orders.show', $existingOrder->id)
+                ]);
+            }
+        }
+
         $request->validate([
             'customer_name' => 'required|string|max:255',
             'table_number' => 'required|string|max:255',
@@ -93,32 +122,53 @@ class OrderController extends Controller
             $totalPrice += $item['price'] * $item['quantity'];
         }
 
-        $order = orders::create([
-            'customer_name' => $request->customer_name,
-            'table_number' => $request->table_number,
-            'room' => $request->room,
-            'total_price' => $totalPrice,
-            'payment_method' => $request->payment_method,
-            'status' => 'processing', // Langsung processing agar langsung muncul di dapur tanpa perlu konfirmasi admin
-            'shift_id' => $activeShift->id
-        ]);
+        try {
+            $order = DB::transaction(function () use ($request, $totalPrice, $activeShift, $idempotencyKey) {
+                $order = orders::create([
+                    'customer_name' => $request->customer_name,
+                    'table_number' => $request->table_number,
+                    'room' => $request->room,
+                    'total_price' => $totalPrice,
+                    'payment_method' => $request->payment_method,
+                    'status' => 'processing',
+                    'shift_id' => $activeShift->id,
+                    'idempotency_key' => $idempotencyKey
+                ]);
 
-        foreach ($request->items as $item) {
-            order_items::create([
+                foreach ($request->items as $item) {
+                    order_items::create([
+                        'order_id' => $order->id,
+                        'menu_name' => $item['name'],
+                        'price' => $item['price'],
+                        'quantity' => $item['quantity'],
+                        'image' => $item['image'] ?? null
+                    ]);
+                }
+
+                return $order;
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order berhasil dibuat',
                 'order_id' => $order->id,
-                'menu_name' => $item['name'],
-                'price' => $item['price'],
-                'quantity' => $item['quantity'],
-                'image' => $item['image'] ?? null
+                'redirect_url' => route('orders.show', $order->id)
             ]);
-        }
+        } catch (QueryException $e) {
+            if ($idempotencyKey) {
+                $existingOrder = orders::where('idempotency_key', $idempotencyKey)->first();
+                if ($existingOrder) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Order berhasil dibuat',
+                        'order_id' => $existingOrder->id,
+                        'redirect_url' => route('orders.show', $existingOrder->id)
+                    ]);
+                }
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order berhasil dibuat',
-            'order_id' => $order->id,
-            'redirect_url' => route('orders.show', $order->id)
-        ]);
+            throw $e;
+        }
     }
 
     /**
@@ -970,7 +1020,7 @@ class OrderController extends Controller
                     }
                     
                     // Sleep before next check
-                    usleep($checkInterval * 1000000); // Convert to microseconds
+                    usleep((int) ($checkInterval * 1000000)); // Convert to microseconds
                 }
             } catch (\Exception $e) {
                 // Send error message via SSE
@@ -1120,6 +1170,7 @@ class OrderController extends Controller
 
         $totalRevenue = $allOrders->sum('total_price');
         $totalOrders = $allOrders->count();
+        $shiftId = $user->hasRole('super_admin') ? null : $user->shift_id;
 
         return response()->json([
             'orders' => $allOrders->toArray(),
@@ -2047,180 +2098,4 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Show tutup hari (close of day) page
-     * Allows kitchen staff to generate and send daily receipts
-     */
-    public function tutupHari()
-    {
-        // Get current user's shift
-        $user = Auth::user();
-        
-        if (!$user->shift_id) {
-            return redirect()->route('dapur')
-                ->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
-        }
-
-        $activeShift = Shift::getActiveShift();
-        
-        return view('dapur.tutup-hari', compact('activeShift'));
-    }
-
-    /**
-     * Generate struk harian (daily receipt) for printing
-     * Accepts tanggal parameter to filter orders by date
-     */
-    public function generateStrukHarian(Request $request)
-    {
-        $user = Auth::user();
-        $tanggalStr = $request->get('tanggal', Carbon::today()->format('Y-m-d'));
-        $tanggal = Carbon::parse($tanggalStr);
-        
-        if (!$user->shift_id) {
-            return response()->view('errors.404', [
-                'message' => 'Anda belum di-assign ke shift.'
-            ], 403);
-        }
-
-        // Get orders for the selected date and user's shift
-        $orders = orders::with('orderItems')
-            ->where('shift_id', $user->shift_id)
-            ->where('status', 'completed')
-            ->whereDate('created_at', $tanggalStr)
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        // Calculate totals
-        $totalRevenue = $orders->sum(function($order) {
-            return $order->total_price ?? 0;
-        });
-
-        $shiftInfo = $user->shift;
-
-        // Return printable view
-        return view('dapur.struk-harian', [
-            'orders' => $orders,
-            'totalRevenue' => $totalRevenue,
-            'tanggal' => $tanggal,
-            'shift' => $shiftInfo,
-            'user' => $user
-        ]);
-    }
-
-    /**
-     * Send struk harian via email
-     * POST endpoint that generates receipt and emails it
-     */
-    public function sendStrukHarianEmail(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'tanggal' => 'required|date_format:Y-m-d'
-        ]);
-
-        $user = Auth::user();
-        $tanggalStr = $request->get('tanggal');
-        $tanggal = Carbon::parse($tanggalStr);
-
-        if (!$user->shift_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
-            ], 403);
-        }
-
-        // Get orders for the selected date and user's shift
-        $orders = orders::with('orderItems')
-            ->where('shift_id', $user->shift_id)
-            ->where('status', 'completed')
-            ->whereDate('created_at', $tanggalStr)
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        // Calculate totals
-        $totalRevenue = $orders->sum(function($order) {
-            return $order->total_price ?? 0;
-        });
-
-        $shiftInfo = $user->shift;
-        $dateFormatted = $tanggal->format('d F Y');
-        $filename = 'Struk_Harian_' . $tanggal->format('Y-m-d') . '.xlsx';
-
-        try {
-            // Check email configuration
-            if (config('mail.default') === 'log') {
-                Log::info('Email struk harian akan dikirim ke: ' . $request->email);
-            }
-
-            // Ensure temp directory exists
-            $tempDir = storage_path('app/temp');
-            if (!file_exists($tempDir)) {
-                mkdir($tempDir, 0755, true);
-            }
-
-            // Store Excel file temporarily
-            $filePath = 'temp/' . $filename;
-            Excel::store(new RecapExport((object)[
-                'orders' => $orders,
-                'totalRevenue' => $totalRevenue,
-                'tanggal' => $tanggal,
-                'dateFormatted' => $dateFormatted,
-                'shift' => $shiftInfo,
-                'user' => $user
-            ]), $filePath, 'local');
-
-            // Get full path for attachment
-            $fullPath = Storage::path($filePath);
-
-            // Check if file exists
-            if (!file_exists($fullPath)) {
-                throw new \Exception('File Excel tidak berhasil dibuat');
-            }
-
-            // Log before sending
-            Log::info('Attempting to send struk harian email', [
-                'to' => $request->email,
-                'file' => $filename,
-                'tanggal' => $tanggalStr,
-                'shift' => $shiftInfo->name ?? 'Unknown'
-            ]);
-
-            // Send email with attachment
-            Mail::to($request->email)->send(new SendRecapEmail($fullPath, $filename, 'Struk Harian ' . $dateFormatted, (object)[
-                'orders' => $orders,
-                'totalRevenue' => $totalRevenue,
-                'tanggal' => $tanggal,
-                'shift' => $shiftInfo,
-                'user' => $user
-            ]));
-
-            // Log after sending
-            Log::info('Struk harian email sent successfully', [
-                'to' => $request->email,
-                'tanggal' => $tanggalStr
-            ]);
-
-            // Delete temporary file after sending
-            Storage::delete($filePath);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Struk harian berhasil dikirim ke ' . $request->email . '. Silakan cek kotak masuk dan folder Spam Anda.'
-            ]);
-        } catch (\Exception $e) {
-            // Delete temporary file if exists
-            if (isset($filePath)) {
-                Storage::delete($filePath);
-            }
-
-            Log::error('Struk Harian Email Error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengirim email: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 }
-

@@ -7,6 +7,7 @@ use App\Models\order_items;
 use App\Models\KitchenReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class DapurController extends Controller
@@ -29,8 +30,21 @@ class DapurController extends Controller
         }
         
         $orders = $query->get();
+
+        $todayJakarta = Carbon::now('Asia/Jakarta')->toDateString();
+
+        $totalMenuSold = order_items::query()
+            ->whereHas('order', function ($q) use ($todayJakarta, $user) {
+                $q->where('status', 'completed')
+                    ->whereDate('created_at', $todayJakarta);
+
+                if (!$user->hasRole('super_admin') && $user->shift_id) {
+                    $q->where('shift_id', $user->shift_id);
+                }
+            })
+            ->sum('quantity');
         
-        return view('dapur.dashboard', compact('orders'));
+        return view('dapur.dashboard', compact('orders', 'totalMenuSold'));
     }
 
     /**
@@ -45,7 +59,7 @@ class DapurController extends Controller
         }
         
         // Get active orders
-        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'status', 'created_at', 'updated_at', 'shift_id')
+        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('status', 'processing')
             ->orderBy('created_at', 'desc');
@@ -64,8 +78,6 @@ class DapurController extends Controller
                     'customer_name' => $order->customer_name,
                     'table_number' => $order->table_number,
                     'room' => $order->room,
-                    'total_price' => $order->total_price,
-                    'payment_method' => $order->payment_method,
                     'status' => $order->status,
                     'created_at' => $order->created_at->toIso8601String(),
                     'updated_at' => $order->updated_at->toIso8601String(),
@@ -94,16 +106,29 @@ class DapurController extends Controller
         }
         
         return response()->stream(function () use ($user) {
-            $lastOrderId = 0;
+            // keep script alive while client is connected
+            if (function_exists('ignore_user_abort')) {
+                ignore_user_abort(true);
+            }
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(0);
+            }
+
+            // Initialize lastOrderId to the latest existing order id for the relevant scope
+            $initialQuery = orders::whereIn('status', ['pending', 'processing']);
+            if (!$user->hasRole('super_admin') && $user->shift_id) {
+                $initialQuery->where('shift_id', $user->shift_id);
+            }
+            $lastOrderId = (int) $initialQuery->max('id');
             $checkInterval = 0.5; // Check every 500ms
-            
+
             while (true) {
                 if (connection_aborted()) {
                     break;
                 }
 
                 // Get latest orders
-                $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'status', 'created_at', 'updated_at', 'shift_id')
+                $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'created_at', 'updated_at', 'shift_id')
                     ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                     ->whereIn('status', ['pending', 'processing'])
                     ->where('id', '>', $lastOrderId)
@@ -123,8 +148,6 @@ class DapurController extends Controller
                             'customer_name' => $order->customer_name,
                             'table_number' => $order->table_number,
                             'room' => $order->room,
-                            'total_price' => $order->total_price,
-                            'payment_method' => $order->payment_method,
                             'status' => $order->status,
                             'created_at' => $order->created_at->toIso8601String(),
                             'updated_at' => $order->updated_at->toIso8601String(),
@@ -140,7 +163,9 @@ class DapurController extends Controller
                     });
                     
                     $lastOrderId = $orders->max('id');
-                    
+
+                    // send SSE id so client can track last event
+                    echo "id: {$lastOrderId}\n";
                     echo "data: " . json_encode([
                         'type' => 'new_orders',
                         'orders' => $ordersData
@@ -248,7 +273,7 @@ class DapurController extends Controller
                 ]);
             }
         } catch (\Exception $e) {
-            \Log::error('Error saving to kitchen_reports', [
+            Log::error('Error saving to kitchen_reports', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage()
             ]);
@@ -277,4 +302,3 @@ class DapurController extends Controller
         ]);
     }
 }
-

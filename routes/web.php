@@ -43,6 +43,7 @@ Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(fu
     // Notification Sounds Management
     Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
+        Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
     });
@@ -135,6 +136,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
     Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
         Route::get('/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('active');
+        Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::post('/{id}/set-active', [App\Http\Controllers\NotificationSoundController::class, 'setActive'])->name('set-active');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
