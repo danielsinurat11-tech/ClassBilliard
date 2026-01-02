@@ -113,7 +113,8 @@ class NotificationSoundController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'audio' => 'required|file|mimes:mp3,wav,ogg|max:2048' // Max 2MB
+            // Allow common audio formats including m4a
+            'audio' => 'required|file|mimes:mp3,wav,ogg,m4a|max:2048' // Max 2MB
         ]);
 
         if ($validator->fails()) {

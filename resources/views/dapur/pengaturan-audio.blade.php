@@ -171,29 +171,71 @@
                     }
                 },
 
-                useAudioDirectly() {
+                async useAudioDirectly() {
                     if (!this.previewFile) return;
-                    
-                    this.selectedAudio = this.previewFile;
-                    this.currentAudioName = this.previewFile.name;
-                    this.saveAudioPreference();
-                    
-                    // Clear preview
-                    this.previewFile = null;
-                    this.newAudioName = '';
-                    if (this.$refs.audioFilePicker) {
-                        this.$refs.audioFilePicker.value = '';
+
+                    // When user wants to "use directly" we will upload the file to the server
+                    // so the selection becomes persistent across sessions (logout/login).
+                    const formData = new FormData();
+                    const nameToUse = this.newAudioName && this.newAudioName.trim() !== '' ? this.newAudioName.trim() : this.previewFile.name.replace(/\.[^/.]+$/, '');
+                    formData.append('name', nameToUse);
+                    formData.append('audio', this.previewFile);
+
+                    this.isUploading = true;
+                    try {
+                        const response = await fetch('/notification-sounds', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success && data.sound) {
+                            // Select the newly uploaded sound (database-backed) and persist preference
+                            this.selectedAudio = data.sound.filename;
+                            this.currentAudioName = data.sound.name;
+                            this.saveAudioPreference();
+
+                            // Clear preview
+                            this.previewFile = null;
+                            this.newAudioName = '';
+                            if (this.$refs.audioFilePicker) {
+                                this.$refs.audioFilePicker.value = '';
+                            }
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: 'Audio berhasil dipilih dan disimpan sebagai default',
+                                background: '#161616',
+                                color: '#fff',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message || 'Gagal menyimpan audio sebagai default',
+                                background: '#161616',
+                                color: '#fff'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error uploading audio for direct use:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Terjadi kesalahan saat menyimpan audio',
+                            background: '#161616',
+                            color: '#fff'
+                        });
+                    } finally {
+                        this.isUploading = false;
                     }
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: 'Audio berhasil dipilih',
-                        background: '#161616',
-                        color: '#fff',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
                 },
 
                 async uploadAudioAsNew() {

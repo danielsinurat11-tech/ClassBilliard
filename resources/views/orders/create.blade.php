@@ -767,38 +767,33 @@
                 } catch (err) {}
             }
 
-            // Prepare form data
-            const formData = new FormData();
-            formData.append('customer_name', customerName);
-            formData.append('table_number', tableNumber);
-            formData.append('room', room);
-            formData.append('payment_method', paymentMethod);
+            // Prepare JSON payload (faster parsing than multipart/form-data)
+            const payload = {
+                customer_name: customerName,
+                table_number: tableNumber,
+                room: room,
+                payment_method: paymentMethod,
+                items: items.map(i => ({ name: i.menu_name, price: i.price, quantity: i.quantity, image: i.image }))
+            };
+            if (orderId) payload.order_id = orderId;
 
-            items.forEach((item, index) => {
-                formData.append(`items[${index}][name]`, item.menu_name);
-                formData.append(`items[${index}][price]`, item.price);
-                formData.append(`items[${index}][quantity]`, item.quantity);
-                formData.append(`items[${index}][image]`, item.image);
-            });
-
-            if (orderId) {
-                formData.append('order_id', orderId);
-            }
-
-            // Submit to backend
+            // Submit to backend (send JSON) and measure timing
             try {
                 if (submitButton) submitButton.textContent = 'Mengirim...';
+                console.time('orderSubmit');
 
                 const response = await fetch('{{ route("orders.store") }}', {
                     method: 'POST',
-                    body: formData,
+                    body: JSON.stringify(payload),
                     headers: {
+                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
                         'Idempotency-Key': idempotencyKey
                     }
                 });
 
                 const contentType = response.headers.get("content-type");
+                console.timeEnd('orderSubmit');
                 if (!contentType || !contentType.includes("application/json")) {
                     console.error('Invalid response type:', contentType);
                     console.error('Response text:', await response.text());
