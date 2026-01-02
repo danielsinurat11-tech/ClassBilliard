@@ -165,7 +165,7 @@
             <!-- Group: Website CMS - Only if user has admin role (super_admin or admin) -->
             @if(auth()->user()->hasAnyRole(['super_admin', 'admin']))
             <div
-                x-data="{ open: {{ request()->routeIs('admin.cms.hero', 'admin.cms.tentang-kami', 'admin.cms.about-founder', 'admin.cms.keunggulan-fasilitas', 'admin.cms.portfolio-achievement', 'admin.cms.tim-kami', 'admin.cms.testimoni-pelanggan', 'admin.cms.event', 'admin.cms.footer') ? 'true' : 'false' }} }">
+                x-data="{ open: {{ request()->routeIs('admin.cms.hero', 'admin.cms.tentang-kami', 'admin.cms.about-founder', 'admin.cms.keunggulan-fasilitas', 'admin.cms.portfolio-achievement', 'admin.cms.tim-kami', 'admin.cms.testimoni-pelanggan', 'admin.cms.event', 'admin.cms.footer', 'admin.cms.contact') ? 'true' : 'false' }} }">
                 <p x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                     class="text-[10px] font-bold text-slate-400 dark:text-gray-600 uppercase tracking-widest px-4 mb-4">
                     Content</p>
@@ -195,6 +195,7 @@
                             ['r' => 'admin.cms.testimoni-pelanggan', 'l' => 'Testimoni'],
                             ['r' => 'admin.cms.event', 'l' => 'Event'],
                             ['r' => 'admin.cms.footer', 'l' => 'Footer'],
+                            ['r' => 'admin.cms.contact', 'l' => 'Contact'],
                         ];
                     @endphp
                     @foreach($cmsLinks as $m)

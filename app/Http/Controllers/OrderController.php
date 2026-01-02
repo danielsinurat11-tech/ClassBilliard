@@ -1126,7 +1126,7 @@ class OrderController extends Controller
             'total_revenue' => $totalRevenue,
             'total_orders' => $totalOrders,
             'type' => $type,
-            'shift_id' => $shiftId
+            'shift_id' => $user->shift_id ?? null
         ]);
     }
 
