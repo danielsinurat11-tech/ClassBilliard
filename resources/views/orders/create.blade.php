@@ -104,19 +104,11 @@
                             $menu = $item->menu;
                             $category = $item->category;
                         @endphp
-                        @php
-                            // Handle labels as array (cast in model)
-                            $labelData = '';
-                            if ($menu->labels) {
-                                $labelArray = is_array($menu->labels) ? $menu->labels : (is_string($menu->labels) ? json_decode($menu->labels, true) : []);
-                                $labelData = is_array($labelArray) && count($labelArray) > 0 ? $labelArray[0] : '';
-                            }
-                        @endphp
                         <div class="menu-card bg-bg-sidebar rounded-xl pt-16 pb-4 px-4 text-center relative group cursor-pointer"
                             data-category="{{ $category->slug }}" data-name="{{ $menu->name }}"
                             data-price="{{ $menu->price }}"
                             data-image="{{ $menu->image_path ? asset($menu->image_path) : '' }}"
-                            data-label="{{ $labelData }}">
+                            data-label="{{ $menu->labels ?? '' }}">
                             <img src="{{ $menu->image_path ? asset($menu->image_path) : 'https://via.placeholder.com/400' }}"
                                 alt="{{ $menu->name }}"
                                 class="w-48 h-48 rounded-full mx-auto -mt-36 object-cover group-hover:scale-105 transition-transform">
@@ -129,10 +121,12 @@
                                 <div class="flex gap-1 flex-wrap flex-1">
                                     @if($menu->labels)
                                         @php
-                                            // Handle labels as array (cast in model)
-                                            $labelArray = is_array($menu->labels) ? $menu->labels : (is_string($menu->labels) ? json_decode($menu->labels, true) : []);
-                                            $labelText = is_array($labelArray) && count($labelArray) > 0 ? $labelArray[0] : '';
-                                            $label = strtolower((string)$labelText);
+                                            // Handle both JSON array and string formats
+                                            $labelText = $menu->labels;
+                                            if (str_starts_with($labelText, '[')) {
+                                                $labelText = json_decode($labelText, true)[0] ?? $labelText;
+                                            }
+                                            $label = strtolower($labelText);
                                             if(strpos($label, 'best seller') !== false || strpos($label, 'rekomendasi') !== false) {
                                                 $bgClass = 'bg-primary/20';
                                                 $textClass = 'text-primary';

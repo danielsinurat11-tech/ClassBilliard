@@ -105,8 +105,8 @@ class ShiftController extends Controller
     public function checkStatus()
     {
         try {
-        $user = Auth::user();
-        
+            $user = Auth::user();
+            
             if (!$user) {
                 return response()->json([
                     'shift_active' => false,
@@ -126,15 +126,15 @@ class ShiftController extends Controller
             }
             
             if (!$user->shift_id) {
-            return response()->json([
-                'shift_active' => false,
-                'message' => 'User tidak memiliki shift yang aktif'
-            ]);
-        }
+                return response()->json([
+                    'shift_active' => false,
+                    'message' => 'User tidak memiliki shift yang aktif'
+                ]);
+            }
 
             // Load shift with relationship
             $shift = Shift::find($user->shift_id);
-        
+            
             if (!$shift) {
                 return response()->json([
                     'shift_active' => false,
@@ -143,11 +143,11 @@ class ShiftController extends Controller
             }
             
             if (!$shift->is_active) {
-            return response()->json([
-                'shift_active' => false,
-                'message' => 'Shift tidak aktif'
-            ]);
-        }
+                return response()->json([
+                    'shift_active' => false,
+                    'message' => 'Shift tidak aktif'
+                ]);
+            }
 
             $now = Carbon::now('Asia/Jakarta');
             
@@ -161,25 +161,25 @@ class ShiftController extends Controller
             // Set to today
             $shiftStart->setDate($now->year, $now->month, $now->day);
             $shiftEnd->setDate($now->year, $now->month, $now->day);
-        
-        // Adjust for shifts that cross midnight
-        if ($shiftEnd->lt($shiftStart)) {
-            if ($now->lt($shiftStart)) {
-                $shiftStart->subDay();
-            } else {
-                $shiftEnd->addDay();
+            
+            // Adjust for shifts that cross midnight
+            if ($shiftEnd->lt($shiftStart)) {
+                if ($now->lt($shiftStart)) {
+                    $shiftStart->subDay();
+                } else {
+                    $shiftEnd->addDay();
+                }
             }
-        }
 
-        $isWithinShiftTime = $now->between($shiftStart, $shiftEnd);
+            $isWithinShiftTime = $now->between($shiftStart, $shiftEnd);
 
-        return response()->json([
-            'shift_active' => $isWithinShiftTime,
-            'shift_name' => $shift->name,
-            'start_time' => $shift->start_time,
-            'end_time' => $shift->end_time,
-            'current_time' => $now->format('H:i:s')
-        ]);
+            return response()->json([
+                'shift_active' => $isWithinShiftTime,
+                'shift_name' => $shift->name,
+                'start_time' => $shift->start_time,
+                'end_time' => $shift->end_time,
+                'current_time' => $now->format('H:i:s')
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'shift_active' => false,

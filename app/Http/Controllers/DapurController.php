@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\orders;
 use App\Models\order_items;
 use App\Models\KitchenReport;
-use App\Models\Menu;
-use App\Models\FoodInventory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -32,8 +30,21 @@ class DapurController extends Controller
         }
         
         $orders = $query->get();
+
+        $todayJakarta = Carbon::now('Asia/Jakarta')->toDateString();
+
+        $totalMenuSold = order_items::query()
+            ->whereHas('order', function ($q) use ($todayJakarta, $user) {
+                $q->where('status', 'completed')
+                    ->whereDate('created_at', $todayJakarta);
+
+                if (!$user->hasRole('super_admin') && $user->shift_id) {
+                    $q->where('shift_id', $user->shift_id);
+                }
+            })
+            ->sum('quantity');
         
-        return view('dapur.dashboard', compact('orders'));
+        return view('dapur.dashboard', compact('orders', 'totalMenuSold'));
     }
 
     /**
@@ -48,7 +59,7 @@ class DapurController extends Controller
         }
         
         // Get active orders
-        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'status', 'created_at', 'updated_at', 'shift_id')
+        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('status', 'processing')
             ->orderBy('created_at', 'desc');
@@ -67,8 +78,6 @@ class DapurController extends Controller
                     'customer_name' => $order->customer_name,
                     'table_number' => $order->table_number,
                     'room' => $order->room,
-                    'total_price' => $order->total_price,
-                    'payment_method' => $order->payment_method,
                     'status' => $order->status,
                     'created_at' => $order->created_at->toIso8601String(),
                     'updated_at' => $order->updated_at->toIso8601String(),
@@ -97,16 +106,29 @@ class DapurController extends Controller
         }
         
         return response()->stream(function () use ($user) {
-            $lastOrderId = 0;
+            // keep script alive while client is connected
+            if (function_exists('ignore_user_abort')) {
+                ignore_user_abort(true);
+            }
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(0);
+            }
+
+            // Initialize lastOrderId to the latest existing order id for the relevant scope
+            $initialQuery = orders::whereIn('status', ['pending', 'processing']);
+            if (!$user->hasRole('super_admin') && $user->shift_id) {
+                $initialQuery->where('shift_id', $user->shift_id);
+            }
+            $lastOrderId = (int) $initialQuery->max('id');
             $checkInterval = 0.5; // Check every 500ms
-            
+
             while (true) {
                 if (connection_aborted()) {
                     break;
                 }
 
                 // Get latest orders
-                $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'status', 'created_at', 'updated_at', 'shift_id')
+                $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'created_at', 'updated_at', 'shift_id')
                     ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                     ->whereIn('status', ['pending', 'processing'])
                     ->where('id', '>', $lastOrderId)
@@ -126,8 +148,6 @@ class DapurController extends Controller
                             'customer_name' => $order->customer_name,
                             'table_number' => $order->table_number,
                             'room' => $order->room,
-                            'total_price' => $order->total_price,
-                            'payment_method' => $order->payment_method,
                             'status' => $order->status,
                             'created_at' => $order->created_at->toIso8601String(),
                             'updated_at' => $order->updated_at->toIso8601String(),
@@ -143,7 +163,9 @@ class DapurController extends Controller
                     });
                     
                     $lastOrderId = $orders->max('id');
-                    
+
+                    // send SSE id so client can track last event
+                    echo "id: {$lastOrderId}\n";
                     echo "data: " . json_encode([
                         'type' => 'new_orders',
                         'orders' => $ordersData
@@ -224,62 +246,6 @@ class DapurController extends Controller
         // Update status
         $order->update(['status' => 'completed']);
 
-        // Reduce inventory stock for each order item
-        try {
-            foreach ($order->orderItems as $orderItem) {
-                // Find menu by name (order_items stores menu_name, not menu_id)
-                $menu = Menu::where('name', $orderItem->menu_name)->first();
-                
-                if ($menu) {
-                    // Get inventory for this menu
-                    $inventory = FoodInventory::where('menu_id', $menu->id)->first();
-                    
-                    if ($inventory) {
-                        // Calculate new quantity
-                        $newQuantity = max(0, $inventory->quantity - $orderItem->quantity);
-                        
-                        // Update inventory
-                        $inventory->update([
-                            'quantity' => $newQuantity,
-                            'last_restocked_at' => now() // Track when stock was last updated
-                        ]);
-                        
-                        // Log if stock goes below reorder level
-                        if ($inventory->isBelowReorderLevel()) {
-                            Log::warning('Inventory below reorder level', [
-                                'menu_id' => $menu->id,
-                                'menu_name' => $menu->name,
-                                'current_quantity' => $newQuantity,
-                                'reorder_level' => $inventory->reorder_level,
-                                'order_id' => $order->id
-                            ]);
-                        }
-                    } else {
-                        // Menu doesn't have inventory tracking - log for admin attention
-                        Log::info('Menu has no inventory tracking', [
-                            'menu_id' => $menu->id,
-                            'menu_name' => $menu->name,
-                            'order_id' => $order->id
-                        ]);
-                    }
-                } else {
-                    // Menu not found - might have been deleted
-                    Log::warning('Menu not found for order item', [
-                        'menu_name' => $orderItem->menu_name,
-                        'order_id' => $order->id
-                    ]);
-                }
-            }
-        } catch (\Exception $e) {
-            Log::error('Error reducing inventory stock', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            // Don't fail the order completion if inventory update fails
-            // Just log the error for admin to fix manually
-        }
-
         // Save to kitchen_reports
         try {
             $existingReport = KitchenReport::where('order_id', $order->id)->first();
@@ -307,7 +273,7 @@ class DapurController extends Controller
                 ]);
             }
         } catch (\Exception $e) {
-            \Log::error('Error saving to kitchen_reports', [
+            Log::error('Error saving to kitchen_reports', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage()
             ]);
@@ -336,4 +302,3 @@ class DapurController extends Controller
         ]);
     }
 }
-

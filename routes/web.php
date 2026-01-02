@@ -43,6 +43,7 @@ Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(fu
     // Notification Sounds Management
     Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
+        Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
     });
@@ -135,9 +136,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
     });
 
     // Notification Sounds Management
-    Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
+    Route::prefix('notification-sounds')->name('notification-sounds.')->middleware('permission:notification.manage')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
         Route::get('/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('active');
+        Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::post('/{id}/set-active', [App\Http\Controllers\NotificationSoundController::class, 'setActive'])->name('set-active');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
@@ -185,30 +187,26 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
         Route::get('/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
         Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
-        Route::patch('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
     });
 
-    // Menu Sales Chart API (Super Admin only)
-    Route::get('/menu-sales-data', [App\Http\Controllers\AdminController::class, 'getMenuSalesData'])->name('menu-sales-data');
+    // Menu Sales Chart API (Check report.view permission)
+    Route::get('/menu-sales-data', [App\Http\Controllers\AdminController::class, 'getMenuSalesData'])->name('menu-sales-data')->middleware('permission:report.view');
     
-    // Sales Analytics Page (Super Admin only)
-    Route::get('/sales-analytics', [App\Http\Controllers\AdminController::class, 'salesAnalytics'])->name('sales-analytics');
+    // Sales Analytics Page (Check report.view permission)
+    Route::get('/sales-analytics', [App\Http\Controllers\AdminController::class, 'salesAnalytics'])->name('sales-analytics')->middleware('permission:report.view');
 
     // Permission Management (super_admin only)
-    Route::prefix('permissions')->name('permissions.')->group(function () {
+    Route::prefix('permissions')->name('permissions.')->middleware('permission:role.assign')->group(function () {
         Route::get('/select-user', [App\Http\Controllers\PermissionController::class, 'selectUser'])->name('select-user');
         Route::get('/{userId}/manage', [App\Http\Controllers\PermissionController::class, 'managePermissions'])->name('manage');
         Route::post('/{userId}/update', [App\Http\Controllers\PermissionController::class, 'updatePermissions'])->name('update');
         Route::post('/{userId}/toggle', [App\Http\Controllers\PermissionController::class, 'togglePermission'])->name('toggle');
     });
 
-    // Inventory Management (Stok Makanan)
-    Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->except(['show'])->names([
-        'index'   => 'inventory.index',
-        'store'   => 'inventory.store',
-        'update'  => 'inventory.update',
-        'destroy' => 'inventory.destroy',
-    ]);
-    Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
+    // Food Inventory Management (super_admin only)
+    Route::middleware('permission:inventory.view')->group(function () {
+        Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->except(['show']);
+        Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
+    });
 });

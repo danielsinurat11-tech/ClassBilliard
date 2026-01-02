@@ -11,8 +11,8 @@ class RoleAndPermissionSeeder extends Seeder
     /**
      * Role-Based Access Control (RBAC) Seeder
      * 
-     * Defines 47 permissions across 8 domains and assigns them to 3 roles:
-     * - super_admin: Full system access (47 permissions)
+     * Defines 50 permissions across 11 domains and assigns them to 3 roles:
+     * - super_admin: Full system access (50 permissions)
      * - admin: CMS, menus, categories, reports (22 permissions)
      * - kitchen: Kitchen operations only (12 permissions)
      * 
@@ -26,6 +26,8 @@ class RoleAndPermissionSeeder extends Seeder
      * 7. REPORT (5) - Sales, hourly, email reports
      * 8. USER (4) - User management
      * 9. ROLE (2) - Role and permission management
+     * 10. INVENTORY (3) - Food inventory management
+     * 11. NOTIFICATION (2) - Notification sounds management
      */
     public function run(): void
     {
@@ -48,6 +50,8 @@ class RoleAndPermissionSeeder extends Seeder
         $this->createReportPermissions();
         $this->createUserPermissions();
         $this->createRolePermissions();
+        $this->createInventoryPermissions();
+        $this->createNotificationPermissions();
 
         // ================================================================
         // STEP 2: CREATE 3 ROLES
@@ -264,6 +268,43 @@ class RoleAndPermissionSeeder extends Seeder
     }
 
     /**
+     * Create INVENTORY permissions (3)
+     * Controls: Food inventory management (super_admin only)
+     */
+    private function createInventoryPermissions(): void
+    {
+        $permissions = [
+            'inventory.view',   // View inventory
+            'inventory.update', // Update inventory quantity/reorder level
+            'inventory.delete', // Delete inventory item
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
+
+        $this->command->line('✅ 3 INVENTORY permissions created');
+    }
+
+    /**
+     * Create NOTIFICATION permissions (2)
+     * Controls: Notification sounds management
+     */
+    private function createNotificationPermissions(): void
+    {
+        $permissions = [
+            'notification.view',   // View notification sounds
+            'notification.manage', // Manage notification sounds
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+        }
+
+        $this->command->line('✅ 2 NOTIFICATION permissions created');
+    }
+
+    /**
      * Assign all permissions to super_admin role (47 permissions)
      * Super admin has complete access to all system features
      */
@@ -337,7 +378,7 @@ class RoleAndPermissionSeeder extends Seeder
         $this->command->info('═══════════════════════════════════════════════════════');
         $this->command->line('');
 
-        $this->command->line('📊 TOTAL PERMISSIONS: 47');
+        $this->command->line('📊 TOTAL PERMISSIONS: 50');
         $this->command->line('');
 
         $this->command->info('🔓 ROLE SUMMARY:');

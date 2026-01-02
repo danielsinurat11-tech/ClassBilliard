@@ -100,7 +100,7 @@ class UserController extends Controller
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->shift_id = $validated['shift_id'] ?? null;
-
+        
         // Update role using Spatie and also update column for backward compatibility
         $user->syncRoles([$validated['role']]);
         $user->role = $validated['role']; // Update column as well

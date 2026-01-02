@@ -91,7 +91,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-xs font-medium text-slate-700 dark:text-gray-300">
-                                    {{ $inventory->menu->categoryMenu->name ?? '-' }}
+                                    {{ $inventory->menu->category->name ?? '-' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-center">
@@ -210,7 +210,7 @@
                         <option value="">-- Pilih Menu --</option>
                         @foreach($menus as $menu)
                             @if(!$menu->inventory)
-                                <option value="{{ $menu->id }}">{{ $menu->name }} - {{ $menu->categoryMenu->name ?? '-' }}</option>
+                                <option value="{{ $menu->id }}">{{ $menu->name }} - {{ $menu->category->name ?? '-' }}</option>
                             @endif
                         @endforeach
                     </select>
@@ -342,11 +342,7 @@
             document.getElementById('editMenuName').value = menuName;
             document.getElementById('editQuantity').value = quantity;
             document.getElementById('editReorderLevel').value = reorderLevel;
-<<<<<<< HEAD
-            document.getElementById('editForm').action = '/admin/inventory/' + inventoryId;
-=======
             document.getElementById('editForm').action = `/admin/inventory/${inventoryId}`;
->>>>>>> 34c7370d85aa98bb32f537605c5b64f8d6301212
             
             document.getElementById('editModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';

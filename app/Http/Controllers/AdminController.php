@@ -41,27 +41,20 @@ class AdminController extends Controller
     }
 
     /**
-     * Sales Analytics page (Super Admin only)
+     * Sales Analytics page (Check report.view permission)
      */
     public function salesAnalytics()
     {
-        // Only super admin can access
-        if (!auth()->user()->hasRole('super_admin') && auth()->user()->role !== 'super_admin') {
-            abort(403, 'Unauthorized');
-        }
-        
+        // Permission check sudah dilakukan di middleware, tidak perlu hardcode role check
         return view('admin.sales-analytics');
     }
 
     /**
-     * Get menu sales data by category for chart (Super Admin only)
+     * Get menu sales data by category for chart (Check report.view permission)
      */
     public function getMenuSalesData(Request $request)
     {
-        // Only super admin can access this
-        if (!auth()->user()->hasRole('super_admin') && auth()->user()->role !== 'super_admin') {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+        // Permission check sudah dilakukan di middleware, tidak perlu hardcode role check
 
         // Get date range from request (default: all time)
         $startDate = $request->input('start_date');
