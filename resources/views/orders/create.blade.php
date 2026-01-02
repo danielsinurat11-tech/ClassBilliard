@@ -25,21 +25,26 @@
             background-color: var(--color-bg-dark);
             color: white;
             font-family: var(--font-barlow);
+            overflow-x: hidden;
         }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #393c49; border-radius: 10px; }
+        
+        * {
+            box-sizing: border-box;
+        }
     </style>
 </head>
 
 <body class="antialiased">
 
-    <div class="flex h-screen w-full overflow-hidden">
+    <div class="flex h-screen w-screen overflow-hidden">
 
         <!-- MAIN CONTENT -->
-        <main class="flex-1 overflow-y-auto overflow-x-auto transition-all duration-300"
-            style="width: calc(100% - 0px); padding-top: 8rem;" id="mainContent">
+        <main class="flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300"
+            style="width: calc(100% - 0px); padding-top: 8rem; box-sizing: border-box;" id="mainContent">
             <!-- Header -->
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-0 px-4 md:px-8 fixed top-0 left-0 right-0 bg-bg-dark z-30 py-4"
                 style="width: calc(100% - 0px); transition: width 0.3s ease;">
@@ -79,7 +84,7 @@
 
             <!-- Grid of Dishes (Fixed card size, responsive grid) -->
             <div class="px-8 pb-20">
-                <div class="grid gap-x-6 gap-y-12" id="menuGrid" style="grid-template-columns: repeat(5, 240px);">
+                <div class="grid gap-x-6 gap-y-12 w-full" id="menuGrid" style="grid-template-columns: repeat(auto-fit, 240px); justify-content: flex-start; box-sizing: border-box;">
                     @php
                         $allMenus = collect();
                         foreach ($categories as $category) {
@@ -531,20 +536,21 @@
             const footerBar = document.getElementById('footerBar');
 
             if (orderPanelOpen) {
-                // Open sidebar - push ALL content left, shrink footer
+                // Open sidebar - push content left, footer moves left too
                 orderPanel.style.width = '420px';
-                main.style.width = 'calc(100% - 420px)';
-                header.style.width = 'calc(100% - 420px)';
-                footerBar.style.width = 'calc(100% - 500px)'; // Narrower when sidebar open
-                footerBar.style.left = 'calc(50% - 210px)'; // Shift left accounting for sidebar
+                main.style.maxWidth = 'calc(100vw - 420px)';
+                header.style.maxWidth = 'calc(100vw - 420px)';
+                // Footer: move to center of available space (100vw - 420px) / 2 = 50vw - 210px
+                footerBar.style.left = 'calc(50vw - 210px)';
+                footerBar.style.width = '700px';
                 document.body.style.overflowY = 'hidden';
             } else {
-                // Close sidebar - return everything to full width
+                // Close sidebar - reset everything
                 orderPanel.style.width = '0';
-                main.style.width = '100%';
-                header.style.width = '100%';
-                footerBar.style.width = '800px'; // Return to original width
-                footerBar.style.left = '50%'; // Center again
+                main.style.maxWidth = '100%';
+                header.style.maxWidth = '100%';
+                footerBar.style.left = '50%';
+                footerBar.style.width = '800px';
                 document.body.style.overflowY = 'auto';
             }
         }
@@ -572,10 +578,10 @@
                     const main = document.querySelector('main');
                     const header = document.querySelector('header');
                     orderPanel.style.width = '0';
-                    main.style.width = '100%';
-                    header.style.width = '100%';
-                    footerBar.style.width = '800px'; // Reset footer width
-                    footerBar.style.left = '50%'; // Center footer
+                    main.style.maxWidth = '100%';
+                    header.style.maxWidth = '100%';
+                    footerBar.style.left = '50%';
+                    footerBar.style.width = '800px';
                     orderPanelOpen = false;
                     document.body.style.overflowY = 'auto';
                 }

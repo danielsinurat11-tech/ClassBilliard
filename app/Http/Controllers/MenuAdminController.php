@@ -25,7 +25,6 @@ class MenuAdminController extends Controller
         // Eager load category to prevent N+1 queries
         $menus = Menu::select('id', 'category_menu_id', 'name', 'slug', 'price', 'image_path', 'labels', 'short_description', 'created_at')
             ->with('categoryMenu:id,name')
-            ->latest()
             ->paginate(12);
 
         // Get categories for filtering (optional enhancement)

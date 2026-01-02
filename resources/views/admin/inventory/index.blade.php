@@ -342,7 +342,11 @@
             document.getElementById('editMenuName').value = menuName;
             document.getElementById('editQuantity').value = quantity;
             document.getElementById('editReorderLevel').value = reorderLevel;
+<<<<<<< HEAD
             document.getElementById('editForm').action = '/admin/inventory/' + inventoryId;
+=======
+            document.getElementById('editForm').action = `/admin/inventory/${inventoryId}`;
+>>>>>>> 34c7370d85aa98bb32f537605c5b64f8d6301212
             
             document.getElementById('editModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
