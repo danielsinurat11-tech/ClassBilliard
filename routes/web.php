@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryAdminController;
 use App\Http\Controllers\MenuAdminController;
+use App\Http\Controllers\MenuDetailController;
 use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,7 @@ Route::post('/testimonial/submit', [HomeController::class, 'submitTestimonial'])
 
 // Menu Browse Route (for guests - display only)
 Route::get('/menu', [App\Http\Controllers\MenuController::class, 'index'])->name('menu.index');
+Route::get('/menu/{slug}', [App\Http\Controllers\MenuDetailController::class, 'show'])->name('menu.detail');
 
 // Logout Route (accessible without shift time check)
 Route::post('/logout', [LogoutController::class, 'logout'])->name('logout')->middleware('auth.custom');

@@ -55,25 +55,36 @@
 
         <!-- Right: Menu Links (Desktop) -->
         <div class="hidden md:flex space-x-12 items-center">
-            <a href="{{ route('home') }}" class="text-gold-400 text-sm font-bold tracking-widest relative group">
+            <a href="{{ route('home') }}" style="{{ Route::currentRouteName() === 'home' ? 'color: #FFD700' : '' }}" class="text-sm font-bold tracking-widest relative group {{ Route::currentRouteName() === 'home' ? '' : 'text-gray-400 hover:text-white' }} transition duration-300">
                 HOME
-                <span
-                    class="absolute -bottom-2 left-1/2 w-1 h-1 bg-gold-400 rounded-full transform -translate-x-1/2"></span>
+                @if(Route::currentRouteName() === 'home')
+                    <span class="absolute -bottom-2 left-1/2 w-1 h-1 rounded-full transform -translate-x-1/2" style="background-color: #FFD700;"></span>
+                @endif
             </a>
-            <a href="{{ route('menu.index') }}"
-                class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">MENU</a>
+            <a href="{{ route('menu.index') }}" style="{{ Route::currentRouteName() === 'menu.index' ? 'color: #FFD700' : '' }}" class="text-sm font-bold tracking-widest relative group {{ Route::currentRouteName() === 'menu.index' ? '' : 'text-gray-400 hover:text-white' }} transition duration-300">
+                MENU
+                @if(Route::currentRouteName() === 'menu.index')
+                    <span class="absolute -bottom-2 left-1/2 w-1 h-1 rounded-full transform -translate-x-1/2" style="background-color: #FFD700;"></span>
+                @endif
+            </a>
             <a href="#reservation"
                 class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">RESERVATION</a>
 
             <a href="#contact"
-                class="px-6 py-2 border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-black text-sm font-bold tracking-widest transition duration-300 rounded-sm">
+                class="px-6 py-2 text-sm font-bold tracking-widest transition duration-300 rounded-sm hover:text-black"
+                style="border: 1px solid rgba(255, 215, 0, 0.3); color: #FFD700;" 
+                onmouseenter="this.style.backgroundColor='#FFD700'; this.style.color='black';"
+                onmouseleave="this.style.backgroundColor='transparent'; this.style.color='#FFD700';">
                 CONTACT US
             </a>
 
             @auth
                 @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'kitchen']))
                     <a href="{{ route('admin.dashboard') }}"
-                        class="px-6 py-2 border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-black text-sm font-bold tracking-widest transition duration-300 rounded-sm">
+                        class="px-6 py-2 text-sm font-bold tracking-widest transition duration-300 rounded-sm hover:text-black"
+                        style="border: 1px solid rgba(255, 215, 0, 0.3); color: #FFD700;"
+                        onmouseenter="this.style.backgroundColor='#FFD700'; this.style.color='black';"
+                        onmouseleave="this.style.backgroundColor='transparent'; this.style.color='#FFD700';">
                         DASHBOARD
                     </a>
                 @endif
@@ -100,19 +111,27 @@
         <div class="px-6 pt-4 pb-8 space-y-2" @click.stop>
             <!-- Home Link -->
             <a href="{{ route('home') }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
-                class="block px-6 py-4 text-gold-400 font-bold tracking-[0.15em] text-base rounded-lg transition duration-400 hover:bg-gradient-to-r hover:from-gold-400/20 hover:to-transparent hover:pl-8 hover:shadow-lg hover:shadow-gold-400/30">
+                class="block px-6 py-4 font-bold tracking-[0.15em] text-base rounded-lg transition duration-400 hover:pl-8 hover:shadow-lg"
+                style="{{ Route::currentRouteName() === 'home' ? 'color: #FFD700; background: linear-gradient(to right, rgba(255,215,0,0.2) 0%, transparent 100%);' : 'color: #d1d5db;' }}"
+                onmouseenter="if(this.style.color !== '#FFD700') { this.style.color = '#FFD700'; this.style.background = 'linear-gradient(to right, rgba(255,215,0,0.15) 0%, transparent 100%)'; }"
+                onmouseleave="if('{{ Route::currentRouteName() }}' !== 'home') { this.style.color = '#d1d5db'; this.style.background = 'transparent'; }">
                 HOME
             </a>
 
             <!-- Menu Link -->
             <a href="{{ route('menu.index') }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
-                class="block px-6 py-4 text-gray-200 font-semibold tracking-[0.1em] text-base rounded-lg transition duration-400 hover:bg-gradient-to-r hover:from-gold-400/15 hover:to-transparent hover:text-gold-400 hover:pl-8 hover:shadow-lg hover:shadow-gold-400/20">
+                class="block px-6 py-4 font-semibold tracking-[0.1em] text-base rounded-lg transition duration-400 hover:pl-8 hover:shadow-lg"
+                style="{{ Route::currentRouteName() === 'menu.index' ? 'color: #FFD700; background: linear-gradient(to right, rgba(255,215,0,0.2) 0%, transparent 100%);' : 'color: #d1d5db;' }}"
+                onmouseenter="if(this.style.color !== '#FFD700') { this.style.color = '#FFD700'; this.style.background = 'linear-gradient(to right, rgba(255,215,0,0.15) 0%, transparent 100%)'; }"
+                onmouseleave="if('{{ Route::currentRouteName() }}' !== 'menu.index') { this.style.color = '#d1d5db'; this.style.background = 'transparent'; }">
                 MENU
             </a>
 
             <!-- Reservation Link -->
             <a href="#reservation" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
-                class="block px-6 py-4 text-gray-200 font-semibold tracking-[0.1em] text-base rounded-lg transition duration-400 hover:bg-gradient-to-r hover:from-gold-400/15 hover:to-transparent hover:text-gold-400 hover:pl-8 hover:shadow-lg hover:shadow-gold-400/20">
+                class="block px-6 py-4 font-semibold tracking-[0.1em] text-base rounded-lg transition duration-400 hover:pl-8 hover:shadow-lg text-gray-200"
+                onmouseenter="this.style.color = '#FFD700'; this.style.background = 'linear-gradient(to right, rgba(255,215,0,0.15) 0%, transparent 100%)';"
+                onmouseleave="this.style.color = '#d1d5db'; this.style.background = 'transparent';">
                 RESERVATION
             </a>
 
