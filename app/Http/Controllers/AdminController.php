@@ -694,7 +694,57 @@ class AdminController extends Controller
     public function contactUpdate(Request $request)
     {
         $this->authorizeAdminOnly();
+
+        // Basic validation (don't block save for other fields)
+        $validated = $request->validate([
+            'title' => ['nullable','string','max:255'],
+            'subtitle' => ['nullable','string'],
+            'description' => ['nullable','string'],
+            'location_name' => ['nullable','string','max:255'],
+            'address' => ['nullable','string'],
+            'phone' => ['nullable','string','max:50'],
+            'email' => ['nullable','email','max:255'],
+            'whatsapp' => ['nullable','string','max:255'],
+            'google_maps_url' => ['nullable','string'],
+            'map_url' => ['nullable','string'],
+            'opening_hours' => ['nullable','string','max:255'],
+            'facebook_url' => ['nullable','string','max:255'],
+            'instagram_url' => ['nullable','string','max:255'],
+            'twitter_url' => ['nullable','string','max:255'],
+            'youtube_url' => ['nullable','string','max:255'],
+        ]);
+
         $contact = Contact::firstOrNew();
+
+        // Normalize WhatsApp input to a canonical URL if provided
+        $whatsappInput = $request->input('whatsapp');
+        $whatsappUrl = null;
+        if ($whatsappInput && trim($whatsappInput) !== '') {
+            $wp = trim($whatsappInput);
+
+            // If a URL is provided, normalize scheme to https
+            if (preg_match('#^https?://#i', $wp)) {
+                $whatsappUrl = preg_replace('#^http://#i', 'https://', $wp);
+            } else {
+                // Strip non-digit characters
+                $digits = preg_replace('/\D+/', '', $wp);
+                // If starts with 0, assume Indonesian number and replace leading 0 with 62
+                if (preg_match('/^0/', $digits)) {
+                    $digits = preg_replace('/^0+/', '', $digits);
+                    $digits = '62' . $digits;
+                }
+                // If starts with country code like +62 or 62 already, ensure no leading +
+                if (preg_match('/^\+/', $wp)) {
+                    $digits = ltrim($digits, '+');
+                }
+
+                if ($digits !== '') {
+                    $whatsappUrl = 'https://wa.me/' . $digits;
+                }
+            }
+        }
+
+        // Fill other fields
         $contact->fill($request->only([
             'title',
             'subtitle',
@@ -703,7 +753,6 @@ class AdminController extends Controller
             'address',
             'phone',
             'email',
-            'whatsapp',
             'google_maps_url',
             'map_url',
             'opening_hours',
@@ -712,6 +761,17 @@ class AdminController extends Controller
             'twitter_url',
             'youtube_url'
         ]));
+
+        // Apply whatsapp normalized value (if any)
+        if ($whatsappUrl !== null) {
+            $contact->whatsapp = $whatsappUrl;
+        } else {
+            // If input blank, clear value
+            if ($request->has('whatsapp') && ($request->input('whatsapp') === null || trim($request->input('whatsapp')) === '')) {
+                $contact->whatsapp = null;
+            }
+        }
+
         $contact->is_active = $request->has('is_active');
         $contact->save();
 
