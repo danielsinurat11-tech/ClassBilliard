@@ -55,12 +55,12 @@
 
         <!-- Right: Menu Links (Desktop) -->
         <div class="hidden md:flex space-x-12 items-center">
-            <a href="#" class="text-gold-400 text-sm font-bold tracking-widest relative group">
+            <a href="{{ route('home') }}" class="text-gold-400 text-sm font-bold tracking-widest relative group">
                 HOME
                 <span
                     class="absolute -bottom-2 left-1/2 w-1 h-1 bg-gold-400 rounded-full transform -translate-x-1/2"></span>
             </a>
-            <a href="#menu"
+            <a href="{{ route('menu.index') }}"
                 class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">MENU</a>
             <a href="#reservation"
                 class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">RESERVATION</a>
@@ -99,13 +99,13 @@
         <!-- Menu Container with luxury styling -->
         <div class="px-6 pt-4 pb-8 space-y-2" @click.stop>
             <!-- Home Link -->
-            <a href="#" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
+            <a href="{{ route('home') }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
                 class="block px-6 py-4 text-gold-400 font-bold tracking-[0.15em] text-base rounded-lg transition duration-400 hover:bg-gradient-to-r hover:from-gold-400/20 hover:to-transparent hover:pl-8 hover:shadow-lg hover:shadow-gold-400/30">
                 HOME
             </a>
 
             <!-- Menu Link -->
-            <a href="#menu" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
+            <a href="{{ route('menu.index') }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
                 class="block px-6 py-4 text-gray-200 font-semibold tracking-[0.1em] text-base rounded-lg transition duration-400 hover:bg-gradient-to-r hover:from-gold-400/15 hover:to-transparent hover:text-gold-400 hover:pl-8 hover:shadow-lg hover:shadow-gold-400/20">
                 MENU
             </a>
