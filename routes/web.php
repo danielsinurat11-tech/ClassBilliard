@@ -201,4 +201,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::post('/{userId}/update', [App\Http\Controllers\PermissionController::class, 'updatePermissions'])->name('update');
         Route::post('/{userId}/toggle', [App\Http\Controllers\PermissionController::class, 'togglePermission'])->name('toggle');
     });
+
+    // Food Inventory Management (super_admin only)
+    Route::middleware('role:super_admin')->group(function () {
+        Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->names([
+            'index'   => 'inventory.index',
+            'store'   => 'inventory.store',
+            'update'  => 'inventory.update',
+            'destroy' => 'inventory.destroy',
+        ]);
+        Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
+    });
 });
