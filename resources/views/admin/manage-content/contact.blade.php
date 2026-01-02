@@ -57,116 +57,17 @@
                               @blur="$el.style.borderColor = ''"
                               placeholder="Deskripsi singkat tentang bagaimana pelanggan dapat menghubungi Anda...">{{ $contact->description ?? '' }}</textarea>
                 </div>
-            </div>
-        </div>
-
-        <!-- SECTION 2: CONTACT INFORMATION -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-4">
-                <h2 class="text-sm font-black uppercase tracking-[0.2em]" style="color: var(--primary-color);">Contact Information</h2>
-                <p class="text-xs text-slate-500 dark:text-gray-500 mt-2 leading-relaxed">Informasi kontak utama yang akan ditampilkan di halaman Contact Us.</p>
-            </div>
-            <div class="lg:col-span-8 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 space-y-6">
                 <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Location Name</label>
-                    <input type="text" name="location_name" value="{{ $contact->location_name ?? '' }}" 
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">WhatsApp Link</label>
+                    <input type="text" name="whatsapp" value="{{ $contact->whatsapp ?? '' }}" 
                            class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                           placeholder="e.g. Class Billiard Main Hall">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Business Address</label>
-                    <textarea name="address" rows="3" 
-                              class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all leading-relaxed" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                              placeholder="Alamat lengkap bisnis...">{{ $contact->address ?? '' }}</textarea>
-                </div>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500"><i class="ri-phone-line mr-1"></i> Phone Number</label>
-                        <input type="text" name="phone" value="{{ $contact->phone ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                               placeholder="e.g. +62 812 3456 7890">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500"><i class="ri-mail-line mr-1"></i> Email Address</label>
-                        <input type="email" name="email" value="{{ $contact->email ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                               placeholder="e.g. info@classbilliard.com">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500"><i class="ri-whatsapp-line mr-1"></i> WhatsApp URL</label>
-                        <input type="url" name="whatsapp" value="{{ $contact->whatsapp ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                               placeholder="https://wa.me/6281234567890">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500"><i class="ri-time-line mr-1"></i> Opening Hours</label>
-                        <input type="text" name="opening_hours" value="{{ $contact->opening_hours ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                               placeholder="e.g. Mon - Sun: 10AM - 02AM">
-                    </div>
+                           placeholder="https://wa.me/6281234567890 or https://api.whatsapp.com/send?phone=6281234567890">
+                    <p class="text-xs text-slate-400 mt-1">Masukkan link WhatsApp (contoh: <code>https://wa.me/6281234567890</code>) agar pengunjung bisa langsung menghubungi lewat WA.</p>
                 </div>
             </div>
         </div>
 
-        <!-- SECTION 3: MAP INTEGRATION -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-4">
-                <h2 class="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">Map Location</h2>
-                <p class="text-xs text-slate-500 dark:text-gray-500 mt-2 leading-relaxed">Integrasikan Google Maps untuk menampilkan lokasi bisnis di halaman Contact Us.</p>
-            </div>
-            <div class="lg:col-span-8 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8 space-y-6">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Google Maps Embed URL</label>
-                    <p class="text-[9px] text-slate-500 dark:text-gray-600 mb-2">
-                        <strong>Cara:</strong><br>
-                        1. Buka Google Maps → cari lokasi<br>
-                        2. Click "Share" → "Embed a map"<br>
-                        3. Copy seluruh iframe code (atau hanya URL)<br>
-                        4. Paste di field bawah ini
-                    </p>
-                    <textarea name="google_maps_url" rows="4"
-                           class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all font-mono" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''" placeholder="Paste full iframe HTML atau embed URL">{{ $contact->google_maps_url ?? '' }}</textarea>
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">Map URL (Alternative)</label>
-                    <input type="url" name="map_url" value="{{ $contact->map_url ?? '' }}" 
-                           class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''"
-                           placeholder="https://maps.app.goo.gl/...">
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 4: SOCIAL MEDIA -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-4">
-                <h2 class="text-sm font-black uppercase tracking-[0.2em]" style="color: var(--primary-color);">Social Media</h2>
-                <p class="text-xs text-slate-500 dark:text-gray-500 mt-2 leading-relaxed">Tautkan akun media sosial untuk meningkatkan engagement.</p>
-            </div>
-            <div class="lg:col-span-8 bg-white dark:bg-[#0A0A0A] border border-slate-200 dark:border-white/5 rounded-lg p-8">
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500"><i class="ri-facebook-box-fill mr-1"></i> Facebook URL</label>
-                        <input type="url" name="facebook_url" value="{{ $contact->facebook_url ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500"><i class="ri-instagram-line mr-1"></i> Instagram URL</label>
-                        <input type="url" name="instagram_url" value="{{ $contact->instagram_url ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500"><i class="ri-twitter-x-line mr-1"></i> Twitter / X URL</label>
-                        <input type="url" name="twitter_url" value="{{ $contact->twitter_url ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500"><i class="ri-youtube-line mr-1"></i> YouTube URL</label>
-                        <input type="url" name="youtube_url" value="{{ $contact->youtube_url ?? '' }}" 
-                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-xs text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
         <!-- SECTION 5: VISIBILITY TOGGLE -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
