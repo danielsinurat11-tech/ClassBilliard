@@ -18,9 +18,7 @@ class FoodInventoryController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         
-        $menus = Menu::where('status', 'active')
-            ->orderBy('name')
-            ->get();
+        $menus = Menu::orderBy('name')->get();
 
         return view('admin.inventory.index', compact('inventories', 'menus'));
     }

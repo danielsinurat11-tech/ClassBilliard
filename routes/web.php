@@ -184,7 +184,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
         Route::get('/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
         Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
-        Route::patch('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
     });
 
@@ -204,12 +203,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
 
     // Food Inventory Management (super_admin only)
     Route::middleware('role:super_admin')->group(function () {
-        Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->names([
-            'index'   => 'inventory.index',
-            'store'   => 'inventory.store',
-            'update'  => 'inventory.update',
-            'destroy' => 'inventory.destroy',
-        ]);
+        Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->except(['show']);
         Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
     });
 });
