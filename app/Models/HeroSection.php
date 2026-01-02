@@ -16,6 +16,7 @@ class HeroSection extends Model
         'subtitle',
         'tagline',
         'cta_text_1',
+        'cta_link_1',
         'cta_text_2',
         'is_active',
     ];

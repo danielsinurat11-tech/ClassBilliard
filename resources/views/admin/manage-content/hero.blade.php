@@ -132,6 +132,14 @@
                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
                     </div>
 
+                    <!-- CTA Link 1 (Group WA / Booking) -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">CTA Button 1 Link (Group WA / Booking)</label>
+                        <input type="text" name="cta_link_1" placeholder="e.g. https://wa.me/6281234567890 or 081234567890" value="{{ $hero->cta_link_1 ?? '' }}"
+                               class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-3 text-sm text-slate-900 dark:text-white outline-none transition-all" @focus="$el.style.borderColor = 'var(--primary-color)'" @blur="$el.style.borderColor = ''">
+                        <p class="text-xs text-slate-400 mt-1">Masukkan link grup WhatsApp atau nomor (contoh: <code>081234567890</code>) untuk tombol "{{ $hero->cta_text_1 ?? 'BOOK A TABLE' }}". Sistem akan menormalisasi nomor menjadi <code>https://wa.me/&lt;number&gt;</code> saat disimpan.</p>
+                    </div>
+
                     <!-- CTA Text 2 -->
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-gray-500">CTA Button 2 Text</label>

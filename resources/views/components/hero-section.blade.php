@@ -9,6 +9,8 @@
     $tagline = $hero && $hero->tagline && trim($hero->tagline) !== '' ? trim($hero->tagline) : '';
     $ctaText1 = $hero && $hero->cta_text_1 && trim($hero->cta_text_1) !== '' ? trim($hero->cta_text_1) : '';
     $ctaText2 = $hero && $hero->cta_text_2 && trim($hero->cta_text_2) !== '' ? trim($hero->cta_text_2) : '';
+    $ctaLink1 = $hero && isset($hero->cta_link_1) && $hero->cta_link_1 && trim($hero->cta_link_1) !== '' ? trim($hero->cta_link_1) : null;
+    $ctaLink1IsExternal = $ctaLink1 && preg_match('#^https?://#i', $ctaLink1);
     $isActive = $hero ? $hero->is_active : false;
 @endphp
 
@@ -65,7 +67,8 @@
         @if($ctaText1 || $ctaText2)
         <div class="flex flex-col md:flex-row gap-6" data-aos="fade-up" data-aos-delay="700">
             @if($ctaText1)
-            <a href="#reservation"
+            <a href="{{ $ctaLink1 ? $ctaLink1 : '#reservation' }}"
+                @if($ctaLink1IsExternal) target="_blank" rel="noopener noreferrer" @endif
                 class="group relative px-8 py-4 bg-transparent overflow-hidden rounded-sm transition-all duration-300">
                 <div
                     class="absolute inset-0 w-full h-full bg-gold-400/90 group-hover:bg-gold-500 transition duration-300">

@@ -206,6 +206,11 @@ class AdminController extends Controller
     {
         $this->authorizeAdminOnly();
         $hero = HeroSection::firstOrNew();
+
+        // Validate new CTA link input
+        $request->validate([
+            'cta_link_1' => ['nullable', 'string', 'max:255'],
+        ]);
         
         if ($request->hasFile('logo_image')) {
             if ($hero->logo_image) {
@@ -225,6 +230,28 @@ class AdminController extends Controller
         $hero->subtitle = $request->subtitle ?? 'Precision';
         $hero->tagline = $request->tagline ?? 'Premium Billiard Lounge & Bar';
         $hero->cta_text_1 = $request->cta_text_1 ?? 'BOOK A TABLE';
+        // Normalize CTA link 1 if provided (allow plain numbers -> wa.me)
+        $ctaLinkInput = $request->input('cta_link_1');
+        if ($ctaLinkInput && trim($ctaLinkInput) !== '') {
+            $link = trim($ctaLinkInput);
+            if (preg_match('#^https?://#i', $link)) {
+                $link = preg_replace('#^http://#i', 'https://', $link);
+            } else {
+                $digits = preg_replace('/\D+/', '', $link);
+                if (preg_match('/^0/', $digits)) {
+                    $digits = preg_replace('/^0+/', '', $digits);
+                    $digits = '62' . $digits;
+                }
+                if ($digits !== '') {
+                    $link = 'https://wa.me/' . $digits;
+                }
+            }
+            $hero->cta_link_1 = $link;
+        } else {
+            if ($request->has('cta_link_1') && ($request->input('cta_link_1') === null || trim($request->input('cta_link_1')) === '')) {
+                $hero->cta_link_1 = null;
+            }
+        }
         $hero->cta_text_2 = $request->cta_text_2 ?? 'EXPLORE';
         $hero->is_active = $request->has('is_active');
         $hero->save();

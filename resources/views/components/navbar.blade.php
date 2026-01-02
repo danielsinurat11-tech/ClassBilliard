@@ -64,6 +64,11 @@
                 $navbarLabel = trim($contact->title);
             }
         }
+
+        // Hero CTA1 link (if admin configured a booking/group link)
+        $hero = \App\Models\HeroSection::first();
+        $ctaLink1 = $hero && isset($hero->cta_link_1) && $hero->cta_link_1 && trim($hero->cta_link_1) !== '' ? trim($hero->cta_link_1) : null;
+        $ctaLink1IsExternal = $ctaLink1 && preg_match('#^https?://#i', $ctaLink1);
     @endphp
     <div class="container mx-auto px-6 h-full flex items-center justify-between">
         <!-- Left: Brand/Logo (Small) -->
@@ -87,8 +92,13 @@
                     <span class="absolute -bottom-2 left-1/2 w-1 h-1 rounded-full transform -translate-x-1/2" style="background-color: #FFD700;"></span>
                 @endif
             </a>
-            <a href="#reservation"
-                class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">RESERVATION</a>
+            @if($ctaLink1)
+                <a href="{{ $ctaLink1 }}" @if($ctaLink1IsExternal) target="_blank" rel="noopener noreferrer" @endif
+                    class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">RESERVATION</a>
+            @else
+                <a href="#reservation"
+                    class="text-gray-400 hover:text-white text-sm font-semibold tracking-widest transition duration-300">RESERVATION</a>
+            @endif
 
             @unless(request()->is('admin*') || request()->is('dapur*'))
             <a href="{{ $navbarLink ? $navbarLink : (Route::currentRouteName() === 'home' ? '#contact' : route('home') . '#contact') }}"
@@ -151,12 +161,21 @@
             </a>
 
             <!-- Reservation Link -->
-            <a href="#reservation" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
-                class="block px-6 py-4 font-semibold tracking-[0.1em] text-base rounded-lg transition duration-400 hover:pl-8 hover:shadow-lg text-gray-200"
-                onmouseenter="this.style.color = '#FFD700'; this.style.background = 'linear-gradient(to right, rgba(255,215,0,0.15) 0%, transparent 100%)';"
-                onmouseleave="this.style.color = '#d1d5db'; this.style.background = 'transparent';">
-                RESERVATION
-            </a>
+            @if($ctaLink1)
+                <a href="{{ $ctaLink1 }}" @if($ctaLink1IsExternal) target="_blank" rel="noopener noreferrer" @endif @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
+                    class="block px-6 py-4 font-semibold tracking-[0.1em] text-base rounded-lg transition duration-400 hover:pl-8 hover:shadow-lg text-gray-200"
+                    onmouseenter="this.style.color = '#FFD700'; this.style.background = 'linear-gradient(to right, rgba(255,215,0,0.15) 0%, transparent 100%)';"
+                    onmouseleave="this.style.color = '#d1d5db'; this.style.background = 'transparent';">
+                    RESERVATION
+                </a>
+            @else
+                <a href="#reservation" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
+                    class="block px-6 py-4 font-semibold tracking-[0.1em] text-base rounded-lg transition duration-400 hover:pl-8 hover:shadow-lg text-gray-200"
+                    onmouseenter="this.style.color = '#FFD700'; this.style.background = 'linear-gradient(to right, rgba(255,215,0,0.15) 0%, transparent 100%)';"
+                    onmouseleave="this.style.color = '#d1d5db'; this.style.background = 'transparent';">
+                    RESERVATION
+                </a>
+            @endif
 
             <!-- Divider -->
             <div class="my-4 h-px bg-gradient-to-r from-transparent via-gold-400/50 to-transparent"></div>
