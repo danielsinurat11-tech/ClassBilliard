@@ -24,6 +24,14 @@ class CheckShiftTime
             return $next($request);
         }
 
+        // Allow API routes to pass through FIRST (they handle their own validation)
+        // This must be checked before any shift time validation
+        $path = $request->path();
+        if (str_starts_with($path, 'dapur/orders/') || 
+            str_starts_with($path, 'shift/check')) {
+            return $next($request);
+        }
+
         // If user is super_admin, skip shift time check entirely
         if ($user->hasRole('super_admin')) {
             return $next($request);
@@ -128,6 +136,19 @@ class CheckShiftTime
                 }
             }
 
+            // For API routes, return JSON response instead of redirect
+            if ($request->expectsJson() || $request->is('orders/*') || $request->is('shift/*')) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                
+                return response()->json([
+                    'error' => true,
+                    'message' => "⏛ Anda hanya bisa login saat jam shift aktif. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).",
+                    'redirect' => '/'
+                ], 403);
+            }
+
             // Force logout
             Auth::logout();
             $request->session()->invalidate();
@@ -141,13 +162,13 @@ class CheckShiftTime
 
         // Check if within 30 min before start or 30 min after end for warning
         // Hanya tampilkan warning di halaman dapur/admin, bukan di halaman pelanggan
-        if ($request->routeIs('dapur') || $request->routeIs('reports') || $request->routeIs('pengaturan-audio') || $request->routeIs('tutup-hari') || $request->is('admin*')) {
-        if ($now < $startTime && $now >= $toleranceStart) {
-            $minutesUntil = $startTime->diffInMinutes($now);
-            session()->flash('warning', "⏰ Shift Anda belum dimulai. Mulai dalam {$minutesUntil} menit.");
-        } elseif ($now > $endTime && $now <= $toleranceEnd) {
-            $minutesAfter = $now->diffInMinutes($endTime);
-            session()->flash('warning', "⏰ Shift Anda sudah berakhir {$minutesAfter} menit lalu. Segera selesaikan pekerjaan.");
+        if ($request->routeIs('dapur') || $request->routeIs('reports') || $request->routeIs('pengaturan-audio') || $request->is('admin*')) {
+            if ($now < $startTime && $now >= $toleranceStart) {
+                $minutesUntil = $startTime->diffInMinutes($now);
+                session()->flash('warning', "⏰ Shift Anda belum dimulai. Mulai dalam {$minutesUntil} menit.");
+            } elseif ($now > $endTime && $now <= $toleranceEnd) {
+                $minutesAfter = $now->diffInMinutes($endTime);
+                session()->flash('warning', "⏰ Shift Anda sudah berakhir {$minutesAfter} menit lalu. Segera selesaikan pekerjaan.");
             }
         }
 

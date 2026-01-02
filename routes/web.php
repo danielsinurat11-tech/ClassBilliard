@@ -22,27 +22,28 @@ Route::post('/orders/store', [App\Http\Controllers\OrderController::class, 'stor
 Route::get('/orders/{id}', [App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
 Route::get('/orders/{id}/data', [App\Http\Controllers\OrderController::class, 'getOrderData'])->name('orders.data');
 Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(function () {
-    Route::get('/dapur', [App\Http\Controllers\OrderController::class, 'index'])->name('dapur');
+    // Dashboard Dapur
+    Route::get('/dapur', [App\Http\Controllers\DapurController::class, 'index'])->name('dapur');
+    
+    // API Routes untuk Dapur
+    Route::get('/dapur/orders/active', [App\Http\Controllers\DapurController::class, 'activeOrders'])->name('dapur.orders.active');
+    Route::get('/dapur/orders/stream', [App\Http\Controllers\DapurController::class, 'ordersStream'])->name('dapur.orders.stream');
+    Route::post('/dapur/orders/{id}/start-cooking', [App\Http\Controllers\DapurController::class, 'startCooking'])->name('dapur.orders.start-cooking');
+    Route::post('/dapur/orders/{id}/complete', [App\Http\Controllers\DapurController::class, 'complete'])->name('dapur.orders.complete');
+    
+    // Shift Check
     Route::get('/shift/check', [App\Http\Controllers\ShiftController::class, 'checkStatus'])->name('shift.check');
-    Route::get('/tutup-hari', [App\Http\Controllers\OrderController::class, 'tutupHari'])->name('tutup-hari');
-    Route::get('/tutup-hari/struk', [App\Http\Controllers\OrderController::class, 'generateStrukHarian'])->name('tutup-hari.struk');
-    Route::post('/tutup-hari/kirim-email', [App\Http\Controllers\OrderController::class, 'sendStrukHarianEmail'])->name('tutup-hari.kirim-email');
-    Route::post('/orders/{id}/complete', [App\Http\Controllers\OrderController::class, 'complete'])->name('orders.complete');
-Route::get('/orders/active', [App\Http\Controllers\OrderController::class, 'activeOrders'])->name('orders.active');
-Route::get('/orders/stream', [App\Http\Controllers\OrderController::class, 'ordersStream'])->name('orders.stream');
-Route::get('/reports', [App\Http\Controllers\OrderController::class, 'reports'])->name('reports');
-Route::get('/reports/category-stats', [App\Http\Controllers\OrderController::class, 'getCategoryStats'])->name('reports.category-stats');
-Route::get('/reports/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('reports.export');
-    Route::post('/reports/send-email', [App\Http\Controllers\OrderController::class, 'sendReportEmail'])->name('reports.send-email');
-    Route::get('/test-email', [App\Http\Controllers\OrderController::class, 'testEmail'])->name('test.email');
+    
+    // Pengaturan Audio
     Route::get('/pengaturan-audio', function () {
         return view('dapur.pengaturan-audio');
     })->name('pengaturan-audio');
     Route::get('/notification-sounds/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('notification-sounds.active');
     
-    // Notification Sounds Management untuk Kitchen
+    // Notification Sounds Management
     Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
+        Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
     });
@@ -135,6 +136,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
     Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
         Route::get('/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('active');
+        Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::post('/{id}/set-active', [App\Http\Controllers\NotificationSoundController::class, 'setActive'])->name('set-active');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
@@ -182,9 +184,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
         Route::get('/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
         Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
-        Route::patch('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
     });
+
+    // Menu Sales Chart API (Super Admin only)
+    Route::get('/menu-sales-data', [App\Http\Controllers\AdminController::class, 'getMenuSalesData'])->name('menu-sales-data');
+    
+    // Sales Analytics Page (Super Admin only)
+    Route::get('/sales-analytics', [App\Http\Controllers\AdminController::class, 'salesAnalytics'])->name('sales-analytics');
 
     // Permission Management (super_admin only)
     Route::prefix('permissions')->name('permissions.')->group(function () {
@@ -192,5 +199,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::get('/{userId}/manage', [App\Http\Controllers\PermissionController::class, 'managePermissions'])->name('manage');
         Route::post('/{userId}/update', [App\Http\Controllers\PermissionController::class, 'updatePermissions'])->name('update');
         Route::post('/{userId}/toggle', [App\Http\Controllers\PermissionController::class, 'togglePermission'])->name('toggle');
+    });
+
+    // Food Inventory Management (super_admin only)
+    Route::middleware('role:super_admin')->group(function () {
+        Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->except(['show']);
+        Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
     });
 });

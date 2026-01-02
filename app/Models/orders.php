@@ -20,7 +20,8 @@ class orders extends Model
         'total_price',
         'payment_method',
         'status',
-        'shift_id'
+        'shift_id',
+        'idempotency_key'
     ];
 
     public function orderItems()

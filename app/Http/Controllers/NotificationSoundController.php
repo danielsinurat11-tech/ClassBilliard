@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\NotificationSound;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class NotificationSoundController extends Controller
 {
@@ -34,7 +36,7 @@ class NotificationSoundController extends Controller
             if ($sound) {
                 $filePath = $sound->file_path;
                 if (str_starts_with($filePath, 'sounds/')) {
-                    $url = asset('storage/' . $filePath);
+                    $url = url("/notification-sounds/{$sound->id}/file");
                 } else {
                     $url = asset('assets/sounds/' . $sound->filename);
                 }
@@ -57,7 +59,7 @@ class NotificationSoundController extends Controller
         if ($sound) {
             $filePath = $sound->file_path;
             if (str_starts_with($filePath, 'sounds/')) {
-                $url = asset('storage/' . $filePath);
+                $url = url("/notification-sounds/{$sound->id}/file");
             } else {
                 $url = asset('assets/sounds/' . $sound->filename);
             }
@@ -124,14 +126,34 @@ class NotificationSoundController extends Controller
 
         try {
             $file = $request->file('audio');
-            $filename = time() . '_' . $file->getClientOriginalName();
+            $extension = strtolower($file->getClientOriginalExtension() ?: 'mp3');
+            $filename = time() . '_' . Str::uuid()->toString() . '.' . $extension;
             $path = $file->storeAs('sounds', $filename, 'public');
 
-            $sound = NotificationSound::create([
-                'name' => $request->name,
-                'filename' => $filename,
-                'file_path' => $path
-            ]);
+            $sound = DB::transaction(function () use ($request, $path, $filename) {
+                $existing = NotificationSound::where('name', $request->name)->lockForUpdate()->first();
+
+                if ($existing) {
+                    $oldPath = $existing->file_path;
+
+                    $existing->update([
+                        'filename' => $filename,
+                        'file_path' => $path,
+                    ]);
+
+                    if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+
+                    return $existing->fresh();
+                }
+
+                return NotificationSound::create([
+                    'name' => $request->name,
+                    'filename' => $filename,
+                    'file_path' => $path,
+                ]);
+            });
 
             return response()->json([
                 'success' => true,
@@ -144,6 +166,30 @@ class NotificationSoundController extends Controller
                 'message' => 'Gagal upload audio: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function file($id)
+    {
+        $sound = NotificationSound::find($id);
+
+        if (!$sound) {
+            abort(404);
+        }
+
+        if (!str_starts_with($sound->file_path, 'sounds/')) {
+            abort(404);
+        }
+
+        if (!Storage::disk('public')->exists($sound->file_path)) {
+            abort(404);
+        }
+
+        $fullPath = Storage::disk('public')->path($sound->file_path);
+        $mime = Storage::disk('public')->mimeType($sound->file_path) ?: 'application/octet-stream';
+
+        return response()->file($fullPath, [
+            'Content-Type' => $mime,
+        ]);
     }
 
     /**

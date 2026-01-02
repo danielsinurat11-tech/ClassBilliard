@@ -632,10 +632,10 @@
         // Function untuk handle new orders dari SSE
         function handleNewOrders(newOrders) {
             if (!newOrders || newOrders.length === 0) return;
-            
-            const ordersSection = document.getElementById('ordersSection');
-            if (!ordersSection) return;
-            
+                
+                const ordersSection = document.getElementById('ordersSection');
+                if (!ordersSection) return;
+                
             let ordersGrid = ordersSection.querySelector('.grid');
             if (!ordersGrid) {
                 ordersSection.innerHTML = '<div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4"></div>';
@@ -643,10 +643,10 @@
             }
             
             newOrders.forEach(order => {
-                if (!currentOrderIds.has(order.id)) {
-                    // New order detected!
+                        if (!currentOrderIds.has(order.id)) {
+                            // New order detected!
                     currentOrderIds.add(order.id);
-                    showNotification(order);
+                            showNotification(order);
                     
                     // Insert new order at the beginning
                     const newOrderCard = renderOrderCard(order);
@@ -759,10 +759,10 @@
                         
                         currentOrderIds = newOrderIds;
                         updateOrdersDisplay(data.orders);
-                    }
-                } catch (error) {
-                    console.error('Polling error:', error);
                 }
+            } catch (error) {
+                    console.error('Polling error:', error);
+            }
             }, 2000); // Poll every 2 seconds as fallback
         }
 

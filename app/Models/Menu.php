@@ -21,4 +21,16 @@ class Menu extends Model {
     public function categoryMenu(): BelongsTo {
         return $this->belongsTo(CategoryMenu::class, 'category_menu_id');
     }
+
+    public function inventory() {
+        return $this->hasOne(FoodInventory::class, 'menu_id');
+    }
+
+    /**
+     * Check if menu is in stock
+     */
+    public function isInStock(): bool {
+        $inventory = $this->inventory;
+        return $inventory ? $inventory->isInStock() : false;
+    }
 }
