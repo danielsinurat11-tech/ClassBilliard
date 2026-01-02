@@ -342,7 +342,7 @@
             document.getElementById('editMenuName').value = menuName;
             document.getElementById('editQuantity').value = quantity;
             document.getElementById('editReorderLevel').value = reorderLevel;
-            document.getElementById('editForm').action = `{{ route('inventory.update', '') }}/${inventoryId}`;
+            document.getElementById('editForm').action = `/admin/inventory/${inventoryId}`;
             
             document.getElementById('editModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
