@@ -43,7 +43,6 @@ Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(fu
     // Notification Sounds Management
     Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
-        Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
     });
@@ -136,7 +135,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
     Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
         Route::get('/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('active');
-        Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::post('/{id}/set-active', [App\Http\Controllers\NotificationSoundController::class, 'setActive'])->name('set-active');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
@@ -184,6 +182,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::post('/', [App\Http\Controllers\UserController::class, 'store'])->name('store');
         Route::get('/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
         Route::put('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
+        Route::patch('/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
     });
 
@@ -201,9 +200,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::post('/{userId}/toggle', [App\Http\Controllers\PermissionController::class, 'togglePermission'])->name('toggle');
     });
 
-    // Food Inventory Management (super_admin only)
-    Route::middleware('role:super_admin')->group(function () {
-        Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->except(['show']);
-        Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
-    });
+    // Inventory Management (Stok Makanan)
+    Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->except(['show'])->names([
+        'index'   => 'inventory.index',
+        'store'   => 'inventory.store',
+        'update'  => 'inventory.update',
+        'destroy' => 'inventory.destroy',
+    ]);
+    Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
 });

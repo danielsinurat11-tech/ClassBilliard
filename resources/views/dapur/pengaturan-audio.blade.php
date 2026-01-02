@@ -25,12 +25,11 @@
                 newAudioName: '',
                 previewFile: null,
                 currentAudioName: '',
-                isUploading: false,
 
-                async init() {
+                init() {
                     this.audioElement = document.getElementById('testAudioElement');
-                    await this.loadAvailableSounds();
                     this.loadSavedAudioPreference();
+                    this.loadAvailableSounds();
                 },
 
                 async loadAvailableSounds() {
@@ -50,17 +49,20 @@
                     
                     if (savedAudio && savedAudio !== '') {
                         if (audioType === 'database') {
-                            const sound = this.availableSounds.find(s => s.filename === savedAudio);
-                            if (sound) {
-                                this.selectedAudio = savedAudio;
-                                this.currentAudioName = sound.name || '';
-                                this.updateAudioSource();
-                            } else {
-                                this.selectedAudio = '';
-                                this.currentAudioName = '';
-                                localStorage.removeItem('kitchenNotificationAudio');
-                                localStorage.removeItem('kitchenNotificationAudioType');
-                            }
+                            // Will be set after availableSounds loads
+                            setTimeout(() => {
+                                if (this.availableSounds.find(s => s.filename === savedAudio)) {
+                                    this.selectedAudio = savedAudio;
+                                    const sound = this.availableSounds.find(s => s.filename === savedAudio);
+                                    this.currentAudioName = sound ? sound.name : '';
+                                    this.updateAudioSource();
+                                } else {
+                                    this.selectedAudio = '';
+                                    this.currentAudioName = '';
+                                    localStorage.removeItem('kitchenNotificationAudio');
+                                    localStorage.removeItem('kitchenNotificationAudioType');
+                                }
+                            }, 500);
                         } else {
                             // File type - not persistent, clear it
                             this.selectedAudio = '';
@@ -80,7 +82,6 @@
 
                     if (!this.selectedAudio || this.selectedAudio === '') {
                         source.src = '';
-                        source.type = '';
                         this.audioElement.pause();
                         return;
                     }
@@ -88,23 +89,19 @@
                     // Check if selectedAudio is a file object (direct file)
                     if (this.selectedAudio instanceof File) {
                         source.src = URL.createObjectURL(this.selectedAudio);
-                        source.type = this.selectedAudio.type || '';
                     } else {
                         // It's a filename from database
                         const sound = this.availableSounds.find(s => s.filename === this.selectedAudio);
                         if (sound) {
                             // Use storage path if file exists in storage
                             if (sound.file_path.startsWith('sounds/')) {
-                                source.src = '{{ url("/notification-sounds") }}/' + sound.id + '/file';
-                                source.type = '';
+                                source.src = '{{ asset("storage") }}/' + sound.file_path;
                             } else {
                                 source.src = '{{ asset("assets/sounds") }}/' + sound.filename;
-                                source.type = '';
                             }
                         } else {
                             // No sound found, clear source
                             source.src = '';
-                            source.type = '';
                             return;
                         }
                     }
@@ -198,7 +195,6 @@
 
                 async uploadAudioAsNew() {
                     if (!this.previewFile) return;
-                    if (this.isUploading) return;
                     
                     if (!this.newAudioName) {
                         Swal.fire({
@@ -215,7 +211,6 @@
                     formData.append('name', this.newAudioName);
                     formData.append('audio', this.previewFile);
 
-                    this.isUploading = true;
                     try {
                         const response = await fetch('/notification-sounds', {
                             method: 'POST',
@@ -270,8 +265,6 @@
                             background: '#161616',
                             color: '#fff'
                         });
-                    } finally {
-                        this.isUploading = false;
                     }
                 },
 
@@ -514,8 +507,7 @@
                                             <i class="ri-check-line"></i> Gunakan Langsung
                                         </button>
                                         <button @click="uploadAudioAsNew()" 
-                                            :disabled="isUploading"
-                                            class="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-medium py-2 px-3 rounded-lg transition-all">
+                                            class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all">
                                             <i class="ri-upload-cloud-line"></i> Simpan ke Daftar
                                         </button>
                                     </div>
@@ -566,7 +558,7 @@
 
     {{-- Hidden Audio Element untuk Testing --}}
     <audio id="testAudioElement" preload="auto">
-        <source id="testAudioSource" src="">
+        <source id="testAudioSource" src="" type="audio/mpeg">
     </audio>
 
     @push('scripts')
@@ -605,3 +597,4 @@
     @include('dapur.partials.shift-check-script')
     @endpush
 @endsection
+

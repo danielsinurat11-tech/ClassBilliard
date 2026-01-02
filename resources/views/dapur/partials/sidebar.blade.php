@@ -29,21 +29,6 @@
         </a>
     </nav>
 
-    @if(request()->routeIs('dapur'))
-    <div class="px-4 pb-4">
-        <div class="bg-slate-200/50 dark:bg-white/5 rounded-lg p-4 text-center">
-            <div x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity class="mb-1">
-                <p class="text-xs text-slate-500 dark:text-gray-400 mb-1">Total Penjualan Menu</p>
-                <p class="text-2xl font-bold dark:text-white">{{ number_format($totalMenuSold ?? 0, 0, ',', '.') }}</p>
-                <p class="text-[10px] text-slate-400 dark:text-gray-500 mt-1">Item (Hari Ini)</p>
-            </div>
-            <div x-show="sidebarCollapsed && !sidebarHover" x-transition.opacity class="text-center">
-                <i class="ri-bar-chart-2-line text-xl text-slate-400 dark:text-gray-500"></i>
-            </div>
-        </div>
-    </div>
-    @endif
-
     {{-- Sidebar Clock --}}
     <div class="px-4 py-4 border-t border-slate-200 dark:border-white/5">
         <div class="bg-slate-200/50 dark:bg-white/5 rounded-lg p-4 text-center">
@@ -67,3 +52,4 @@
         </button>
     </div>
 </aside>
+

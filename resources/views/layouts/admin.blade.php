@@ -264,6 +264,14 @@
                     </a>
                     @endif
 
+                    {{-- Inventory/Stok Makanan --}}
+                    <a href="{{ route('admin.inventory.index') }}"
+                        class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.inventory.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
+                        <i class="ri-stack-line text-lg"></i>
+                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Stok Makanan</span>
+                    </a>
+
                     {{-- Tables/Barcode: Check permission table.view --}}
                     @if(auth()->user()->hasPermissionTo('table.view'))
                     <a href="{{ route('admin.tables.index') }}"
@@ -281,16 +289,6 @@
                         <i class="ri-bar-chart-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
                             class="font-bold text-xs tracking-tight whitespace-nowrap">Sales Analytics</span>
-                    </a>
-                    @endif
-
-                    {{-- Food Inventory: Super Admin only --}}
-                    @if(auth()->user() && (auth()->user()->role === 'super_admin' || (method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('super_admin'))))
-                    <a href="{{ route('admin.inventory.index') }}"
-                        class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.inventory.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
-                        <i class="ri-stack-fill text-lg"></i>
-                        <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
-                            class="font-bold text-xs tracking-tight whitespace-nowrap">Stok Makanan</span>
                     </a>
                     @endif
                 </div>

@@ -15,7 +15,8 @@ class Menu extends Model {
     ];
 
     protected $casts = [
-        'price' => 'float'
+        'price' => 'float',
+        'labels' => 'array'
     ];
 
     public function categoryMenu(): BelongsTo {

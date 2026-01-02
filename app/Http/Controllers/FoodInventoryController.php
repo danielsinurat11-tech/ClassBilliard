@@ -14,11 +14,11 @@ class FoodInventoryController extends Controller
      */
     public function index()
     {
-        $inventories = FoodInventory::with('menu')
+        $inventories = FoodInventory::with(['menu.categoryMenu'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         
-        $menus = Menu::orderBy('name')->get();
+        $menus = Menu::with('categoryMenu')->orderBy('name')->get();
 
         return view('admin.inventory.index', compact('inventories', 'menus'));
     }
@@ -36,7 +36,7 @@ class FoodInventoryController extends Controller
 
         $inventory = FoodInventory::create($validated);
 
-        return redirect()->route('inventory.index')
+        return redirect()->route('admin.inventory.index')
             ->with('success', 'Inventory untuk ' . $inventory->menu->name . ' berhasil ditambahkan');
     }
 
@@ -53,7 +53,7 @@ class FoodInventoryController extends Controller
         $validated['last_restocked_at'] = now();
         $inventory->update($validated);
 
-        return redirect()->route('inventory.index')
+        return redirect()->route('admin.inventory.index')
             ->with('success', 'Inventory ' . $inventory->menu->name . ' berhasil diperbarui');
     }
 
@@ -65,7 +65,7 @@ class FoodInventoryController extends Controller
         $menuName = $inventory->menu->name;
         $inventory->delete();
 
-        return redirect()->route('inventory.index')
+        return redirect()->route('admin.inventory.index')
             ->with('success', 'Inventory ' . $menuName . ' berhasil dihapus');
     }
 

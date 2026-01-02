@@ -143,8 +143,8 @@
                             
                             <div class="order-footer">
                                 <div>
-                                    <p class="text-sm opacity-90">Total Item</p>
-                                    <p class="text-2xl font-bold">{{ number_format($order->orderItems->sum('quantity'), 0, ',', '.') }}</p>
+                                    <p class="text-sm opacity-90">Total Harga</p>
+                                    <p class="text-2xl font-bold">Rp{{ number_format($order->total_price, 0, ',', '.') }}</p>
                                 </div>
                                 <button onclick="completeOrder({{ $order->id }})" class="btn-complete">
                                     <i class="ri-checkbox-circle-line mr-2"></i>
@@ -168,15 +168,6 @@
 <script>
     let eventSource = null;
     let orderTimers = {};
-    let notificationAudio = null;
-    let notificationAudioUrl = '';
-    let isSoundUnlocked = false;
-    let pendingNotificationPlay = false;
-    let isUnlockingSound = false;
-    let renderedOrderIds = new Set(); // Track orders already rendered to prevent duplicates
-    let lastSSEEventId = null; // Track last SSE event for reconnection
-    let sseReconnectDelay = 3000; // Start with 3 seconds, exponential backoff
-    let sseReconnectAttempts = 0;
     
     // Initialize timers for existing orders
     @foreach($orders as $order)
@@ -228,22 +219,13 @@
                     <p class="text-slate-500 dark:text-gray-400 text-lg">Tidak ada pesanan yang sedang diproses</p>
                 </div>
             `;
-            renderedOrderIds.clear();
             return;
         }
         
         let html = '';
-        const currentOrderIds = new Set(orders.map(o => o.id));
-        
         orders.forEach(order => {
-            // Skip if already rendered (prevent duplicates on jaringan jelek)
-            if (renderedOrderIds.has(order.id)) {
-                return;
-            }
-            
             const createdAt = new Date(order.created_at);
             const orderItems = order.order_items.map(item => `${item.quantity}x ${item.menu_name}`).join(', ');
-            const totalItems = order.order_items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
             
             html += `
                 <div class="order-card" data-order-id="${order.id}">
@@ -282,8 +264,8 @@
                     
                     <div class="order-footer">
                         <div>
-                            <p class="text-sm opacity-90">Total Item</p>
-                            <p class="text-2xl font-bold">${totalItems.toLocaleString('id-ID')}</p>
+                            <p class="text-sm opacity-90">Total Harga</p>
+                            <p class="text-2xl font-bold">Rp${parseInt(order.total_price).toLocaleString('id-ID')}</p>
                         </div>
                         <button onclick="completeOrder(${order.id})" class="btn-complete">
                             <i class="ri-checkbox-circle-line mr-2"></i>
@@ -293,25 +275,13 @@
                 </div>
             `;
             
-            renderedOrderIds.add(order.id);
-            
             // Start timer for this order
             if (!orderTimers[order.id]) {
                 startTimer(order.id, order.created_at);
             }
         });
         
-        // Remove orders that are no longer in the list
-        renderedOrderIds.forEach(orderId => {
-            if (!currentOrderIds.has(orderId)) {
-                renderedOrderIds.delete(orderId);
-            }
-        });
-        
-        // If there are new orders to add, append them
-        if (html) {
-            container.innerHTML += html;
-        }
+        container.innerHTML = html;
     }
     
     // Function to complete order
@@ -344,9 +314,6 @@
                     delete orderTimers[orderId];
                 }
                 
-                // Remove from rendered set
-                renderedOrderIds.delete(orderId);
-                
                 // Refresh orders
                 fetchActiveOrders();
             } else {
@@ -369,15 +336,8 @@
         eventSource.onmessage = function(event) {
             try {
                 const data = JSON.parse(event.data);
-                lastSSEEventId = event.lastEventId || null;
-                
                 if (data.type === 'new_orders' && data.orders) {
-                    if (data.orders.length > 0) {
-                        playNotificationSound();
-                    }
-                    updateOrdersDisplay(data.orders);
-                    sseReconnectAttempts = 0; // Reset pada koneksi sukses
-                    sseReconnectDelay = 3000; // Reset delay
+                    fetchActiveOrders();
                 }
             } catch (error) {
                 console.error('Error parsing SSE data:', error);
@@ -388,127 +348,15 @@
             console.error('SSE connection error:', error);
             eventSource.close();
             
-            // Exponential backoff: 3s, 6s, 12s, 30s (max)
-            sseReconnectAttempts++;
-            const delay = Math.min(3000 * Math.pow(2, Math.min(sseReconnectAttempts - 1, 3)), 30000);
-            sseReconnectDelay = delay;
-            
-            console.log(`Reconnecting SSE in ${delay}ms (attempt ${sseReconnectAttempts})`);
-            setTimeout(connectSSE, delay);
+            // Reconnect after 3 seconds
+            setTimeout(connectSSE, 3000);
         };
-    }
-
-    async function loadNotificationAudioFromSettings() {
-        const savedAudio = localStorage.getItem('kitchenNotificationAudio') || '';
-        const audioType = localStorage.getItem('kitchenNotificationAudioType') || '';
-
-        if (!savedAudio || audioType !== 'database') {
-            notificationAudioUrl = '';
-            notificationAudio = null;
-            return;
-        }
-
-        try {
-            const response = await fetch('/notification-sounds');
-            if (!response.ok) {
-                notificationAudioUrl = '';
-                notificationAudio = null;
-                return;
-            }
-
-            const sounds = await response.json();
-            const sound = sounds.find(s => s.filename === savedAudio);
-            if (!sound) {
-                notificationAudioUrl = '';
-                notificationAudio = null;
-                return;
-            }
-
-            const url = sound.file_path && sound.file_path.startsWith('sounds/')
-                ? '{{ url("/notification-sounds") }}/' + sound.id + '/file'
-                : '{{ asset("assets/sounds") }}/' + sound.filename;
-
-            if (notificationAudioUrl !== url) {
-                notificationAudioUrl = url;
-                notificationAudio = new Audio(notificationAudioUrl);
-                notificationAudio.preload = 'auto';
-                notificationAudio.load();
-            }
-        } catch (error) {
-            console.error('Error loading notification audio:', error);
-            notificationAudioUrl = '';
-            notificationAudio = null;
-        }
-    }
-
-    function setupSoundUnlock() {
-        const unlock = async () => {
-            if (isSoundUnlocked) return;
-            if (!notificationAudioUrl) return;
-            if (isUnlockingSound) return;
-            isUnlockingSound = true;
-
-            try {
-                if (!notificationAudio) {
-                    notificationAudio = new Audio(notificationAudioUrl);
-                    notificationAudio.preload = 'auto';
-                }
-                notificationAudio.muted = true;
-                notificationAudio.currentTime = 0;
-                await notificationAudio.play();
-                notificationAudio.pause();
-                notificationAudio.currentTime = 0;
-                notificationAudio.muted = false;
-                isSoundUnlocked = true;
-                isUnlockingSound = false;
-
-                document.removeEventListener('click', unlock, true);
-                document.removeEventListener('touchstart', unlock, true);
-                document.removeEventListener('keydown', unlock, true);
-
-                if (pendingNotificationPlay) {
-                    pendingNotificationPlay = false;
-                    playNotificationSound();
-                }
-            } catch (e) {
-                try {
-                    if (notificationAudio) notificationAudio.muted = false;
-                } catch (err) {}
-                isUnlockingSound = false;
-            }
-        };
-
-        document.addEventListener('click', unlock, true);
-        document.addEventListener('touchstart', unlock, true);
-        document.addEventListener('keydown', unlock, true);
-    }
-
-    function playNotificationSound() {
-        if (!notificationAudioUrl) return;
-        if (!notificationAudio) {
-            notificationAudio = new Audio(notificationAudioUrl);
-            notificationAudio.preload = 'auto';
-        }
-
-        try {
-            notificationAudio.currentTime = 0;
-            const playPromise = notificationAudio.play();
-            if (playPromise && typeof playPromise.catch === 'function') {
-                playPromise.catch(() => {
-                    pendingNotificationPlay = true;
-                });
-            }
-        } catch (e) {}
     }
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-        (async () => {
-            fetchActiveOrders();
-            await loadNotificationAudioFromSettings();
-            setupSoundUnlock();
-            connectSSE();
-        })();
+        fetchActiveOrders();
+        connectSSE();
         
         // Update clock
         function updateClock() {
@@ -532,3 +380,4 @@
 </script>
 @endpush
 @endsection
+

@@ -107,11 +107,9 @@
 
                         @if($menu->labels)
                             @php
-                                $labelText = $menu->labels;
-                                if (str_starts_with($labelText, '[')) {
-                                    $decoded = json_decode($labelText, true);
-                                    $labelText = is_array($decoded) && count($decoded) > 0 ? $decoded[0] : $labelText;
-                                }
+                                // labels is now an array (cast in model)
+                                $labelArray = is_array($menu->labels) ? $menu->labels : (is_string($menu->labels) ? json_decode($menu->labels, true) : []);
+                                $labelText = is_array($labelArray) && count($labelArray) > 0 ? $labelArray[0] : '';
                                 $label = strtolower((string)$labelText);
                                 if(strpos($label, 'best seller') !== false || strpos($label, 'rekomendasi') !== false) {
                                     $bgClass = 'bg-yellow-500/20';
