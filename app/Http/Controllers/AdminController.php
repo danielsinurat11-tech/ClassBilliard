@@ -11,6 +11,7 @@ use App\Models\TimKami;
 use App\Models\TestimoniPelanggan;
 use App\Models\Event;
 use App\Models\Footer;
+use App\Models\Contact;
 use App\Models\orders;
 use App\Models\order_items;
 use App\Models\Menu;
@@ -680,6 +681,41 @@ class AdminController extends Controller
         $footer->save();
 
         return redirect()->route('admin.cms.footer')->with('success', 'Footer updated successfully');
+    }
+
+    // Contact
+    public function contactIndex()
+    {
+        $this->authorizeAdminOnly();
+        $contact = Contact::first();
+        return view('admin.manage-content.contact', compact('contact'));
+    }
+
+    public function contactUpdate(Request $request)
+    {
+        $this->authorizeAdminOnly();
+        $contact = Contact::firstOrNew();
+        $contact->fill($request->only([
+            'title',
+            'subtitle',
+            'description',
+            'location_name',
+            'address',
+            'phone',
+            'email',
+            'whatsapp',
+            'google_maps_url',
+            'map_url',
+            'opening_hours',
+            'facebook_url',
+            'instagram_url',
+            'twitter_url',
+            'youtube_url'
+        ]));
+        $contact->is_active = $request->has('is_active');
+        $contact->save();
+
+        return redirect()->route('admin.cms.contact')->with('success', 'Contact page updated successfully');
     }
 
     // Profile Management

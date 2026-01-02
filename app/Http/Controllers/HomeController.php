@@ -10,6 +10,7 @@ use App\Models\TimKami;
 use App\Models\TestimoniPelanggan;
 use App\Models\Event;
 use App\Models\Footer;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -26,6 +27,7 @@ class HomeController extends Controller
         $testimonials = TestimoniPelanggan::where('is_active', true)->orderBy('order')->limit(4)->get();
         $events = Event::where('is_active', true)->orderBy('event_date')->get();
         $footer = Footer::where('is_active', true)->first();
+        $contact = Contact::where('is_active', true)->first();
 
         return view('home', compact(
             'hero',
@@ -35,7 +37,8 @@ class HomeController extends Controller
             'teamMembers',
             'testimonials',
             'events',
-            'footer'
+            'footer',
+            'contact'
         ));
     }
 

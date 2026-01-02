@@ -111,6 +111,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         
         Route::get('/footer', [App\Http\Controllers\AdminController::class, 'footerIndex'])->name('footer');
         Route::post('/footer', [App\Http\Controllers\AdminController::class, 'footerUpdate'])->name('footer.update');
+        
+        Route::get('/contact', [App\Http\Controllers\AdminController::class, 'contactIndex'])->name('contact');
+        Route::post('/contact', [App\Http\Controllers\AdminController::class, 'contactUpdate'])->name('contact.update');
     });
 
     // Order Management (super_admin, admin)
