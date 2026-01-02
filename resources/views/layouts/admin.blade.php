@@ -274,8 +274,8 @@
                     </a>
                     @endif
 
-                    {{-- Sales Analytics: Super Admin only --}}
-                    @if(auth()->user() && (auth()->user()->role === 'super_admin' || (method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('super_admin'))))
+                    {{-- Sales Analytics: Check permission report.view --}}
+                    @if(auth()->user()->hasPermissionTo('report.view'))
                     <a href="{{ route('admin.sales-analytics') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.sales-analytics') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-bar-chart-line text-lg"></i>
@@ -284,8 +284,8 @@
                     </a>
                     @endif
 
-                    {{-- Food Inventory: Super Admin only --}}
-                    @if(auth()->user() && (auth()->user()->role === 'super_admin' || (method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('super_admin'))))
+                    {{-- Food Inventory: Check permission inventory.view --}}
+                    @if(auth()->user()->hasPermissionTo('inventory.view'))
                     <a href="{{ route('admin.inventory.index') }}"
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.inventory.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-stack-fill text-lg"></i>

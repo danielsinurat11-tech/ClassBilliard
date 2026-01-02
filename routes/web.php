@@ -133,7 +133,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
     });
 
     // Notification Sounds Management
-    Route::prefix('notification-sounds')->name('notification-sounds.')->group(function () {
+    Route::prefix('notification-sounds')->name('notification-sounds.')->middleware('permission:notification.manage')->group(function () {
         Route::get('/', [App\Http\Controllers\NotificationSoundController::class, 'index'])->name('index');
         Route::get('/active', [App\Http\Controllers\NotificationSoundController::class, 'getActive'])->name('active');
         Route::get('/{id}/file', [App\Http\Controllers\NotificationSoundController::class, 'file'])->name('file');
@@ -187,14 +187,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::delete('/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('destroy');
     });
 
-    // Menu Sales Chart API (Super Admin only)
-    Route::get('/menu-sales-data', [App\Http\Controllers\AdminController::class, 'getMenuSalesData'])->name('menu-sales-data');
+    // Menu Sales Chart API (Check report.view permission)
+    Route::get('/menu-sales-data', [App\Http\Controllers\AdminController::class, 'getMenuSalesData'])->name('menu-sales-data')->middleware('permission:report.view');
     
-    // Sales Analytics Page (Super Admin only)
-    Route::get('/sales-analytics', [App\Http\Controllers\AdminController::class, 'salesAnalytics'])->name('sales-analytics');
+    // Sales Analytics Page (Check report.view permission)
+    Route::get('/sales-analytics', [App\Http\Controllers\AdminController::class, 'salesAnalytics'])->name('sales-analytics')->middleware('permission:report.view');
 
     // Permission Management (super_admin only)
-    Route::prefix('permissions')->name('permissions.')->group(function () {
+    Route::prefix('permissions')->name('permissions.')->middleware('permission:role.assign')->group(function () {
         Route::get('/select-user', [App\Http\Controllers\PermissionController::class, 'selectUser'])->name('select-user');
         Route::get('/{userId}/manage', [App\Http\Controllers\PermissionController::class, 'managePermissions'])->name('manage');
         Route::post('/{userId}/update', [App\Http\Controllers\PermissionController::class, 'updatePermissions'])->name('update');
@@ -202,7 +202,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
     });
 
     // Food Inventory Management (super_admin only)
-    Route::middleware('role:super_admin')->group(function () {
+    Route::middleware('permission:inventory.view')->group(function () {
         Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->except(['show']);
         Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
     });
