@@ -113,13 +113,23 @@
 
             @auth
                 @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'kitchen']))
-                    <a href="{{ route('admin.dashboard') }}"
-                        class="px-6 py-2 text-sm font-bold tracking-widest transition duration-300 rounded-sm hover:text-black"
-                        style="border: 1px solid rgba(255, 215, 0, 0.3); color: #FFD700;"
-                        onmouseenter="this.style.backgroundColor='#FFD700'; this.style.color='black';"
-                        onmouseleave="this.style.backgroundColor='transparent'; this.style.color='#FFD700';">
-                        DASHBOARD
-                    </a>
+                    @if(auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                        <a href="{{ route('admin.dashboard') }}"
+                            class="px-6 py-2 text-sm font-bold tracking-widest transition duration-300 rounded-sm hover:text-black"
+                            style="border: 1px solid rgba(255, 215, 0, 0.3); color: #FFD700;"
+                            onmouseenter="this.style.backgroundColor='#FFD700'; this.style.color='black';"
+                            onmouseleave="this.style.backgroundColor='transparent'; this.style.color='#FFD700';">
+                            DASHBOARD
+                        </a>
+                    @elseif(auth()->user()->hasRole('kitchen'))
+                        <a href="{{ route('dapur') }}"
+                            class="px-6 py-2 text-sm font-bold tracking-widest transition duration-300 rounded-sm hover:text-black"
+                            style="border: 1px solid rgba(255, 215, 0, 0.3); color: #FFD700;"
+                            onmouseenter="this.style.backgroundColor='#FFD700'; this.style.color='black';"
+                            onmouseleave="this.style.backgroundColor='transparent'; this.style.color='#FFD700';">
+                            DAPUR
+                        </a>
+                    @endif
                 @endif
             @endauth
 
@@ -192,10 +202,17 @@
             <!-- Dashboard Button (if authenticated) -->
             @auth
                 @if(auth()->user()->hasAnyRole(['super_admin', 'admin', 'kitchen']))
-                    <a href="{{ route('admin.dashboard') }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
-                        class="block w-full px-6 py-3 mt-3 bg-gradient-to-r from-gold-400/30 to-gold-400/10 border border-gold-400/60 text-gold-400 hover:from-gold-400/40 hover:to-gold-400/20 text-sm font-bold tracking-[0.12em] transition duration-400 rounded-lg text-center hover:shadow-xl hover:shadow-gold-400/40">
-                        DASHBOARD
-                    </a>
+                    @if(auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                        <a href="{{ route('admin.dashboard') }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
+                            class="block w-full px-6 py-3 mt-3 bg-gradient-to-r from-gold-400/30 to-gold-400/10 border border-gold-400/60 text-gold-400 hover:from-gold-400/40 hover:to-gold-400/20 text-sm font-bold tracking-[0.12em] transition duration-400 rounded-lg text-center hover:shadow-xl hover:shadow-gold-400/40">
+                            DASHBOARD
+                        </a>
+                    @elseif(auth()->user()->hasRole('kitchen'))
+                        <a href="{{ route('dapur') }}" @click="isClosing = true; setTimeout(() => { mobileMenuOpen = false; isClosing = false; }, 600);"
+                            class="block w-full px-6 py-3 mt-3 bg-gradient-to-r from-gold-400/30 to-gold-400/10 border border-gold-400/60 text-gold-400 hover:from-gold-400/40 hover:to-gold-400/20 text-sm font-bold tracking-[0.12em] transition duration-400 rounded-lg text-center hover:shadow-xl hover:shadow-gold-400/40">
+                            DAPUR
+                        </a>
+                    @endif
                 @endif
             @endauth
 
