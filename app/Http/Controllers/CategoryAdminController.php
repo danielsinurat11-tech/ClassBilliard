@@ -114,7 +114,7 @@ class CategoryAdminController extends Controller
         $this->authorize('delete', $category);
         
         // Check if category has any menus before deleting
-        $menuCount = Menu::where('category_id', $category->id)->count();
+        $menuCount = Menu::where('category_menu_id', $category->id)->count();
         if ($menuCount > 0) {
             return back()->with('error', 'Kategori tidak dapat dihapus karena masih memiliki ' . $menuCount . ' menu.');
         }

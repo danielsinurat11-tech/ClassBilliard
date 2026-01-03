@@ -153,17 +153,6 @@
                         </div>
                     </div>
 
-                    <!-- Remember Me -->
-                    <div class="flex items-center justify-between pt-1">
-                        <label class="flex items-center group cursor-pointer">
-                            <input type="checkbox" name="remember"
-                                class="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-md px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:border-[#fa9a08] focus:ring-0 transition-all outline-none">
-                            <span
-                                class="text-[10px] font-bold text-slate-500 uppercase tracking-wider group-hover:text-slate-300 transition-colors">Remember
-                                Session</span>
-                        </label>
-                    </div>
-
                     <!-- Submit Button: Interactive Feedback Standard -->
                     <button type="submit" :disabled="loading"
                         class="w-full bg-gold-400 hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-black text-[10px] font-black uppercase tracking-[0.2em] py-4 rounded-md transition-all duration-300 shadow-lg shadow-yellow-950/20 flex items-center justify-center gap-2 group overflow-hidden relative">
