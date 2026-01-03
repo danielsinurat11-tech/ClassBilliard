@@ -1,6 +1,12 @@
 {{-- Team Section Component --}}
 @php
-    $teamMembers = $teamMembers ?? \App\Models\TimKami::where('is_active', true)->orderBy('order')->get();
+    // Optimized: Use cached data with select specific columns if not passed from controller
+    $teamMembers = $teamMembers ?? cache()->remember('component_team', 1800, function () {
+        return \App\Models\TimKami::select('id', 'title', 'subtitle', 'name', 'position', 'bio', 'photo', 'image', 'facebook_url', 'instagram_url', 'linkedin_url', 'order')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+    });
 @endphp
 
 @if($teamMembers->count() > 0)

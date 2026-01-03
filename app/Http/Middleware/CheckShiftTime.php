@@ -79,38 +79,28 @@ class CheckShiftTime
         }
         
         // Transfer order dari shift sebelumnya yang belum selesai ke shift aktif saat ini
-        $activeShift = \App\Models\Shift::getActiveShift();
-        if ($activeShift) {
-            // Cari semua shift yang bukan shift aktif saat ini
-            $previousShifts = \App\Models\Shift::where('is_active', true)
-                ->where('id', '!=', $activeShift->id)
-                ->get();
-            
-            // Transfer order yang belum selesai dari shift sebelumnya ke shift aktif
-            foreach ($previousShifts as $prevShift) {
-                $pendingOrders = \App\Models\orders::where('shift_id', $prevShift->id)
-                    ->whereIn('status', ['pending', 'processing'])
-                    ->get();
-                
-                if ($pendingOrders->count() > 0) {
-                    try {
-                        \Illuminate\Support\Facades\DB::beginTransaction();
-                        foreach ($pendingOrders as $order) {
-                            $order->shift_id = $activeShift->id;
-                            $order->save();
-                        }
-                        \Illuminate\Support\Facades\DB::commit();
-                        
-                        \Illuminate\Support\Facades\Log::info('Orders transferred from previous shift to active shift (middleware)', [
-                            'from_shift' => $prevShift->id,
-                            'to_shift' => $activeShift->id,
-                            'order_count' => $pendingOrders->count()
-                        ]);
-                    } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\DB::rollBack();
-                        \Illuminate\Support\Facades\Log::error('Error transferring orders in middleware: ' . $e->getMessage());
-                    }
+        $shouldAttemptTransfer = $request->routeIs('dapur') || $request->routeIs('reports') || $request->routeIs('pengaturan-audio') || $request->is('admin*');
+        $activeShift = cache()->remember('active_shift', 60, function () {
+            return \App\Models\Shift::getActiveShift();
+        });
+        
+        if ($shouldAttemptTransfer && $activeShift) {
+            $cacheKey = 'shift_transfer_done_' . $today->format('Y-m-d') . '_' . $activeShift->id;
+            if (! cache()->has($cacheKey)) {
+                $previousShiftIds = \App\Models\Shift::query()
+                    ->where('is_active', true)
+                    ->where('id', '!=', $activeShift->id)
+                    ->pluck('id')
+                    ->all();
+
+                if (! empty($previousShiftIds)) {
+                    \App\Models\orders::query()
+                        ->whereIn('shift_id', $previousShiftIds)
+                        ->whereIn('status', ['pending', 'processing'])
+                        ->update(['shift_id' => $activeShift->id]);
                 }
+
+                cache()->put($cacheKey, true, 86400);
             }
         }
         
@@ -121,19 +111,15 @@ class CheckShiftTime
             $startTimeFormatted = $shift->start_time;
             $endTimeFormatted = $shift->end_time;
 
-            // Transfer pending orders to next shift before logout
-            $nextShift = \App\Models\Shift::getNextShift();
+            // Transfer pending orders to next shift before logout (optimized)
+            $nextShift = cache()->remember('next_shift', 60, function () {
+                return \App\Models\Shift::getNextShift();
+            });
             if ($nextShift) {
-                $pendingOrders = \App\Models\orders::where('shift_id', $user->shift_id)
+                // Optimized: Bulk update instead of individual saves
+                \App\Models\orders::where('shift_id', $user->shift_id)
                     ->whereIn('status', ['pending', 'processing'])
-                    ->get();
-                
-                if ($pendingOrders->count() > 0) {
-                    foreach ($pendingOrders as $order) {
-                        $order->shift_id = $nextShift->id;
-                        $order->save();
-                    }
-                }
+                    ->update(['shift_id' => $nextShift->id]);
             }
 
             // For API routes, return JSON response instead of redirect

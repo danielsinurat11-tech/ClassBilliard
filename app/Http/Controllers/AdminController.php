@@ -131,10 +131,18 @@ class AdminController extends Controller
             $categoryStats[$category] = ['quantity' => 0, 'revenue' => 0];
         }
 
+        // Optimasi: Load semua menu sekaligus untuk menghindari N+1 query
+        $menuNames = $orderItems->pluck('menu_name')->unique()->toArray();
+        $menus = Menu::select('id', 'name', 'category_menu_id')
+            ->with('categoryMenu:id,name')
+            ->whereIn('name', $menuNames)
+            ->get()
+            ->keyBy('name'); // Key by name untuk fast lookup
+
         // Process each order item
         foreach ($orderItems as $item) {
-            // Find menu by name to get category
-            $menu = Menu::where('name', $item->menu_name)->first();
+            // Find menu by name from pre-loaded collection
+            $menu = $menus->get($item->menu_name);
             
             if ($menu && $menu->categoryMenu) {
                 $categoryName = $menu->categoryMenu->name;
@@ -150,7 +158,8 @@ class AdminController extends Controller
         // Get menu sales detail (per menu item)
         $menuSalesDetail = [];
         foreach ($orderItems as $item) {
-            $menu = Menu::where('name', $item->menu_name)->first();
+            // Find menu by name from pre-loaded collection
+            $menu = $menus->get($item->menu_name);
             
             if ($menu && $menu->categoryMenu) {
                 $categoryName = $menu->categoryMenu->name;

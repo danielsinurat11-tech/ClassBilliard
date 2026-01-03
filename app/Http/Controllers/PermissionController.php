@@ -52,8 +52,8 @@ class PermissionController extends Controller
                 ->with('error', 'Tidak bisa mengelola permissions super admin.');
         }
 
-        // Get all permissions grouped by category (prefix sebelum dot)
-        $allPermissions = Permission::all();
+        // Get all permissions grouped by category (prefix sebelum dot) - optimized
+        $allPermissions = Permission::select('id', 'name', 'guard_name')->get();
         
         // Group permissions by prefix (order, payment, kitchen, etc)
         $groupedPermissions = [];

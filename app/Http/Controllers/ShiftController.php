@@ -15,7 +15,11 @@ class ShiftController extends Controller
      */
     public function index()
     {
-        $shifts = Shift::with('users')->orderBy('start_time')->get();
+        // Optimized: Select specific columns and eager load users
+        $shifts = Shift::select('id', 'name', 'start_time', 'end_time', 'is_active')
+            ->with('users:id,name,email,shift_id')
+            ->orderBy('start_time')
+            ->get();
         return view('admin.shifts.index', compact('shifts'));
     }
 
@@ -132,8 +136,9 @@ class ShiftController extends Controller
                 ]);
             }
 
-            // Load shift with relationship
-            $shift = Shift::find($user->shift_id);
+            // Load shift with relationship (optimized)
+            $shift = Shift::select('id', 'name', 'start_time', 'end_time', 'is_active')
+                ->find($user->shift_id);
             
             if (!$shift) {
                 return response()->json([

@@ -1,6 +1,12 @@
 {{-- Achievements Section Component --}}
 @php
-    $achievements = $achievements ?? \App\Models\PortfolioAchievement::where('is_active', true)->orderBy('order')->get();
+    // Optimized: Use cached data with select specific columns if not passed from controller
+    $achievements = $achievements ?? cache()->remember('component_achievements', 1800, function () {
+        return \App\Models\PortfolioAchievement::select('id', 'title', 'subtitle', 'type', 'icon', 'number', 'label', 'description', 'image', 'order')
+            ->where('is_active', true)
+            ->orderBy('order')
+            ->get();
+    });
 @endphp
 
 @if($achievements->count() > 0)

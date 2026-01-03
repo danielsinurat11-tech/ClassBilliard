@@ -20,8 +20,11 @@ class DapurController extends Controller
     {
         $user = Auth::user();
         
-        // Get active orders for current shift
-        $query = orders::with('orderItems')
+        // Get active orders for current shift (optimized query)
+        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
+            ->with(['orderItems' => function ($query) {
+                $query->select('id', 'order_id', 'menu_name', 'price', 'quantity', 'image');
+            }])
             ->where('status', 'processing')
             ->orderBy('created_at', 'desc');
         
@@ -34,9 +37,11 @@ class DapurController extends Controller
 
         $todayJakarta = Carbon::now('Asia/Jakarta')->toDateString();
 
-        $totalMenuSold = order_items::query()
+        // Optimized query untuk total menu sold
+        $totalMenuSold = order_items::select('quantity')
             ->whereHas('order', function ($q) use ($todayJakarta, $user) {
-                $q->where('status', 'completed')
+                $q->select('id', 'status', 'created_at', 'shift_id')
+                    ->where('status', 'completed')
                     ->whereDate('created_at', $todayJakarta);
 
                 if (!$user->hasRole('super_admin') && $user->shift_id) {
@@ -59,8 +64,8 @@ class DapurController extends Controller
             return response()->json(['orders' => []], 401);
         }
         
-        // Get active orders
-        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'created_at', 'updated_at', 'shift_id')
+        // Get active orders (optimized query)
+        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('status', 'processing')
             ->orderBy('created_at', 'desc');
@@ -80,6 +85,7 @@ class DapurController extends Controller
                     'table_number' => $order->table_number,
                     'room' => $order->room,
                     'status' => $order->status,
+                    'total_price' => $order->total_price,
                     'created_at' => $order->created_at->toIso8601String(),
                     'updated_at' => $order->updated_at->toIso8601String(),
                     'order_items' => $order->orderItems->map(function ($item) {
@@ -128,8 +134,8 @@ class DapurController extends Controller
                     break;
                 }
 
-                // Get latest orders
-                $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'created_at', 'updated_at', 'shift_id')
+                // Get latest orders (optimized query)
+                $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
                     ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                     ->whereIn('status', ['pending', 'processing'])
                     ->where('id', '>', $lastOrderId)
@@ -150,6 +156,7 @@ class DapurController extends Controller
                             'table_number' => $order->table_number,
                             'room' => $order->room,
                             'status' => $order->status,
+                            'total_price' => $order->total_price,
                             'created_at' => $order->created_at->toIso8601String(),
                             'updated_at' => $order->updated_at->toIso8601String(),
                             'order_items' => $order->orderItems->map(function ($item) {
@@ -237,7 +244,9 @@ class DapurController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
         
-        $order = orders::with('orderItems')->findOrFail($id);
+        $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->findOrFail($id);
         
         // Authorization
         if (!$user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {

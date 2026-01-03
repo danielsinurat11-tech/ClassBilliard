@@ -19,15 +19,66 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $hero = HeroSection::where('is_active', true)->first();
-        $about = TentangKami::where('is_active', true)->first();
-        $founder = AboutFounder::where('is_active', true)->first();
-        $achievements = PortfolioAchievement::where('is_active', true)->orderBy('order')->get();
-        $teamMembers = TimKami::where('is_active', true)->orderBy('order')->get();
-        $testimonials = TestimoniPelanggan::where('is_active', true)->orderBy('order')->limit(4)->get();
-        $events = Event::where('is_active', true)->orderBy('event_date')->get();
-        $footer = Footer::where('is_active', true)->first();
-        $contact = Contact::where('is_active', true)->first();
+        // Cache data yang tidak sering berubah (1 jam) untuk performa lebih baik
+        $hero = cache()->remember('home_hero', 3600, function () {
+            return HeroSection::select('id', 'background_image', 'logo_image', 'title', 'subtitle', 'tagline', 'cta_text_1', 'cta_link_1', 'cta_text_2')
+                ->where('is_active', true)
+                ->first();
+        });
+
+        $about = cache()->remember('home_about', 3600, function () {
+            return TentangKami::select('id', 'title', 'subtitle', 'image', 'visi', 'misi', 'arah_gerak', 'video_url', 'video_description')
+                ->where('is_active', true)
+                ->first();
+        });
+
+        $founder = cache()->remember('home_founder', 3600, function () {
+            return AboutFounder::select('id', 'title', 'subtitle', 'name', 'position', 'description', 'quote', 'signature', 'photo', 'image', 'video_url', 'facebook_url', 'instagram_url', 'linkedin_url')
+                ->where('is_active', true)
+                ->first();
+        });
+
+        // Data yang mungkin lebih sering berubah - cache 30 menit
+        $achievements = cache()->remember('home_achievements', 1800, function () {
+            return PortfolioAchievement::select('id', 'title', 'subtitle', 'type', 'icon', 'number', 'label', 'description', 'image', 'order')
+                ->where('is_active', true)
+                ->orderBy('order')
+                ->get();
+        });
+
+        $teamMembers = cache()->remember('home_team', 1800, function () {
+            return TimKami::select('id', 'title', 'subtitle', 'name', 'position', 'bio', 'photo', 'image', 'facebook_url', 'instagram_url', 'linkedin_url', 'order')
+                ->where('is_active', true)
+                ->orderBy('order')
+                ->get();
+        });
+
+        $testimonials = cache()->remember('home_testimonials', 1800, function () {
+            return TestimoniPelanggan::select('id', 'title', 'subtitle', 'customer_name', 'name', 'customer_role', 'role', 'testimonial', 'rating', 'photo', 'image', 'order')
+                ->where('is_active', true)
+                ->orderBy('order')
+                ->limit(4)
+                ->get();
+        });
+
+        $events = cache()->remember('home_events', 1800, function () {
+            return Event::select('id', 'title', 'subtitle', 'event_title', 'event_description', 'description', 'category', 'event_date', 'image', 'link_url', 'order')
+                ->where('is_active', true)
+                ->orderBy('event_date')
+                ->get();
+        });
+
+        $footer = cache()->remember('home_footer', 3600, function () {
+            return Footer::select('id', 'about_text', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url', 'whatsapp', 'address', 'location_name', 'phone', 'email', 'google_maps_url', 'map_url', 'monday_friday_hours', 'saturday_sunday_hours', 'opening_hours', 'copyright')
+                ->where('is_active', true)
+                ->first();
+        });
+
+        $contact = cache()->remember('home_contact', 3600, function () {
+            return Contact::select('id', 'title', 'subtitle', 'description', 'location_name', 'address', 'phone', 'email', 'whatsapp', 'navbar_label', 'navbar_link', 'google_maps_url', 'map_url', 'opening_hours', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url')
+                ->where('is_active', true)
+                ->first();
+        });
 
         return view('home', compact(
             'hero',

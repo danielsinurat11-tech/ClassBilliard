@@ -6,7 +6,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 use App\Models\orders;
 use App\Models\payments;
 use App\Models\Menu;
@@ -58,11 +57,6 @@ class AppServiceProvider extends ServiceProvider
         // Use in blade as: @hasPermissionSafe('permission.name') ... @endhasPermissionSafe
         Blade::if('hasPermissionSafe', function ($permission) {
             try {
-                // If the permission itself does not exist, return false instead of throwing
-                if (! Permission::where('name', $permission)->exists()) {
-                    return false;
-                }
-
                 /** @var \App\Models\User|null $user */
                 $user = Auth::user();
                 if (! $user) {

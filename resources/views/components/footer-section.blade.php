@@ -2,10 +2,14 @@
 @php
     use App\Services\MapsUrlConverter;
     
-    // Jika $footer tidak dikirim dari controller, cari yang aktif
+    // Jika $footer tidak dikirim dari controller, cari yang aktif (optimized)
     // Tapi jika dikirim dari controller (meskipun is_active = false), gunakan yang dikirim
     if (!isset($footer)) {
-        $footer = \App\Models\Footer::where('is_active', true)->first();
+        $footer = cache()->remember('component_footer', 3600, function () {
+            return \App\Models\Footer::select('id', 'about_text', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url', 'whatsapp', 'address', 'location_name', 'phone', 'email', 'google_maps_url', 'map_url', 'monday_friday_hours', 'saturday_sunday_hours', 'opening_hours', 'copyright')
+                ->where('is_active', true)
+                ->first();
+        });
     }
     
     // Footer hanya muncul jika ada data DAN is_active = true

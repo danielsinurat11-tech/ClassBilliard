@@ -12,11 +12,16 @@ class MenuDetailController extends Controller
      */
     public function show($slug)
     {
-        // Get menu by slug
-        $menu = Menu::where('slug', $slug)->firstOrFail();
+        // Get menu by slug (optimized)
+        $menu = Menu::select('id', 'name', 'slug', 'price', 'image_path', 'description', 'short_description', 'labels', 'category_menu_id')
+            ->with('categoryMenu:id,name')
+            ->where('slug', $slug)
+            ->firstOrFail();
         
-        // Get all menus sorted by id for prev/next navigation
-        $allMenus = Menu::orderBy('id')->get();
+        // Get all menus sorted by id for prev/next navigation (optimized - hanya kolom yang diperlukan)
+        $allMenus = Menu::select('id', 'name', 'slug', 'image_path')
+            ->orderBy('id')
+            ->get();
         
         // Find current position
         $currentIndex = $allMenus->search(function ($item) use ($menu) {

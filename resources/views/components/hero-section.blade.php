@@ -1,6 +1,11 @@
 {{-- Hero Section Component --}}
 @php
-    $hero = $hero ?? \App\Models\HeroSection::where('is_active', true)->first();
+    // Optimized: Use cached data with select specific columns if not passed from controller
+    $hero = $hero ?? cache()->remember('component_hero', 3600, function () {
+        return \App\Models\HeroSection::select('id', 'background_image', 'logo_image', 'title', 'subtitle', 'tagline', 'cta_text_1', 'cta_link_1', 'cta_text_2', 'is_active')
+            ->where('is_active', true)
+            ->first();
+    });
     // Tidak ada fallback values - hanya menampilkan data dari database
     $logoImage = $hero && $hero->logo_image ? asset('storage/' . $hero->logo_image) : '';
     $backgroundImage = $hero && $hero->background_image ? asset('storage/' . $hero->background_image) : '';

@@ -49,7 +49,12 @@
         // Use admin-managed Contact for navbar. The navbar contact is always active
         // (user requested always-active behavior). We prefer an explicit navbar_link
         // and navbar_label if set; otherwise fall back to whatsapp.
-        $contact = \App\Models\Contact::first();
+        // Optimized: Use cached data with select specific columns
+        $contact = cache()->remember('navbar_contact', 3600, function () {
+            return \App\Models\Contact::select('id', 'navbar_link', 'whatsapp', 'navbar_label', 'title')
+                ->where('is_active', true)
+                ->first();
+        });
         $navbarLink = null;
         $navbarLabel = 'CONTACT US';
         if ($contact) {
@@ -65,8 +70,12 @@
             }
         }
 
-        // Hero CTA1 link (if admin configured a booking/group link)
-        $hero = \App\Models\HeroSection::first();
+        // Hero CTA1 link (if admin configured a booking/group link) - optimized
+        $hero = cache()->remember('navbar_hero', 3600, function () {
+            return \App\Models\HeroSection::select('id', 'cta_link_1')
+                ->where('is_active', true)
+                ->first();
+        });
         $ctaLink1 = $hero && isset($hero->cta_link_1) && $hero->cta_link_1 && trim($hero->cta_link_1) !== '' ? trim($hero->cta_link_1) : null;
         $ctaLink1IsExternal = $ctaLink1 && preg_match('#^https?://#i', $ctaLink1);
     @endphp

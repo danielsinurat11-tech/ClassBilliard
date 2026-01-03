@@ -16,7 +16,9 @@ class NotificationSoundController extends Controller
      */
     public function index()
     {
-        $sounds = NotificationSound::orderBy('name', 'asc')
+        // Optimized: Select specific columns
+        $sounds = NotificationSound::select('id', 'name', 'filename', 'file_path', 'created_at')
+            ->orderBy('name', 'asc')
             ->get();
         
         return response()->json($sounds);
@@ -32,7 +34,7 @@ class NotificationSoundController extends Controller
         $activeSoundId = cache()->get('active_notification_sound_id');
         
         if ($activeSoundId) {
-            $sound = NotificationSound::find($activeSoundId);
+            $sound = NotificationSound::select('id', 'name', 'filename', 'file_path')->find($activeSoundId);
             if ($sound) {
                 $filePath = $sound->file_path;
                 if (str_starts_with($filePath, 'sounds/')) {
@@ -53,8 +55,10 @@ class NotificationSoundController extends Controller
             }
         }
         
-        // Fallback: get the most recently created sound
-        $sound = NotificationSound::orderBy('created_at', 'desc')->first();
+        // Fallback: get the most recently created sound (optimized)
+        $sound = NotificationSound::select('id', 'name', 'filename', 'file_path')
+            ->orderBy('created_at', 'desc')
+            ->first();
         
         if ($sound) {
             $filePath = $sound->file_path;

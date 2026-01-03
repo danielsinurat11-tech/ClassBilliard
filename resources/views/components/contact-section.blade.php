@@ -2,9 +2,13 @@
 @php
     use App\Services\MapsUrlConverter;
     
-    // Jika $contact tidak dikirim dari controller, cari yang aktif
+    // Jika $contact tidak dikirim dari controller, cari yang aktif (optimized)
     if (!isset($contact)) {
-        $contact = \App\Models\Contact::where('is_active', true)->first();
+        $contact = cache()->remember('component_contact', 3600, function () {
+            return \App\Models\Contact::select('id', 'title', 'subtitle', 'description', 'location_name', 'address', 'phone', 'email', 'whatsapp', 'navbar_label', 'navbar_link', 'google_maps_url', 'map_url', 'opening_hours', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url', 'is_active')
+                ->where('is_active', true)
+                ->first();
+        });
     }
     
     // Contact section hanya muncul jika ada data DAN is_active = true

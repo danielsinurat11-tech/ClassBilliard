@@ -17,13 +17,20 @@ class UserController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk melihat manajemen pengguna.');
         }
 
-        // Menampilkan semua user kecuali ID yang sedang login
-        $users = User::with('shift')
+        // Menampilkan semua user kecuali ID yang sedang login (optimized)
+        $users = User::select('id', 'name', 'email', 'role', 'shift_id', 'created_at')
+            ->with('shift:id,name,start_time,end_time')
             ->where('id', '!=', auth()->id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        $shifts = Shift::where('is_active', true)->orderBy('start_time')->get();
+        // Cache shifts karena jarang berubah
+        $shifts = cache()->remember('active_shifts_list', 3600, function () {
+            return Shift::select('id', 'name', 'start_time', 'end_time')
+                ->where('is_active', true)
+                ->orderBy('start_time')
+                ->get();
+        });
 
         return view('admin.manage-users.index', compact('users', 'shifts'));
     }
@@ -35,7 +42,13 @@ class UserController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk membuat pengguna baru.');
         }
 
-        $shifts = Shift::where('is_active', true)->orderBy('start_time')->get();
+        // Cache shifts karena jarang berubah
+        $shifts = cache()->remember('active_shifts_list', 3600, function () {
+            return Shift::select('id', 'name', 'start_time', 'end_time')
+                ->where('is_active', true)
+                ->orderBy('start_time')
+                ->get();
+        });
         return view('admin.manage-users.create', compact('shifts'));
     }
 
@@ -79,7 +92,13 @@ class UserController extends Controller
             return redirect()->route('admin.manage-users.index')->with('error', 'Gunakan menu Profil untuk mengedit akun Anda.');
         }
 
-        $shifts = Shift::where('is_active', true)->orderBy('start_time')->get();
+        // Cache shifts karena jarang berubah
+        $shifts = cache()->remember('active_shifts_list', 3600, function () {
+            return Shift::select('id', 'name', 'start_time', 'end_time')
+                ->where('is_active', true)
+                ->orderBy('start_time')
+                ->get();
+        });
         return view('admin.manage-users.edit', compact('user', 'shifts'));
     }
 

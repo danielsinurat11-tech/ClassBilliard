@@ -1,6 +1,11 @@
 {{-- About Section Component --}}
 @php
-    $about = $about ?? \App\Models\TentangKami::where('is_active', true)->first();
+    // Optimized: Use cached data with select specific columns if not passed from controller
+    $about = $about ?? cache()->remember('component_about', 3600, function () {
+        return \App\Models\TentangKami::select('id', 'title', 'subtitle', 'image', 'video_url', 'video_description', 'is_active')
+            ->where('is_active', true)
+            ->first();
+    });
     // Tidak ada fallback values - hanya menampilkan data dari database
     $title = $about && $about->title && trim($about->title) !== '' ? trim($about->title) : '';
     $content = $about && $about->subtitle && trim($about->subtitle) !== '' ? trim($about->subtitle) : '';

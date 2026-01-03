@@ -176,7 +176,9 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        $order = orders::with('orderItems')->findOrFail($id);
+        $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->findOrFail($id);
         
         // Hanya bisa lihat order yang masih processing atau pending
         if (!in_array($order->status, ['pending', 'processing'])) {
@@ -191,7 +193,9 @@ class OrderController extends Controller
      */
     public function getOrderData($id)
     {
-        $order = orders::with('orderItems')->findOrFail($id);
+        $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->findOrFail($id);
         
         return response()->json([
             'success' => true,
@@ -223,7 +227,9 @@ class OrderController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $order = orders::with('orderItems')->findOrFail($id);
+        $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->findOrFail($id);
         
         // Hanya bisa edit order yang masih processing atau pending
         if (!in_array($order->status, ['pending', 'processing'])) {
@@ -280,7 +286,9 @@ class OrderController extends Controller
      */
     public function addItem(Request $request, $id)
     {
-        $order = orders::with('orderItems')->findOrFail($id);
+        $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->findOrFail($id);
         
         // Hanya bisa edit order yang masih processing atau pending
         if (!in_array($order->status, ['pending', 'processing'])) {
@@ -351,7 +359,9 @@ class OrderController extends Controller
      */
     public function removeItem($id, $itemId)
     {
-        $order = orders::with('orderItems')->findOrFail($id);
+        $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+            ->findOrFail($id);
         
         // Hanya bisa edit order yang masih processing atau pending
         if (!in_array($order->status, ['pending', 'processing'])) {
@@ -441,10 +451,16 @@ class OrderController extends Controller
         $user = Auth::user();
         $userShiftId = $user->shift_id;
         
-        // Get active shift based on time
-        $activeShift = Shift::getActiveShift();
+        // Get active shift based on time (with caching untuk performa)
+        $activeShift = cache()->remember('active_shift', 60, function () {
+            return Shift::getActiveShift();
+        });
         
-        $query = orders::with('orderItems')
+        // Optimasi query: hanya ambil kolom yang diperlukan dan eager load orderItems dengan select
+        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
+            ->with(['orderItems' => function ($query) {
+                $query->select('id', 'order_id', 'menu_name', 'price', 'quantity', 'image');
+            }])
             ->where('status', 'processing');
         
         // Filter by user's shift - WAJIB filter berdasarkan shift user
@@ -487,9 +503,10 @@ class OrderController extends Controller
                 ->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
         
-        // Eager load orderItems to prevent N+1 queries
+        // Eager load orderItems to prevent N+1 queries (optimized)
         // Apply shift filter: super_admin gets all orders from all shifts, regular admin gets only their shift
-        $query = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
+        $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->orderByRaw("CASE 
                 WHEN status = 'processing' THEN 1 
                 WHEN status = 'completed' THEN 2 
@@ -566,10 +583,11 @@ class OrderController extends Controller
         // Check if there are any changes (new orders or status changes)
         $hasChanges = $newOrdersCount > 0 || $statusChangedCount > 0;
         
-        // Get new orders details if there are new orders
+        // Get new orders details if there are new orders (optimized)
         $newOrders = [];
         if ($newOrdersCount > 0) {
-            $newOrders = orders::with('orderItems')
+            $newOrders = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
+                ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                 ->where('shift_id', $user->shift_id)
                 ->where('id', '>', $lastOrderId)
                 ->where('status', 'processing')
@@ -700,8 +718,10 @@ class OrderController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk menghapus order.');
         }
         
-        // Eager load orderItems for deletion
-        $order = orders::with('orderItems:id,order_id')->findOrFail($id);
+        // Eager load orderItems for deletion (optimized - hanya kolom yang diperlukan)
+        $order = orders::select('id', 'status', 'shift_id')
+            ->with('orderItems:id,order_id')
+            ->findOrFail($id);
         
         // Authorization: Check if order belongs to user's shift (or super_admin)
         if (!$this->canAccessOrder($user, $order)) {
@@ -802,8 +822,9 @@ class OrderController extends Controller
                 ], 401);
             }
             
-            // Eager load orderItems for data manipulation
-            $order = orders::with('orderItems:id,order_id,menu_name,price,quantity,image')
+            // Eager load orderItems for data manipulation (optimized)
+            $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+                ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                 ->findOrFail($id);
             
             // Authorization: Check if order belongs to user's shift or super_admin
@@ -1098,8 +1119,9 @@ class OrderController extends Controller
             });
         }
 
-        // Ambil juga dari orders untuk data yang mungkin belum tersimpan di kitchen_reports
-        $ordersQuery = orders::with('orderItems')
+        // Ambil juga dari orders untuk data yang mungkin belum tersimpan di kitchen_reports (optimized)
+        $ordersQuery = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('status', 'completed');
         
         // Filter by shift if not super_admin
@@ -1201,8 +1223,9 @@ class OrderController extends Controller
         $month = $request->get('month', Carbon::now('Asia/Jakarta')->format('Y-m'));
         $year = $request->get('year', Carbon::now('Asia/Jakarta')->format('Y'));
 
-        // Build query for completed orders
-        $ordersQuery = orders::with('orderItems')
+        // Build query for completed orders (optimized)
+        $ordersQuery = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+            ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('shift_id', $user->shift_id)
             ->where('status', 'completed');
 
@@ -1508,7 +1531,9 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $order = orders::with('orderItems')->findOrFail($id);
+            $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+                ->with('orderItems:id,order_id,menu_name,price,quantity,image')
+                ->findOrFail($id);
             
             // Pastikan order sudah completed
             if ($order->status !== 'completed') {
@@ -1649,7 +1674,8 @@ class OrderController extends Controller
             $startDate = Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta')->startOfDay();
             $endDate = Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta')->endOfDay();
             
-            $orders = orders::with('orderItems')
+            $orders = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+                ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                 ->where('status', 'completed')
                 ->where('shift_id', $user->shift_id) // Filter berdasarkan shift user
                 ->whereBetween('created_at', [
@@ -1857,7 +1883,8 @@ class OrderController extends Controller
             // Ambil semua order yang sudah completed dalam periode baru
             // Catatan: Order yang sudah di-rekap sebelumnya sudah dihapus,
             // jadi kita hanya bisa mengambil order baru yang completed untuk periode tersebut
-            $orders = orders::with('orderItems')
+            $orders = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+                ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                 ->where('status', 'completed')
                 ->whereBetween('created_at', [
                     Carbon::parse($request->start_date)->startOfDay(),

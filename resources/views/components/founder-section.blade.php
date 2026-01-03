@@ -1,6 +1,11 @@
 {{-- About Founder Section Component --}}
 @php
-    $founder = $founder ?? \App\Models\AboutFounder::where('is_active', true)->first();
+    // Optimized: Use cached data with select specific columns if not passed from controller
+    $founder = $founder ?? cache()->remember('component_founder', 3600, function () {
+        return \App\Models\AboutFounder::select('id', 'title', 'subtitle', 'name', 'position', 'description', 'quote', 'signature', 'photo', 'image', 'video_url', 'facebook_url', 'instagram_url', 'linkedin_url', 'is_active')
+            ->where('is_active', true)
+            ->first();
+    });
     // Tidak ada fallback values - hanya menampilkan data dari database
     $name = $founder && $founder->name && trim($founder->name) !== '' ? trim($founder->name) : '';
     $position = $founder && $founder->position && trim($founder->position) !== '' ? trim($founder->position) : '';

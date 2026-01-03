@@ -14,11 +14,18 @@ class FoodInventoryController extends Controller
      */
     public function index()
     {
-        $inventories = FoodInventory::with('menu')
+        // Optimized: Select specific columns and eager load menu
+        $inventories = FoodInventory::select('id', 'menu_id', 'quantity', 'reorder_level', 'last_restocked_at', 'created_at')
+            ->with('menu:id,name,image_path')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         
-        $menus = Menu::orderBy('name')->get();
+        // Cache menus karena jarang berubah
+        $menus = cache()->remember('menus_list', 1800, function () {
+            return Menu::select('id', 'name')
+                ->orderBy('name')
+                ->get();
+        });
 
         return view('admin.inventory.index', compact('inventories', 'menus'));
     }
