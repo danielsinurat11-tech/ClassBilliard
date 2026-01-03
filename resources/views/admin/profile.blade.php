@@ -170,7 +170,7 @@
                                     <div class="w-full h-16 rounded-md bg-gradient-to-r from-orange-400 to-orange-500 border border-orange-300 dark:border-orange-800 shadow-md"></div>
                                     <div class="text-center">
                                         <p class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Orange</p>
-                                        <p class="text-[10px] text-slate-500 dark:text-gray-400 uppercase tracking-widest font-medium mt-1">#fa9a08 (Current)</p>
+                                        <p class="text-[10px] text-slate-500 dark:text-gray-400 uppercase tracking-widest font-medium mt-1">#fa9a08</p>
                                     </div>
                                 </div>
                                 <div class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 bg-[#fa9a08] flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity">

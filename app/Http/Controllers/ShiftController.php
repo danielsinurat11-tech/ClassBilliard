@@ -78,7 +78,7 @@ class ShiftController extends Controller
         $allowedRoles = ['admin', 'kitchen', 'super_admin'];
         $userRole = $user->getRoleNames()->first();
         if (!in_array($userRole, $allowedRoles)) {
-            return back()->with('error', 'Hanya user dengan role admin, kitchen, atau super_admin yang bisa di-assign ke shift.');
+            return back()->with('error', 'Hanya user dengan role admin, kitchen, atau super admin yang bisa di-assign ke shift.');
         }
 
         $user->update([

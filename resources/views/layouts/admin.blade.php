@@ -221,7 +221,7 @@
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.manage-users.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-user-settings-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
-                            class="font-bold text-xs tracking-tight whitespace-nowrap">User Access</span>
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Manage Users</span>
                     </a>
                     @endif
 
@@ -231,7 +231,7 @@
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.permissions.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-shield-check-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
-                            class="font-bold text-xs tracking-tight whitespace-nowrap">Permissions</span>
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Role Permissions</span>
                     </a>
                     @endif
 
@@ -251,7 +251,7 @@
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.categories.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-price-tag-3-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
-                            class="font-bold text-xs tracking-tight whitespace-nowrap">Categories</span>
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Categories Menu</span>
                     </a>
                     @endif
 
@@ -261,7 +261,7 @@
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.menus.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-restaurant-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
-                            class="font-bold text-xs tracking-tight whitespace-nowrap">Menu Items</span>
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Manage Menu</span>
                     </a>
                     @endif
 
@@ -271,7 +271,7 @@
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.tables.*') || request()->routeIs('admin.barcode.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-qr-code-line text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
-                            class="font-bold text-xs tracking-tight whitespace-nowrap">Barcode</span>
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Manage Table & Barcode</span>
                     </a>
                     @endif
 
@@ -291,7 +291,7 @@
                         class="flex items-center gap-4 px-4 py-2.5 rounded-lg transition-all group {{ request()->routeIs('admin.inventory.*') ? 'active-link' : 'hover:bg-slate-200/50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400' }}">
                         <i class="ri-stack-fill text-lg"></i>
                         <span x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity
-                            class="font-bold text-xs tracking-tight whitespace-nowrap">Stok Makanan</span>
+                            class="font-bold text-xs tracking-tight whitespace-nowrap">Food Stock</span>
                     </a>
                     @endif
                 </div>

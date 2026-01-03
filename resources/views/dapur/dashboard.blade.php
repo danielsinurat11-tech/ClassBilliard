@@ -1,15 +1,30 @@
-@extends('layouts.app')
+@extends('layouts.dapur')
 
 @section('title', 'Dashboard Dapur - Billiard Class')
+
+{{-- Include shift calculation PHP block --}}
+@include('dapur.partials.shift-calculation')
+
+{{-- Include shift meta tags --}}
+@include('dapur.partials.shift-meta')
+
+{{-- Include theme initialization script --}}
+@include('dapur.partials.theme-manager')
+
+{{-- Include dynamic color variables --}}
+@include('dapur.partials.color-variables')
+
+{{-- Include common styles --}}
+@include('dapur.partials.common-styles')
 
 @push('styles')
 <style>
     .order-card {
-        background: linear-gradient(135deg, #fa9a08 0%, #e88907 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
         border-radius: 16px;
         padding: 24px;
         color: white;
-        box-shadow: 0 10px 30px rgba(250, 154, 8, 0.3);
+        box-shadow: 0 10px 30px rgba(var(--primary-color-rgb), 0.3);
     }
     
     .order-card-header {
@@ -38,7 +53,7 @@
     .timer-dot {
         width: 8px;
         height: 8px;
-        background: #ef4444;
+        background: var(--primary-color);
         border-radius: 50%;
         animation: pulse 2s infinite;
     }
@@ -72,7 +87,7 @@
     
     .btn-complete {
         background: white;
-        color: #fa9a08;
+        color: var(--primary-color);
         padding: 10px 24px;
         border-radius: 12px;
         font-weight: bold;
@@ -89,16 +104,18 @@
 </style>
 @endpush
 
+{{-- Include sidebar & main content styles --}}
+@include('dapur.partials.sidebar-main-styles')
+
 @section('content')
-<div x-data="{ sidebarCollapsed: false, sidebarHover: false }" class="min-h-screen bg-slate-50 dark:bg-[#0A0A0A]">
-    @include('dapur.partials.sidebar')
-    
-    <main :class="[(sidebarCollapsed && !sidebarHover) ? 'ml-20' : 'ml-72']" class="transition-all duration-300 p-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Dashboard Dapur</h1>
-                <p class="text-slate-500 dark:text-gray-400">Kelola pesanan yang sedang diproses</p>
-            </div>
+    {{-- Logout Form --}}
+    @include('dapur.partials.logout-form')
+
+    <div class="max-w-7xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Dashboard Dapur</h1>
+            <p class="text-slate-500 dark:text-gray-400">Kelola pesanan yang sedang diproses</p>
+        </div>
             
             <div id="ordersContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @if($orders->count() > 0)
@@ -161,8 +178,9 @@
                 @endif
             </div>
         </div>
-    </main>
-</div>
+            </main>
+        </div>
+    </div>
 
 @push('scripts')
 <script>

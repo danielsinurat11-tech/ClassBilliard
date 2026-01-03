@@ -25,7 +25,7 @@
 
     /* Professional Link State */
     .active-link {
-        background-color: #fa9a08;
+        background-color: var(--primary-color);
         color: #000 !important;
     }
 
@@ -39,7 +39,7 @@
         position: relative;
     }
     .sidebar-menu-item.active {
-        background-color: #fa9a08;
+        background-color: var(--primary-color);
         color: #000 !important;
         font-weight: 600;
     }

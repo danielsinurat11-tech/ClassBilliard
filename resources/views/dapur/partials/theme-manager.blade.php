@@ -1,16 +1,35 @@
 {{-- Alpine.js Theme Manager Script --}}
 @push('head')
 <script>
+    {{-- Helper function to get cookie value --}}
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const cookies = document.cookie.split(';');
+        for(let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if(cookie.indexOf(nameEQ) === 0) {
+                return cookie.substring(nameEQ.length);
+            }
+        }
+        return null;
+    }
+
     {{-- Initialize theme immediately in head --}}
     (function() {
         try {
+            const cookieTheme = getCookie('theme');
             const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            
+            // Prioritize cookie, then localStorage, default to dark
+            const theme = cookieTheme || savedTheme || 'dark';
+            
+            if (theme === 'dark') {
                 document.documentElement.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
             }
+            
+            console.log('Theme HEAD initialized:', theme, 'Cookie:', cookieTheme, 'LocalStorage:', savedTheme);
         } catch(e) {
             console.error('Theme initialization error:', e);
         }
@@ -20,6 +39,19 @@
 
 @push('scripts')
 <script>
+    {{-- Helper function to get cookie value --}}
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const cookies = document.cookie.split(';');
+        for(let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if(cookie.indexOf(nameEQ) === 0) {
+                return cookie.substring(nameEQ.length);
+            }
+        }
+        return null;
+    }
+
     {{-- Theme Manager Alpine.js Component --}}
     document.addEventListener('alpine:init', () => {
         Alpine.data('themeManager', () => ({
@@ -28,13 +60,12 @@
             darkMode: false, // Will be set in initTheme()
 
             initTheme() {
-                // Set initial theme based on cookie, localStorage, or system preference
-                const cookieTheme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
+                // Set initial theme based on cookie, localStorage, or default to dark
+                const cookieTheme = getCookie('theme');
                 const savedTheme = localStorage.getItem('theme');
-                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 
-                // Prioritize cookie, then localStorage, then system preference
-                const theme = cookieTheme || savedTheme || (prefersDark ? 'dark' : 'light');
+                // Prioritize cookie, then localStorage, default to dark
+                const theme = cookieTheme || savedTheme || 'dark';
                 
                 this.darkMode = theme === 'dark';
                 
@@ -44,7 +75,7 @@
                     document.documentElement.classList.remove('dark');
                 }
                 
-                // Sync localStorage with cookie
+                // Sync localStorage with cookie if cookie exists
                 if (cookieTheme && cookieTheme !== savedTheme) {
                     localStorage.setItem('theme', cookieTheme);
                 }
@@ -52,21 +83,29 @@
                 // Initialize sidebar state
                 this.initSidebarState();
                 
-                console.log('Theme initialized:', this.darkMode ? 'dark' : 'light', 'Saved:', savedTheme, 'Cookie:', cookieTheme);
+                console.log('Theme initialized:', this.darkMode ? 'dark' : 'light', 'Cookie:', cookieTheme, 'LocalStorage:', savedTheme);
             },
 
             toggleTheme() {
                 this.darkMode = !this.darkMode;
                 const theme = this.darkMode ? 'dark' : 'light';
+                
+                // Save to localStorage
                 localStorage.setItem('theme', theme);
-                document.cookie = `theme=${theme}; path=/; max-age=31536000`; // Set cookie
+                
+                // Set cookie with SameSite=Lax
+                document.cookie = `theme=${theme}; path=/; max-age=31536000; SameSite=Lax`;
+                
                 if (this.darkMode) {
                     document.documentElement.classList.add('dark');
                 } else {
                     document.documentElement.classList.remove('dark');
                 }
+                
                 this.$nextTick(() => {
-                    console.log('Theme toggled:', theme);
+                    console.log('Theme toggled to:', theme);
+                    console.log('Cookie value:', getCookie('theme'));
+                    console.log('LocalStorage value:', localStorage.getItem('theme'));
                     console.log('HTML has dark class:', document.documentElement.classList.contains('dark'));
                 });
             },
@@ -92,7 +131,7 @@
                         text: 'Are you sure you want to logout?',
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: '#fa9a08',
+                        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
                         cancelButtonColor: '#1e1e1e',
                         confirmButtonText: 'Yes, Sign Out',
                         background: this.darkMode ? '#0A0A0A' : '#fff',

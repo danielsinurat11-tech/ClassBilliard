@@ -25,7 +25,7 @@
 
     .order-card-modern:hover {
         transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(250, 154, 8, 0.3);
+        box-shadow: 0 20px 40px rgba(var(--primary-color-rgb), 0.3);
     }
 
     .complete-order-btn {
@@ -41,7 +41,7 @@
         width: 0;
         height: 0;
         border-radius: 50%;
-        background: rgba(250, 154, 8, 0.2);
+        background: rgba(var(--primary-color-rgb), 0.2);
         transform: translate(-50%, -50%);
         transition: width 0.6s, height 0.6s;
     }

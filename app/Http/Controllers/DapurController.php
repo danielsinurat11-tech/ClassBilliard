@@ -8,6 +8,7 @@ use App\Models\KitchenReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 class DapurController extends Controller
@@ -300,5 +301,66 @@ class DapurController extends Controller
                 })
             ]
         ]);
+    }
+
+    /**
+     * Show profile edit form for kitchen staff
+     */
+    public function profileEdit()
+    {
+        $user = auth()->user();
+        return view('dapur.profile', compact('user'));
+    }
+
+    /**
+     * Update profile information for kitchen staff
+     */
+    public function profileUpdate(Request $request)
+    {
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('dapur.profile.edit')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    /**
+     * Update password for kitchen staff
+     */
+    public function profilePassword(Request $request)
+    {
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password:web'],
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+        ]);
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->route('dapur.profile.edit')->with('success', 'Password berhasil diperbarui.');
+    }
+
+    /**
+     * Update color preference for kitchen staff
+     */
+    public function profileColorUpdate(Request $request)
+    {
+        $user = auth()->user();
+        
+        $validated = $request->validate([
+            'primary_color' => ['required', 'string', 'in:#fbbf24,#fa9a08,#2f7d7a'],
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('dapur.profile.edit')->with('success', 'Warna preferensi berhasil diperbarui.');
     }
 }

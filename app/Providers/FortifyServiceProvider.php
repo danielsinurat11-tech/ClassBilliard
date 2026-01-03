@@ -76,26 +76,16 @@ class FortifyServiceProvider extends ServiceProvider
                         }
                     }
                     
-                    // Check if there's an intended URL and it's an admin/kitchen route
-                    $intended = session()->pull('url.intended');
-                    
-                    if ($role === 'admin') {
-                        // If intended URL is admin route, use it; otherwise go to admin dashboard
-                        if ($intended && (str_contains($intended, '/admin') || str_contains($intended, '/dapur'))) {
-                            return redirect($intended);
-                        }
-                        // Always redirect admin to admin dashboard
+                    // Redirect berdasarkan role
+                    if ($role === 'admin' || $role === 'super_admin') {
+                        // Admin dan Super Admin ke dashboard admin
                         return redirect()->route('admin.dashboard');
                     } elseif ($role === 'kitchen') {
-                        // If intended URL is kitchen route, use it; otherwise go to kitchen dashboard
-                        if ($intended && str_contains($intended, '/dapur')) {
-                            return redirect($intended);
-                        }
-                        // Always redirect kitchen to dapur
+                        // Kitchen ke halaman dapur
                         return redirect()->route('dapur');
                     }
-
-                    // Jika tidak ada role yang cocok, redirect ke home
+                    
+                    // Default ke home jika tidak ada role yang cocok
                     return redirect('/');
                 }
                 

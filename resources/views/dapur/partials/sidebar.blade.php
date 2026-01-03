@@ -7,7 +7,7 @@
     {{-- Sidebar Header --}}
     <div class="h-20 flex items-center px-6 shrink-0 border-b border-slate-200 dark:border-white/5 overflow-hidden">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-[#fa9a08] rounded-lg flex items-center justify-center shrink-0">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 btn-primary">
                 <i class="ri-restaurant-line text-black text-lg"></i>
             </div>
             <div x-show="!sidebarCollapsed || sidebarHover" x-transition.opacity.duration.300ms class="flex flex-col whitespace-nowrap">
@@ -62,7 +62,7 @@
     <div class="p-4 border-t border-slate-200 dark:border-white/5">
         {{-- Sidebar Toggle Button --}}
         <button @click="sidebarCollapsed = !sidebarCollapsed; sidebarHover = false" 
-            class="w-full h-9 flex items-center justify-center rounded-md bg-slate-200 dark:bg-white/5 hover:bg-[#fa9a08] hover:text-black transition-all group">
+            class="w-full h-9 flex items-center justify-center rounded-md bg-slate-200 dark:bg-white/5 hover:bg-[var(--primary-color)] hover:text-black transition-all group">
             <i :class="sidebarCollapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line'" class="text-sm"></i>
         </button>
     </div>

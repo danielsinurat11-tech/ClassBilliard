@@ -60,7 +60,7 @@
                         title: '⏰ Peringatan!',
                         html: `<p class="text-lg mb-2">Shift akan berakhir dalam <strong>${minutesUntilEnd} menit</strong>!</p><p class="text-sm">Pastikan semua order sudah selesai sebelum shift berakhir.</p>`,
                         confirmButtonText: 'OK',
-                        confirmButtonColor: '#fa9a08'
+                        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim()
                     });
                 }
                 
@@ -95,7 +95,7 @@
                         title: 'Shift Berakhir',
                         html: `<p class="text-lg mb-2">${message}</p>`,
                         confirmButtonText: 'OK',
-                        confirmButtonColor: '#fa9a08',
+                        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
                         allowOutsideClick: false,
                         allowEscapeKey: false,
                         background: document.documentElement.classList.contains('dark') ? '#0A0A0A' : '#fff',

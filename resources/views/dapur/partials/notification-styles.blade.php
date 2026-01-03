@@ -39,11 +39,11 @@
     }
     
     .notification {
-        background: linear-gradient(135deg, #fa9a08 0%, #ffb84d 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
         color: white;
         padding: 20px;
         border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(250, 154, 8, 0.4);
+        box-shadow: 0 8px 24px rgba(var(--primary-color-rgb), 0.4);
         margin-bottom: 15px;
         animation: slideInRight 0.5s ease-out;
         display: flex;

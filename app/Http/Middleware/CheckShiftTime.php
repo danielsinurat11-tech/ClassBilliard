@@ -144,7 +144,7 @@ class CheckShiftTime
                 
                 return response()->json([
                     'error' => true,
-                    'message' => "⏛ Anda hanya bisa login saat jam shift aktif. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).",
+                    'message' => "Anda hanya bisa login saat jam shift aktif. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).",
                     'redirect' => '/'
                 ], 403);
             }
@@ -155,7 +155,7 @@ class CheckShiftTime
             $request->session()->regenerateToken();
 
             // Flash error message
-            session()->flash('error', "⏛ Anda hanya bisa login saat jam shift aktif. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).");
+            session()->flash('error', "Anda hanya bisa login saat jam shift aktif. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).");
 
             return redirect('/');
         }
@@ -165,10 +165,10 @@ class CheckShiftTime
         if ($request->routeIs('dapur') || $request->routeIs('reports') || $request->routeIs('pengaturan-audio') || $request->is('admin*')) {
             if ($now < $startTime && $now >= $toleranceStart) {
                 $minutesUntil = $startTime->diffInMinutes($now);
-                session()->flash('warning', "⏰ Shift Anda belum dimulai. Mulai dalam {$minutesUntil} menit.");
+                session()->flash('warning', "Shift Anda belum dimulai. Mulai dalam {$minutesUntil} menit.");
             } elseif ($now > $endTime && $now <= $toleranceEnd) {
                 $minutesAfter = $now->diffInMinutes($endTime);
-                session()->flash('warning', "⏰ Shift Anda sudah berakhir {$minutesAfter} menit lalu. Segera selesaikan pekerjaan.");
+                session()->flash('warning', "Shift Anda sudah berakhir {$minutesAfter} menit lalu. Segera selesaikan pekerjaan.");
             }
         }
 

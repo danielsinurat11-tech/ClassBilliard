@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.dapur')
 
 @section('title', 'Pengaturan Audio - Billiard Class')
 
@@ -10,6 +10,9 @@
 
 {{-- Include theme initialization script --}}
 @include('dapur.partials.theme-manager')
+
+{{-- Include dynamic color variables --}}
+@include('dapur.partials.color-variables')
 
 {{-- Include common styles --}}
 @include('dapur.partials.common-styles')
@@ -414,7 +417,7 @@
                         text: 'Audio yang dihapus tidak dapat dikembalikan',
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: '#ef4444',
+                        confirmButtonColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
                         cancelButtonColor: '#6b7280',
                         confirmButtonText: 'Ya, Hapus',
                         cancelButtonText: 'Batal',
@@ -493,71 +496,60 @@
     {{-- Logout Form --}}
     @include('dapur.partials.logout-form')
 
-    <div x-data="themeManager()" x-init="initTheme()" class="min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200">
-        {{-- Sidebar --}}
-        @include('dapur.partials.sidebar')
-
-        {{-- Main Content Wrapper --}}
-        <div class="min-h-screen flex flex-col transition-all duration-300" :class="sidebarCollapsed ? 'ml-20 lg:ml-20' : 'ml-72 lg:ml-72'">
-            {{-- Navbar --}}
-            @include('dapur.partials.navbar', ['pageTitle' => 'Pengaturan Audio'])
-
-            {{-- Main Content --}}
-            <main class="flex-1 p-8 md:p-12">
-                <div class="w-full">
+    <div class="max-w-4xl mx-auto">
                     {{-- Audio Settings Card --}}
-                    <div class="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 p-6 rounded-2xl shadow-sm dark:shadow-none" x-data="kitchenNotification()">
-                        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                            <i class="ri-settings-3-line text-[#fa9a08]"></i>
+                    <div class="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 p-8 rounded-2xl shadow-lg dark:shadow-2xl dark:shadow-black/30" x-data="kitchenNotification()">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
+                            <i class="ri-settings-3-line icon-primary text-xl"></i>
                             Pengaturan Audio Notifikasi
                         </h2>
                         
                         {{-- Audio Settings --}}
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Pilih Audio Notifikasi</label>
+                        <div class="mb-8">
+                            <label class="block text-base font-semibold text-gray-900 dark:text-white mb-4">Pilih Audio Notifikasi</label>
                             
                             {{-- Current Audio Display --}}
-                            <div x-show="selectedAudio" class="mb-4 p-3 bg-gray-100 dark:bg-black/20 rounded-lg border border-gray-300 dark:border-white/10">
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Audio Saat Ini:</p>
+                            <div x-show="selectedAudio" class="mb-6 p-4 bg-blue-50 dark:bg-blue-500/10 rounded-xl border border-blue-200 dark:border-blue-500/20">
+                                <p class="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2 uppercase">Audio Saat Ini</p>
                                 <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="getCurrentAudioName() || 'Tidak ada audio dipilih'"></p>
                             </div>
-                            <div x-show="!selectedAudio" class="mb-4 p-3 bg-gray-100 dark:bg-gray-500/10 border border-gray-300 dark:border-gray-500/20 rounded-lg">
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">Audio Saat Ini:</p>
-                                <p class="text-sm font-medium text-gray-600 dark:text-gray-500">Tidak ada audio</p>
+                            <div x-show="!selectedAudio" class="mb-6 p-4 bg-gray-100 dark:bg-gray-500/10 rounded-xl border border-gray-300 dark:border-gray-500/20">
+                                <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase">Audio Saat Ini</p>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-500">Tidak ada audio dipilih</p>
                             </div>
                             
                             {{-- File Picker untuk Pilih/Upload Audio --}}
-                            <div class="mb-4">
+                            <div class="mb-8">
                                 <input type="file" @change="handleAudioFileSelect($event)" accept="audio/*" 
                                     class="hidden" x-ref="audioFilePicker">
                                 <button @click="openFilePicker()" 
-                                    class="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-3 px-4 rounded-lg transition-all mb-3">
+                                    class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-semibold py-3 px-4 rounded-xl transition-all shadow-md hover:shadow-lg mb-4 flex items-center justify-center gap-2">
                                     <i class="ri-file-music-line"></i> Pilih File Audio
                                 </button>
                                 
                                 {{-- Preview Selected File --}}
                                 <template x-if="previewFile">
-                                    <div class="mb-3 p-3 bg-green-50 dark:bg-green-500/10 border border-green-300 dark:border-green-500/20 rounded-lg">
-                                        <p class="text-xs text-green-600 dark:text-green-400 mb-1">File Dipilih:</p>
+                                    <div class="mb-4 p-4 bg-green-50 dark:bg-green-500/10 rounded-xl border border-green-200 dark:border-green-500/20">
+                                        <p class="text-xs font-semibold text-green-600 dark:text-green-400 mb-2 uppercase">File Dipilih</p>
                                         <p class="text-sm text-gray-900 dark:text-white font-medium" x-text="previewFile.name"></p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400" x-text="formatFileSize(previewFile.size)"></p>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1" x-text="formatFileSize(previewFile.size)"></p>
                                     </div>
                                 </template>
                                 
                                 {{-- Options untuk File yang Dipilih --}}
                                 <template x-if="previewFile">
-                                    <div class="space-y-3">
+                                    <div class="space-y-4 mb-4">
                                     <input type="text" x-model="newAudioName" placeholder="Nama audio (opsional)" 
-                                        class="w-full bg-white dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-lg py-2 px-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-600/50">
+                                        class="w-full bg-white dark:bg-black/40 border border-gray-300 dark:border-white/10 rounded-xl py-3 px-4 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all">
                                     
-                                    <div class="flex gap-2">
+                                    <div class="flex gap-3">
                                         <button @click="useAudioDirectly()" 
-                                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all">
+                                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-3 px-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                                             <i class="ri-check-line"></i> Gunakan Langsung
                                         </button>
                                         <button @click="uploadAudioAsNew()" 
                                             :disabled="isUploading"
-                                            class="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-medium py-2 px-3 rounded-lg transition-all">
+                                            class="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 px-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                                             <i class="ri-upload-cloud-line"></i> Simpan ke Daftar
                                         </button>
                                     </div>
@@ -567,19 +559,20 @@
                             
                             {{-- Test Audio Button --}}
                             <button x-show="selectedAudio" @click="testAudio()" 
-                                class="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-3 px-4 rounded-lg transition-all mb-4">
+                                class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-semibold py-3 px-4 rounded-xl transition-all shadow-md hover:shadow-lg mb-8 flex items-center justify-center gap-2">
                                 <i class="ri-play-line"></i> Test Audio
                             </button>
                             
                             {{-- List of Saved Audios --}}
-                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-3">Daftar Audio Tersimpan</label>
-                                <div class="max-h-64 overflow-y-auto space-y-2">
-                                    <div x-show="availableSounds.length === 0" class="text-sm text-gray-600 dark:text-gray-500 text-center py-4">
-                                        Belum ada audio tersimpan
+                            <div class="mt-8 pt-8 border-t border-gray-200 dark:border-white/10">
+                                <label class="block text-base font-semibold text-gray-900 dark:text-white mb-4">Daftar Audio Tersimpan</label>
+                                <div class="max-h-80 overflow-y-auto space-y-3 pr-2">
+                                    <div x-show="availableSounds.length === 0" class="text-sm text-gray-600 dark:text-gray-500 text-center py-8">
+                                        <i class="ri-inbox-line text-4xl mb-2 opacity-50"></i>
+                                        <p>Belum ada audio tersimpan</p>
                                     </div>
                                     <template x-for="sound in availableSounds" :key="sound.id">
-                                        <div class="flex items-center justify-between bg-gray-100 dark:bg-black/20 rounded-lg p-3 border border-gray-300 dark:border-white/10">
+                                        <div class="flex items-center justify-between bg-gray-50 dark:bg-white/5 rounded-xl p-4 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10 transition-all">
                                             <span class="text-sm text-gray-900 dark:text-white flex-1" x-text="sound.name"></span>
                                             <div class="flex items-center gap-2">
                                                 <button @click.stop="selectAudioFromList(sound)" 

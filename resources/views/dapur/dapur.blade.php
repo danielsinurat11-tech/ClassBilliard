@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.dapur')
 
 @section('title', 'Dapur - Billiard Class')
 
@@ -7,6 +7,12 @@
 
 {{-- Include shift meta tags --}}
 @include('dapur.partials.shift-meta')
+
+{{-- Include theme initialization script --}}
+@include('dapur.partials.theme-manager')
+
+{{-- Include dynamic color variables --}}
+@include('dapur.partials.color-variables')
 
 {{-- Include common styles --}}
 @include('dapur.partials.common-styles')
@@ -86,22 +92,12 @@
     {{-- Notification Container --}}
     <div id="notificationContainer" class="notification-container"></div>
 
-    <div x-data="themeManager()" x-init="initTheme()" class="min-h-screen bg-gray-50 dark:bg-[#050505] theme-transition text-black dark:text-slate-200">
-        {{-- Sidebar --}}
-        @include('dapur.partials.sidebar')
-
-        {{-- Main Content Wrapper --}}
-        <div class="min-h-screen flex flex-col transition-all duration-300" :class="sidebarCollapsed ? 'ml-20 lg:ml-20' : 'ml-72 lg:ml-72'">
-            {{-- Navbar --}}
-            @include('dapur.partials.navbar', ['pageTitle' => 'Dashboard Dapur'])
-
-            {{-- Main Content --}}
-            <main class="flex-1 p-8 md:p-12">
-                <div class="w-full" id="ordersSection">
-            @if($orders->count() > 0)
-                <div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
+    <div class="max-w-7xl mx-auto">
+        <div id="ordersSection">
+        @if($orders->count() > 0)
+            <div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4">
                     @foreach($orders as $order)
-                        <div class="order-card-modern group relative bg-gradient-to-br from-[#fa9a08] via-[#ff8c00] to-[#ff6b00] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-300/20" data-order-id="{{ $order->id }}">
+                        <div class="order-card-modern group relative bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-hover)] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-[rgba(var(--primary-color-rgb),0.2)]" data-order-id="{{ $order->id }}">
                             {{-- Decorative Pattern --}}
                             <div class="absolute inset-0 opacity-10">
                                 <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
@@ -229,7 +225,7 @@
                                         <span>Mulai Masak</span>
                                     </button>
                                 @elseif($order->status === 'processing')
-                                    <button class="complete-order-btn bg-white text-[#fa9a08] px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 group/btn" data-order-id="{{ $order->id }}">
+                                    <button class="complete-order-btn bg-white text-[var(--primary-color)] px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 group/btn" data-order-id="{{ $order->id }}">
                                         <i class="ri-checkbox-circle-line text-base group-hover/btn:rotate-12 transition-transform"></i>
                                         <span>Selesai</span>
                                     </button>
@@ -243,7 +239,6 @@
                     <p>Belum ada pesanan</p>
                 </div>
             @endif
-            </main>
         </div>
     </div>
 
@@ -381,7 +376,7 @@
         // Function to show notification
         function showNotification(order) {
             const notification = document.createElement('div');
-            notification.className = 'notification bg-gradient-to-br from-[#fa9a08] to-[#ffb84d] text-white p-5 rounded-xl shadow-[0_8px_24px_rgba(250,154,8,0.4)] mb-4 flex items-center gap-4 min-w-[300px] relative z-[9999] animate-[slideInRight_0.5s_ease-out] sm:min-w-0 sm:w-full sm:p-4';
+            notification.className = 'notification bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-hover)] text-white p-5 rounded-xl shadow-[0_8px_24px_rgba(var(--primary-color-rgb),0.4)] mb-4 flex items-center gap-4 min-w-[300px] relative z-[9999] animate-[slideInRight_0.5s_ease-out] sm:min-w-0 sm:w-full sm:p-4';
             notification.id = `notification-${order.id}`;
             
             const itemsText = order.order_items.map(item => 
@@ -502,7 +497,7 @@
             const remainingCount = items.length > 4 ? items.length - 4 : 0;
             
             return `
-                <div class="order-card-modern group relative bg-gradient-to-br from-[#fa9a08] via-[#ff8c00] to-[#ff6b00] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-orange-300/20" data-order-id="${order.id}">
+                <div class="order-card-modern group relative bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-hover)] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-[rgba(var(--primary-color-rgb),0.2)]" data-order-id="${order.id}">
                     <!-- Decorative Pattern -->
                     <div class="absolute inset-0 opacity-10">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
@@ -628,7 +623,7 @@
                                 <span>Mulai Masak</span>
                             </button>
                         ` : order.status === 'processing' ? `
-                            <button class="complete-order-btn bg-white text-[#fa9a08] px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 group/btn" data-order-id="${order.id}">
+                            <button class="complete-order-btn bg-white text-[var(--primary-color)] px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2 group/btn" data-order-id="${order.id}">
                                 <i class="ri-checkbox-circle-line text-base group-hover/btn:rotate-12 transition-transform"></i>
                                 <span>Selesai</span>
                             </button>

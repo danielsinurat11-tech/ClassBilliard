@@ -23,10 +23,20 @@ Route::get('/orders/create', [App\Http\Controllers\MenuController::class, 'creat
 Route::post('/orders/store', [App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
 Route::get('/orders/{id}', [App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
 Route::get('/orders/{id}/data', [App\Http\Controllers\OrderController::class, 'getOrderData'])->name('orders.data');
-Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(function () {
+Route::middleware(['auth.custom', 'role:kitchen'])->group(function () {
     // Dashboard Dapur
     Route::get('/dapur', [App\Http\Controllers\DapurController::class, 'index'])->name('dapur');
     
+    // Profile routes for Dapur (without shift time check)
+    Route::prefix('dapur/profile')->name('dapur.profile.')->group(function () {
+        Route::get('/edit', [App\Http\Controllers\DapurController::class, 'profileEdit'])->name('edit');
+        Route::put('/update', [App\Http\Controllers\DapurController::class, 'profileUpdate'])->name('update');
+        Route::put('/password', [App\Http\Controllers\DapurController::class, 'profilePassword'])->name('password');
+        Route::put('/color', [App\Http\Controllers\DapurController::class, 'profileColorUpdate'])->name('color');
+    });
+
+    // Other dapur routes with shift time check
+    Route::middleware('check.shift.time')->group(function () {
     // API Routes untuk Dapur
     Route::get('/dapur/orders/active', [App\Http\Controllers\DapurController::class, 'activeOrders'])->name('dapur.orders.active');
     Route::get('/dapur/orders/stream', [App\Http\Controllers\DapurController::class, 'ordersStream'])->name('dapur.orders.stream');
@@ -49,6 +59,7 @@ Route::middleware(['auth.custom', 'role:kitchen', 'check.shift.time'])->group(fu
         Route::post('/', [App\Http\Controllers\NotificationSoundController::class, 'store'])->name('store');
         Route::delete('/{id}', [App\Http\Controllers\NotificationSoundController::class, 'destroy'])->name('destroy');
     });
+    }); // Close check.shift.time middleware group
 });
 
 // Public order route (untuk customer membuat pesanan)
@@ -64,19 +75,21 @@ Route::post('/orders/{id}/cancel', [App\Http\Controllers\OrderController::class,
 // All admin and super_admin access /admin dashboard
 // Controllers/Policies control what each role can actually do
 // ========================================
-Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_admin|admin', 'check.shift.time'])->group(function () {
-    Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
-    
-    // Profile routes (all roles)
+Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_admin|admin'])->group(function () {
+    // Profile routes (all roles - without shift time check)
     Route::controller(AdminController::class)->group(function () {
         Route::get('/profile', 'profileEdit')->name('profile.edit');
         Route::put('/profile/update', 'profileUpdate')->name('profile.update');
         Route::put('/profile/color', 'profileColorUpdate')->name('profile.color');
         Route::put('/profile/password', 'profilePassword')->name('profile.password');
     });
-    
-    // CMS Routes (super_admin & admin - add authorization in controller)
-    Route::prefix('cms')->name('cms.')->group(function () {
+
+    // Other admin routes with shift time check
+    Route::middleware('check.shift.time')->group(function () {
+        Route::get('/', [App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+        
+        // CMS Routes (super_admin & admin - add authorization in controller)
+        Route::prefix('cms')->name('cms.')->group(function () {
         Route::get('/hero', [App\Http\Controllers\AdminController::class, 'heroIndex'])->name('hero');
         Route::post('/hero', [App\Http\Controllers\AdminController::class, 'heroUpdate'])->name('hero.update');
         
@@ -211,4 +224,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:super_a
         Route::resource('inventory', App\Http\Controllers\FoodInventoryController::class)->except(['show']);
         Route::get('/inventory/{menu}/status', [App\Http\Controllers\FoodInventoryController::class, 'getStatus'])->name('inventory.status');
     });
+    }); // Close check.shift.time middleware group
 });
