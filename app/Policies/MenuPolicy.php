@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * MenuPolicy
- * 
+ *
  * Model-level authorization untuk Menu
  * Digunakan untuk: $user->can('update', $menu)
  */

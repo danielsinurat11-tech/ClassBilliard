@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\orders;
 use App\Models\KitchenReport;
-use Illuminate\Console\Command;
+use App\Models\orders;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class MigrateOrdersToKitchenReports extends Command
 {
@@ -43,20 +43,21 @@ class MigrateOrdersToKitchenReports extends Command
         foreach ($orders as $order) {
             // Cek apakah sudah ada di kitchen_reports
             $existingReport = KitchenReport::where('order_id', $order->id)->first();
-            
+
             if ($existingReport) {
                 $skipped++;
+
                 continue;
             }
 
             try {
                 // Simpan order items sebagai JSON
-                $orderItems = $order->orderItems->map(function($item) {
+                $orderItems = $order->orderItems->map(function ($item) {
                     return [
                         'menu_name' => $item->menu_name,
                         'price' => $item->price,
                         'quantity' => $item->quantity,
-                        'image' => $item->image
+                        'image' => $item->image,
                     ];
                 })->toArray();
 
@@ -69,16 +70,16 @@ class MigrateOrdersToKitchenReports extends Command
                     'payment_method' => $order->payment_method,
                     'order_items' => $orderItems,
                     'order_date' => Carbon::parse($order->created_at)->format('Y-m-d'),
-                    'completed_at' => Carbon::parse($order->updated_at)
+                    'completed_at' => Carbon::parse($order->updated_at),
                 ]);
 
                 $migrated++;
             } catch (\Exception $e) {
-                $this->error("Error migrasi order ID {$order->id}: " . $e->getMessage());
+                $this->error("Error migrasi order ID {$order->id}: ".$e->getMessage());
             }
         }
 
-        $this->info("Migrasi selesai!");
+        $this->info('Migrasi selesai!');
         $this->info("  - Berhasil dimigrasikan: {$migrated}");
         $this->info("  - Dilewati (sudah ada): {$skipped}");
 

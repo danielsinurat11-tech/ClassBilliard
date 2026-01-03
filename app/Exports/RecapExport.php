@@ -3,19 +3,19 @@
 namespace App\Exports;
 
 use App\Models\Report;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithColumnWidths
+class RecapExport implements FromCollection, WithColumnWidths, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     protected $report;
 
@@ -28,6 +28,7 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
     {
         // Return order summary as collection
         $orders = collect($this->report->order_summary ?? []);
+
         return $orders;
     }
 
@@ -50,7 +51,7 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
     {
         static $no = 0;
         $no++;
-        
+
         $items = collect($order['items'] ?? [])->pluck('menu_name')->implode(', ');
         $totalItems = collect($order['items'] ?? [])->sum('quantity');
 
@@ -58,7 +59,7 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         $paymentMethods = [
             'cash' => 'Tunai',
             'qris' => 'QRIS',
-            'transfer' => 'Transfer'
+            'transfer' => 'Transfer',
         ];
         $paymentMethod = $paymentMethods[strtolower($order['payment_method'] ?? 'cash')] ?? 'Tunai';
 
@@ -70,7 +71,7 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             $order['room'] ?? '',
             $items,
             $totalItems,
-            'Rp' . number_format($order['total_price'] ?? 0, 0, ',', '.'),
+            'Rp'.number_format($order['total_price'] ?? 0, 0, ',', '.'),
             $paymentMethod,
         ];
     }
@@ -82,23 +83,23 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             'font' => [
                 'bold' => true,
                 'size' => 11,
-                'color' => ['rgb' => 'FFFFFF']
+                'color' => ['rgb' => 'FFFFFF'],
             ],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '8B5CF6']
+                'startColor' => ['rgb' => '8B5CF6'],
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
-                'wrapText' => true
+                'wrapText' => true,
             ],
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000']
-                ]
-            ]
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
         ];
 
         // Style untuk data rows
@@ -106,13 +107,13 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => 'CCCCCC']
-                ]
+                    'color' => ['rgb' => 'CCCCCC'],
+                ],
             ],
             'alignment' => [
                 'vertical' => Alignment::VERTICAL_CENTER,
-                'wrapText' => true
-            ]
+                'wrapText' => true,
+            ],
         ];
 
         // Apply header style
@@ -121,7 +122,7 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         // Apply data style to all data rows
         $highestRow = $sheet->getHighestRow();
         if ($highestRow > 1) {
-            $sheet->getStyle('A2:I' . $highestRow)->applyFromArray($dataStyle);
+            $sheet->getStyle('A2:I'.$highestRow)->applyFromArray($dataStyle);
         }
 
         // Set alignment for specific columns
@@ -156,6 +157,6 @@ class RecapExport implements FromCollection, WithHeadings, WithMapping, WithStyl
 
     public function title(): string
     {
-        return 'Tutup Hari ' . Carbon::parse($this->report->start_date)->format('d-m-Y') . ' s/d ' . Carbon::parse($this->report->end_date)->format('d-m-Y');
+        return 'Tutup Hari '.Carbon::parse($this->report->start_date)->format('d-m-Y').' s/d '.Carbon::parse($this->report->end_date)->format('d-m-Y');
     }
 }

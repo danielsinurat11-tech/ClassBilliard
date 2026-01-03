@@ -18,7 +18,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('meja_billiards', function (Blueprint $table) {
-            if (!Schema::hasColumn('meja_billiards', 'capacity')) {
+            if (! Schema::hasColumn('meja_billiards', 'capacity')) {
                 // Only add capacity if slug column exists, otherwise add it at the end
                 if (Schema::hasColumn('meja_billiards', 'slug')) {
                     $table->integer('capacity')->default(4)->after('slug');

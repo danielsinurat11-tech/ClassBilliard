@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * TablePolicy
- * 
+ *
  * Handles authorization for meja_billiard (Table) model operations
  * admin and super_admin can view tables
  * Only super_admin can create/update/delete tables

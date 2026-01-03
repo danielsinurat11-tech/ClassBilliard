@@ -51,7 +51,7 @@ class UserPolicy
     public function update(User $user, User $model): Response|bool
     {
         // Super admin can edit any user except cannot downgrade themselves
-        if (!$this->isSuperAdmin($user)) {
+        if (! $this->isSuperAdmin($user)) {
             return Response::deny('Hanya super_admin yang dapat mengedit pengguna.');
         }
 
@@ -69,7 +69,7 @@ class UserPolicy
     public function delete(User $user, User $model): Response|bool
     {
         // Super admin can delete users but not itself
-        if (!$this->isSuperAdmin($user)) {
+        if (! $this->isSuperAdmin($user)) {
             return Response::deny('Hanya super_admin yang dapat menghapus pengguna.');
         }
 

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\FoodInventory;
 use App\Models\Menu;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class FoodInventoryController extends Controller
 {
@@ -19,7 +18,7 @@ class FoodInventoryController extends Controller
             ->with('menu:id,name,image_path')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-        
+
         // Cache menus karena jarang berubah
         $menus = cache()->remember('menus_list', 1800, function () {
             return Menu::select('id', 'name')
@@ -44,7 +43,7 @@ class FoodInventoryController extends Controller
         $inventory = FoodInventory::create($validated);
 
         return redirect()->route('admin.inventory.index')
-            ->with('success', 'Inventory untuk ' . $inventory->menu->name . ' berhasil ditambahkan');
+            ->with('success', 'Inventory untuk '.$inventory->menu->name.' berhasil ditambahkan');
     }
 
     /**
@@ -61,7 +60,7 @@ class FoodInventoryController extends Controller
         $inventory->update($validated);
 
         return redirect()->route('admin.inventory.index')
-            ->with('success', 'Inventory ' . $inventory->menu->name . ' berhasil diperbarui');
+            ->with('success', 'Inventory '.$inventory->menu->name.' berhasil diperbarui');
     }
 
     /**
@@ -73,7 +72,7 @@ class FoodInventoryController extends Controller
         $inventory->delete();
 
         return redirect()->route('admin.inventory.index')
-            ->with('success', 'Inventory ' . $menuName . ' berhasil dihapus');
+            ->with('success', 'Inventory '.$menuName.' berhasil dihapus');
     }
 
     /**
@@ -82,8 +81,8 @@ class FoodInventoryController extends Controller
     public function getStatus(Menu $menu)
     {
         $inventory = FoodInventory::where('menu_id', $menu->id)->first();
-        
-        if (!$inventory) {
+
+        if (! $inventory) {
             return response()->json(['status' => 'unknown']);
         }
 

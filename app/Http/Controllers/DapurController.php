@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\orders;
-use App\Models\order_items;
 use App\Models\KitchenReport;
+use App\Models\order_items;
+use App\Models\orders;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class DapurController extends Controller
 {
@@ -19,7 +19,7 @@ class DapurController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         // Get active orders for current shift (optimized query)
         $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
             ->with(['orderItems' => function ($query) {
@@ -27,12 +27,12 @@ class DapurController extends Controller
             }])
             ->where('status', 'processing')
             ->orderBy('created_at', 'desc');
-        
+
         // Apply shift filter
-        if (!$user->hasRole('super_admin') && $user->shift_id) {
+        if (! $user->hasRole('super_admin') && $user->shift_id) {
             $query->where('shift_id', $user->shift_id);
         }
-        
+
         $orders = $query->get();
 
         $todayJakarta = Carbon::now('Asia/Jakarta')->toDateString();
@@ -44,12 +44,12 @@ class DapurController extends Controller
                     ->where('status', 'completed')
                     ->whereDate('created_at', $todayJakarta);
 
-                if (!$user->hasRole('super_admin') && $user->shift_id) {
+                if (! $user->hasRole('super_admin') && $user->shift_id) {
                     $q->where('shift_id', $user->shift_id);
                 }
             })
             ->sum('quantity');
-        
+
         return view('dapur.dashboard', compact('orders', 'totalMenuSold'));
     }
 
@@ -59,24 +59,24 @@ class DapurController extends Controller
     public function activeOrders()
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return response()->json(['orders' => []], 401);
         }
-        
+
         // Get active orders (optimized query)
         $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('status', 'processing')
             ->orderBy('created_at', 'desc');
-        
+
         // Apply shift filter
-        if (!$user->hasRole('super_admin') && $user->shift_id) {
+        if (! $user->hasRole('super_admin') && $user->shift_id) {
             $query->where('shift_id', $user->shift_id);
         }
-        
+
         $orders = $query->get();
-        
+
         return response()->json([
             'orders' => $orders->map(function ($order) {
                 return [
@@ -93,11 +93,11 @@ class DapurController extends Controller
                             'menu_name' => $item->menu_name,
                             'price' => $item->price,
                             'quantity' => $item->quantity,
-                            'image' => $item->image
+                            'image' => $item->image,
                         ];
-                    })
+                    }),
                 ];
-            })
+            }),
         ]);
     }
 
@@ -107,11 +107,11 @@ class DapurController extends Controller
     public function ordersStream()
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-        
+
         return response()->stream(function () use ($user) {
             // keep script alive while client is connected
             if (function_exists('ignore_user_abort')) {
@@ -123,7 +123,7 @@ class DapurController extends Controller
 
             // Initialize lastOrderId to the latest existing order id for the relevant scope
             $initialQuery = orders::whereIn('status', ['pending', 'processing']);
-            if (!$user->hasRole('super_admin') && $user->shift_id) {
+            if (! $user->hasRole('super_admin') && $user->shift_id) {
                 $initialQuery->where('shift_id', $user->shift_id);
             }
             $lastOrderId = (int) $initialQuery->max('id');
@@ -140,14 +140,14 @@ class DapurController extends Controller
                     ->whereIn('status', ['pending', 'processing'])
                     ->where('id', '>', $lastOrderId)
                     ->orderBy('created_at', 'asc');
-                
+
                 // Apply shift filter
-                if (!$user->hasRole('super_admin') && $user->shift_id) {
+                if (! $user->hasRole('super_admin') && $user->shift_id) {
                     $query->where('shift_id', $user->shift_id);
                 }
-                
+
                 $orders = $query->get();
-                
+
                 if ($orders->count() > 0) {
                     $ordersData = $orders->map(function ($order) {
                         return [
@@ -164,21 +164,21 @@ class DapurController extends Controller
                                     'menu_name' => $item->menu_name,
                                     'price' => $item->price,
                                     'quantity' => $item->quantity,
-                                    'image' => $item->image
+                                    'image' => $item->image,
                                 ];
-                            })
+                            }),
                         ];
                     });
-                    
+
                     $lastOrderId = $orders->max('id');
 
                     // send SSE id so client can track last event
                     echo "id: {$lastOrderId}\n";
-                    echo "data: " . json_encode([
+                    echo 'data: '.json_encode([
                         'type' => 'new_orders',
-                        'orders' => $ordersData
-                    ]) . "\n\n";
-                    
+                        'orders' => $ordersData,
+                    ])."\n\n";
+
                     if (ob_get_level() > 0) {
                         ob_flush();
                     }
@@ -191,7 +191,7 @@ class DapurController extends Controller
                     }
                     flush();
                 }
-                
+
                 usleep($checkInterval * 1000000);
             }
         }, 200, [
@@ -208,28 +208,28 @@ class DapurController extends Controller
     public function startCooking($id)
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
-        
+
         $order = orders::findOrFail($id);
-        
+
         // Authorization
-        if (!$user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
+        if (! $user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke order ini.'], 403);
         }
-        
+
         if ($order->status !== 'pending') {
             return response()->json(['success' => false, 'message' => 'Order ini tidak dapat dimulai karena statusnya bukan pending.'], 400);
         }
-        
+
         $order->update(['status' => 'processing']);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Order berhasil dimulai.',
-            'order' => $order->fresh()
+            'order' => $order->fresh(),
         ]);
     }
 
@@ -239,34 +239,34 @@ class DapurController extends Controller
     public function complete($id)
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
-        
+
         $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->findOrFail($id);
-        
+
         // Authorization
-        if (!$user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
+        if (! $user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses ke order ini.'], 403);
         }
-        
+
         // Update status
         $order->update(['status' => 'completed']);
 
         // Save to kitchen_reports
         try {
             $existingReport = KitchenReport::where('order_id', $order->id)->first();
-            
-            if (!$existingReport) {
-                $orderItems = $order->orderItems->map(function($item) {
+
+            if (! $existingReport) {
+                $orderItems = $order->orderItems->map(function ($item) {
                     return [
                         'menu_name' => $item->menu_name,
                         'price' => $item->price,
                         'quantity' => $item->quantity,
-                        'image' => $item->image
+                        'image' => $item->image,
                     ];
                 })->toArray();
 
@@ -279,13 +279,13 @@ class DapurController extends Controller
                     'payment_method' => $order->payment_method,
                     'order_items' => json_encode($orderItems),
                     'order_date' => $order->created_at->format('Y-m-d'),
-                    'completed_at' => Carbon::now('Asia/Jakarta')
+                    'completed_at' => Carbon::now('Asia/Jakarta'),
                 ]);
             }
         } catch (\Exception $e) {
             Log::error('Error saving to kitchen_reports', [
                 'order_id' => $order->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
 
@@ -299,16 +299,16 @@ class DapurController extends Controller
                 'room' => $order->room,
                 'total_price' => $order->total_price,
                 'payment_method' => $order->payment_method,
-                'created_at' => $order->created_at->format('d M Y H:i') . ' WIB',
-                'updated_at' => $order->updated_at->format('d M Y H:i') . ' WIB',
-                'order_items' => $order->orderItems->map(function($item) {
+                'created_at' => $order->created_at->format('d M Y H:i').' WIB',
+                'updated_at' => $order->updated_at->format('d M Y H:i').' WIB',
+                'order_items' => $order->orderItems->map(function ($item) {
                     return [
                         'menu_name' => $item->menu_name,
                         'price' => $item->price,
                         'quantity' => $item->quantity,
                     ];
-                })
-            ]
+                }),
+            ],
         ]);
     }
 
@@ -318,6 +318,7 @@ class DapurController extends Controller
     public function profileEdit()
     {
         $user = auth()->user();
+
         return view('dapur.profile', compact('user'));
     }
 
@@ -327,10 +328,10 @@ class DapurController extends Controller
     public function profileUpdate(Request $request)
     {
         $user = auth()->user();
-        
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
         ]);
 
         $user->update($validated);
@@ -344,7 +345,7 @@ class DapurController extends Controller
     public function profilePassword(Request $request)
     {
         $user = auth()->user();
-        
+
         $validated = $request->validate([
             'current_password' => ['required', 'current_password:web'],
             'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
@@ -363,7 +364,7 @@ class DapurController extends Controller
     public function profileColorUpdate(Request $request)
     {
         $user = auth()->user();
-        
+
         $validated = $request->validate([
             'primary_color' => ['required', 'string', 'in:#fbbf24,#fa9a08,#2f7d7a'],
         ]);

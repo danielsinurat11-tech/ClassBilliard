@@ -2,27 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\orders;
-use App\Models\order_items;
-use App\Models\Report;
-use App\Models\KitchenReport;
-use App\Models\Shift;
-use App\Models\meja_billiard;
-use App\Models\Menu;
-use App\Models\CategoryMenu;
 use App\Exports\OrdersExport;
 use App\Exports\RecapExport;
-use App\Mail\SendReportEmail;
 use App\Mail\SendRecapEmail;
+use App\Mail\SendReportEmail;
+use App\Models\CategoryMenu;
+use App\Models\KitchenReport;
+use App\Models\meja_billiard;
+use App\Models\Menu;
+use App\Models\order_items;
+use App\Models\orders;
+use App\Models\Report;
+use App\Models\Shift;
+use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -38,12 +38,12 @@ class OrderController extends Controller
         if ($user->hasRole('super_admin')) {
             return $query;
         }
-        
+
         // Regular admin filter by their shift
         if ($user->shift_id) {
             return $query->where('shift_id', $user->shift_id);
         }
-        
+
         // No shift assigned - return empty
         return $query->whereRaw('1=0');
     }
@@ -59,7 +59,7 @@ class OrderController extends Controller
         if ($user->hasRole('super_admin')) {
             return true;
         }
-        
+
         return $order->shift_id === $user->shift_id;
     }
 
@@ -74,7 +74,7 @@ class OrderController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Idempotency key tidak valid',
-                    'error' => 'invalid_idempotency_key'
+                    'error' => 'invalid_idempotency_key',
                 ], 422);
             }
         } else {
@@ -88,7 +88,7 @@ class OrderController extends Controller
                     'success' => true,
                     'message' => 'Order berhasil dibuat',
                     'order_id' => $existingOrder->id,
-                    'redirect_url' => route('orders.show', $existingOrder->id)
+                    'redirect_url' => route('orders.show', $existingOrder->id),
                 ]);
             }
         }
@@ -109,11 +109,11 @@ class OrderController extends Controller
         $activeShift = Shift::getActiveShift();
 
         // Validasi: Order hanya bisa dibuat jika ada active shift
-        if (!$activeShift) {
+        if (! $activeShift) {
             return response()->json([
                 'success' => false,
                 'message' => 'Pesanan tidak bisa dibuat di luar jam operasional. Silakan cek jam buka restoran.',
-                'error' => 'no_active_shift'
+                'error' => 'no_active_shift',
             ], 422);
         }
 
@@ -132,7 +132,7 @@ class OrderController extends Controller
                     'payment_method' => $request->payment_method,
                     'status' => 'processing',
                     'shift_id' => $activeShift->id,
-                    'idempotency_key' => $idempotencyKey
+                    'idempotency_key' => $idempotencyKey,
                 ]);
 
                 foreach ($request->items as $item) {
@@ -141,7 +141,7 @@ class OrderController extends Controller
                         'menu_name' => $item['name'],
                         'price' => $item['price'],
                         'quantity' => $item['quantity'],
-                        'image' => $item['image'] ?? null
+                        'image' => $item['image'] ?? null,
                     ]);
                 }
 
@@ -152,7 +152,7 @@ class OrderController extends Controller
                 'success' => true,
                 'message' => 'Order berhasil dibuat',
                 'order_id' => $order->id,
-                'redirect_url' => route('orders.show', $order->id)
+                'redirect_url' => route('orders.show', $order->id),
             ]);
         } catch (QueryException $e) {
             if ($idempotencyKey) {
@@ -162,7 +162,7 @@ class OrderController extends Controller
                         'success' => true,
                         'message' => 'Order berhasil dibuat',
                         'order_id' => $existingOrder->id,
-                        'redirect_url' => route('orders.show', $existingOrder->id)
+                        'redirect_url' => route('orders.show', $existingOrder->id),
                     ]);
                 }
             }
@@ -179,12 +179,12 @@ class OrderController extends Controller
         $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->findOrFail($id);
-        
+
         // Hanya bisa lihat order yang masih processing atau pending
-        if (!in_array($order->status, ['pending', 'processing'])) {
+        if (! in_array($order->status, ['pending', 'processing'])) {
             return redirect()->route('orders.create')->with('error', 'Order sudah selesai dan tidak dapat diedit.');
         }
-        
+
         return view('orders.show', compact('order'));
     }
 
@@ -196,7 +196,7 @@ class OrderController extends Controller
         $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->findOrFail($id);
-        
+
         return response()->json([
             'success' => true,
             'order' => [
@@ -209,16 +209,16 @@ class OrderController extends Controller
                 'status' => $order->status,
                 'created_at' => $order->created_at->toISOString(),
                 'updated_at' => $order->updated_at->toISOString(),
-                'items' => $order->orderItems->map(function($item) {
+                'items' => $order->orderItems->map(function ($item) {
                     return [
                         'id' => $item->id,
                         'name' => $item->menu_name,
                         'price' => $item->price,
                         'quantity' => $item->quantity,
-                        'image' => $item->image
+                        'image' => $item->image,
                     ];
-                })
-            ]
+                }),
+            ],
         ]);
     }
 
@@ -230,12 +230,12 @@ class OrderController extends Controller
         $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->findOrFail($id);
-        
+
         // Hanya bisa edit order yang masih processing atau pending
-        if (!in_array($order->status, ['pending', 'processing'])) {
+        if (! in_array($order->status, ['pending', 'processing'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Order sudah selesai dan tidak dapat diedit.'
+                'message' => 'Order sudah selesai dan tidak dapat diedit.',
             ], 400);
         }
 
@@ -270,13 +270,14 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Order berhasil diupdate',
-                'order' => $order->load('orderItems')
+                'order' => $order->load('orderItems'),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengupdate order: ' . $e->getMessage()
+                'message' => 'Gagal mengupdate order: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -289,12 +290,12 @@ class OrderController extends Controller
         $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->findOrFail($id);
-        
+
         // Hanya bisa edit order yang masih processing atau pending
-        if (!in_array($order->status, ['pending', 'processing'])) {
+        if (! in_array($order->status, ['pending', 'processing'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Order sudah selesai dan tidak dapat diedit.'
+                'message' => 'Order sudah selesai dan tidak dapat diedit.',
             ], 400);
         }
 
@@ -324,14 +325,14 @@ class OrderController extends Controller
                     'menu_name' => $request->menu_name,
                     'price' => $request->price,
                     'quantity' => $request->quantity,
-                    'image' => $request->image ?? null
+                    'image' => $request->image ?? null,
                 ]);
             }
 
             // Recalculate total price
             $totalPrice = order_items::where('order_id', $order->id)
                 ->get()
-                ->sum(function($item) {
+                ->sum(function ($item) {
                     return $item->price * $item->quantity;
                 });
 
@@ -343,13 +344,14 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Item berhasil ditambahkan',
-                'order' => $order->load('orderItems')
+                'order' => $order->load('orderItems'),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menambahkan item: ' . $e->getMessage()
+                'message' => 'Gagal menambahkan item: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -362,12 +364,12 @@ class OrderController extends Controller
         $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->findOrFail($id);
-        
+
         // Hanya bisa edit order yang masih processing atau pending
-        if (!in_array($order->status, ['pending', 'processing'])) {
+        if (! in_array($order->status, ['pending', 'processing'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Order sudah selesai dan tidak dapat diedit.'
+                'message' => 'Order sudah selesai dan tidak dapat diedit.',
             ], 400);
         }
 
@@ -383,7 +385,7 @@ class OrderController extends Controller
             // Recalculate total price
             $totalPrice = order_items::where('order_id', $order->id)
                 ->get()
-                ->sum(function($item) {
+                ->sum(function ($item) {
                     return $item->price * $item->quantity;
                 });
 
@@ -395,13 +397,14 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Item berhasil dihapus',
-                'order' => $order->load('orderItems')
+                'order' => $order->load('orderItems'),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus item: ' . $e->getMessage()
+                'message' => 'Gagal menghapus item: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -412,12 +415,12 @@ class OrderController extends Controller
     public function cancel($id)
     {
         $order = orders::findOrFail($id);
-        
+
         // Hanya bisa cancel order yang masih pending atau processing
-        if (!in_array($order->status, ['pending', 'processing'])) {
+        if (! in_array($order->status, ['pending', 'processing'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Order sudah selesai dan tidak dapat dibatalkan.'
+                'message' => 'Order sudah selesai dan tidak dapat dibatalkan.',
             ], 400);
         }
 
@@ -426,7 +429,7 @@ class OrderController extends Controller
 
             // Hapus order items
             $order->orderItems()->delete();
-            
+
             // Hapus order
             $order->delete();
 
@@ -434,13 +437,14 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Order berhasil dibatalkan'
+                'message' => 'Order berhasil dibatalkan',
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membatalkan order: ' . $e->getMessage()
+                'message' => 'Gagal membatalkan order: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -450,19 +454,19 @@ class OrderController extends Controller
         // Get current user's shift
         $user = Auth::user();
         $userShiftId = $user->shift_id;
-        
+
         // Get active shift based on time (with caching untuk performa)
         $activeShift = cache()->remember('active_shift', 60, function () {
             return Shift::getActiveShift();
         });
-        
+
         // Optimasi query: hanya ambil kolom yang diperlukan dan eager load orderItems dengan select
         $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'created_at', 'updated_at', 'shift_id')
             ->with(['orderItems' => function ($query) {
                 $query->select('id', 'order_id', 'menu_name', 'price', 'quantity', 'image');
             }])
             ->where('status', 'processing');
-        
+
         // Filter by user's shift - WAJIB filter berdasarkan shift user
         if ($userShiftId) {
             $query->where('shift_id', $userShiftId);
@@ -470,10 +474,10 @@ class OrderController extends Controller
             // Jika user belum di-assign shift, tampilkan kosong
             return view('dapur.dapur', [
                 'orders' => collect([]),
-                'activeShift' => $activeShift
+                'activeShift' => $activeShift,
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
-        
+
         $orders = $query->orderBy('created_at', 'desc')->get();
 
         return view('dapur.dapur', compact('orders', 'activeShift'));
@@ -481,7 +485,7 @@ class OrderController extends Controller
 
     /**
      * Admin: List all orders for management
-     * 
+     *
      * Optimization:
      * - Eager load orderItems (prevent N+1 queries)
      * - Filter by shift_id with authorization check
@@ -490,19 +494,19 @@ class OrderController extends Controller
     public function adminIndex()
     {
         $user = Auth::user();
-        
+
         // Authorization check: user must have order.view permission
-        if (!$user->hasPermissionTo('order.view')) {
+        if (! $user->hasPermissionTo('order.view')) {
             abort(403, 'Anda tidak memiliki akses untuk melihat daftar order.');
         }
-        
+
         // Only regular admin (NOT super_admin) without shift_id gets blocked
         // Super admin ALWAYS has access to all shifts data regardless of shift assignment
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return redirect()->route('admin.dashboard')
                 ->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
-        
+
         // Eager load orderItems to prevent N+1 queries (optimized)
         // Apply shift filter: super_admin gets all orders from all shifts, regular admin gets only their shift
         $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
@@ -516,7 +520,7 @@ class OrderController extends Controller
             END")
             ->orderBy('created_at', 'desc')
             ->limit(100);
-        
+
         $allOrders = $this->applyShiftFilter($query, $user)->get();
 
         // Eager load tables with select to minimize data transfer
@@ -535,9 +539,9 @@ class OrderController extends Controller
         $user = Auth::user();
         $lastOrderId = $request->get('last_order_id', 0);
         $lastCheckTime = $request->get('last_check_time');
-        
+
         // Super admin bisa cek orders dari semua shift, regular admin harus punya shift_id
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return response()->json([
                 'has_changes' => false,
                 'has_new_orders' => false,
@@ -547,56 +551,56 @@ class OrderController extends Controller
                 'active_orders_count' => 0,
                 'has_active_orders' => false,
                 'latest_order_id' => 0,
-                'current_time' => Carbon::now('Asia/Jakarta')->toISOString()
+                'current_time' => Carbon::now('Asia/Jakarta')->toISOString(),
             ]);
         }
-        
+
         // Check for new orders (order baru langsung processing, jadi tidak perlu check pending)
         $query = orders::where('id', '>', $lastOrderId)
             ->where('status', 'processing');
-        
-        if (!$user->hasRole('super_admin')) {
+
+        if (! $user->hasRole('super_admin')) {
             $query->where('shift_id', $user->shift_id);
         }
-        
+
         $newOrdersCount = $query->count();
-        
+
         // Check for status changes (orders that were updated after last check)
         $statusChangedCount = 0;
         if ($lastCheckTime) {
             $statusQuery = orders::where('updated_at', '>', $lastCheckTime)
-                ->where(function($query) {
+                ->where(function ($query) {
                     $query->where('status', 'completed')
-                          ->orWhere('status', 'rejected')
-                          ->orWhere('status', 'processing');
+                        ->orWhere('status', 'rejected')
+                        ->orWhere('status', 'processing');
                 });
-            
-            if (!$user->hasRole('super_admin')) {
+
+            if (! $user->hasRole('super_admin')) {
                 $statusQuery->where('shift_id', $user->shift_id);
             }
-            
+
             $statusChangedCount = $statusQuery->count();
         }
-        
+
         $latestQuery = orders::orderBy('id', 'desc');
-        if (!$user->hasRole('super_admin')) {
+        if (! $user->hasRole('super_admin')) {
             $latestQuery->where('shift_id', $user->shift_id);
         }
-        
+
         $latestOrder = $latestQuery->first();
         $latestOrderId = $latestOrder ? $latestOrder->id : 0;
-        
+
         // Check if there are any active orders (pending or processing)
         $activeQuery = orders::whereIn('status', ['pending', 'processing']);
-        if (!$user->hasRole('super_admin')) {
+        if (! $user->hasRole('super_admin')) {
             $activeQuery->where('shift_id', $user->shift_id);
         }
-        
+
         $activeOrdersCount = $activeQuery->count();
-        
+
         // Check if there are any changes (new orders or status changes)
         $hasChanges = $newOrdersCount > 0 || $statusChangedCount > 0;
-        
+
         // Get new orders details if there are new orders (optimized)
         $newOrders = [];
         if ($newOrdersCount > 0) {
@@ -608,7 +612,7 @@ class OrderController extends Controller
                 ->orderBy('id', 'desc')
                 ->limit(10)
                 ->get()
-                ->map(function($order) {
+                ->map(function ($order) {
                     return [
                         'id' => $order->id,
                         'customer_name' => $order->customer_name,
@@ -617,13 +621,13 @@ class OrderController extends Controller
                         'total_price' => $order->total_price,
                         'payment_method' => $order->payment_method,
                         'created_at' => Carbon::parse($order->created_at)->utc()->setTimezone('Asia/Jakarta')->format('Y-m-d H:i:s'),
-                        'order_items' => $order->orderItems->map(function($item) {
+                        'order_items' => $order->orderItems->map(function ($item) {
                             return [
                                 'menu_name' => $item->menu_name,
                                 'price' => $item->price,
                                 'quantity' => $item->quantity,
                             ];
-                        })
+                        }),
                     ];
                 });
         }
@@ -638,13 +642,13 @@ class OrderController extends Controller
             'has_active_orders' => $activeOrdersCount > 0,
             'latest_order_id' => $latestOrderId,
             'new_orders' => $newOrders,
-            'current_time' => Carbon::now('Asia/Jakarta')->toISOString()
+            'current_time' => Carbon::now('Asia/Jakarta')->toISOString(),
         ]);
     }
 
     /**
      * Admin: Approve order (change status from pending to processing)
-     * 
+     *
      * Authorization:
      * - Only approve orders from the user's own shift
      * - Validation: Order status must be 'pending'
@@ -652,20 +656,20 @@ class OrderController extends Controller
     public function approve($id)
     {
         $user = Auth::user();
-        
+
         // Check permission
-        if (!$user->hasPermissionTo('order.update')) {
+        if (! $user->hasPermissionTo('order.update')) {
             abort(403, 'Anda tidak memiliki akses untuk mengapprove order.');
         }
-        
+
         // Eager load to minimize queries
         $order = orders::findOrFail($id);
-        
+
         // Authorization: Check if order belongs to user's shift (or super_admin)
-        if (!$this->canAccessOrder($user, $order)) {
+        if (! $this->canAccessOrder($user, $order)) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
-        
+
         // Validation: Only pending orders can be approved
         if ($order->status !== 'pending') {
             return back()->with('error', 'Order ini tidak dapat diapprove karena statusnya bukan pending.');
@@ -673,13 +677,13 @@ class OrderController extends Controller
 
         // Update status
         $order->update(['status' => 'processing']);
-        
+
         return back()->with('success', 'Order berhasil diapprove dan akan muncul di dapur.');
     }
 
     /**
      * Admin: Reject order
-     * 
+     *
      * Authorization:
      * - Only reject orders from the user's own shift
      * - Validation: Order status must be 'pending'
@@ -687,20 +691,20 @@ class OrderController extends Controller
     public function reject($id)
     {
         $user = Auth::user();
-        
+
         // Check permission
-        if (!$user->hasPermissionTo('order.update')) {
+        if (! $user->hasPermissionTo('order.update')) {
             abort(403, 'Anda tidak memiliki akses untuk menolak order.');
         }
-        
+
         // Eager load to minimize queries
         $order = orders::findOrFail($id);
-        
+
         // Authorization: Check if order belongs to user's shift (or super_admin)
-        if (!$this->canAccessOrder($user, $order)) {
+        if (! $this->canAccessOrder($user, $order)) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
-        
+
         // Validation: Only pending orders can be rejected
         if ($order->status !== 'pending') {
             return back()->with('error', 'Order ini tidak dapat direject karena statusnya bukan pending.');
@@ -708,17 +712,17 @@ class OrderController extends Controller
 
         // Update status
         $order->update(['status' => 'rejected']);
-        
+
         return back()->with('success', 'Order berhasil direject.');
     }
 
     /**
      * Admin: Delete order
-     * 
+     *
      * PENTING: Hanya bisa menghapus order dengan status pending.
      * Order yang sudah completed, processing, atau rejected TIDAK BOLEH DIHAPUS
      * untuk mencegah kecurangan saat tutup buku akhir bulan/tahun.
-     * 
+     *
      * Authorization:
      * - Only delete orders from the user's own shift
      * - Only delete pending orders
@@ -726,38 +730,38 @@ class OrderController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        
+
         // Check permission
-        if (!$user->hasPermissionTo('order.delete')) {
+        if (! $user->hasPermissionTo('order.delete')) {
             abort(403, 'Anda tidak memiliki akses untuk menghapus order.');
         }
-        
+
         // Eager load orderItems for deletion (optimized - hanya kolom yang diperlukan)
         $order = orders::select('id', 'status', 'shift_id')
             ->with('orderItems:id,order_id')
             ->findOrFail($id);
-        
+
         // Authorization: Check if order belongs to user's shift (or super_admin)
-        if (!$this->canAccessOrder($user, $order)) {
+        if (! $this->canAccessOrder($user, $order)) {
             return back()->with('error', 'Anda tidak memiliki akses ke order ini.');
         }
-        
+
         // Validation: Only pending orders can be deleted
         // Orders yang sudah completed, processing, atau rejected tidak bisa dihapus
-        if (!$order->canBeDeleted()) {
+        if (! $order->canBeDeleted()) {
             $statusLabels = [
                 'completed' => 'SELESAI',
                 'processing' => 'SEDANG DIPROSES',
-                'rejected' => 'DITOLAK'
+                'rejected' => 'DITOLAK',
             ];
             $statusLabel = $statusLabels[$order->status] ?? strtoupper($order->status);
-            
-            return back()->with('error', 'Order dengan status ' . $statusLabel . ' tidak dapat dihapus. Data penjualan harus tersimpan permanen untuk keperluan tutup buku dan audit.');
+
+            return back()->with('error', 'Order dengan status '.$statusLabel.' tidak dapat dihapus. Data penjualan harus tersimpan permanen untuk keperluan tutup buku dan audit.');
         }
-        
+
         // Delete order items first (cascade delete)
         $order->orderItems()->delete();
-        
+
         // Delete order
         $order->delete();
 
@@ -766,61 +770,61 @@ class OrderController extends Controller
 
     /**
      * Start cooking order (change status from pending to processing)
-     * 
+     *
      * Actions:
      * - Update order status from 'pending' to 'processing'
-     * 
+     *
      * Authorization:
      * - Only start cooking orders from the user's own shift
      */
     public function startCooking($id)
     {
         $user = Auth::user();
-        
+
         // Validation: User must be assigned to a shift or be super_admin
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
+                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.',
             ], 403);
         }
-        
+
         $order = orders::findOrFail($id);
-        
+
         // Authorization: Check if order belongs to user's shift (or super_admin)
-        if (!$user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
+        if (! $user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki akses ke order ini.'
+                'message' => 'Anda tidak memiliki akses ke order ini.',
             ], 403);
         }
-        
+
         // Validation: Only pending orders can be started
         if ($order->status !== 'pending') {
             return response()->json([
                 'success' => false,
-                'message' => 'Order ini tidak dapat dimulai karena statusnya bukan pending.'
+                'message' => 'Order ini tidak dapat dimulai karena statusnya bukan pending.',
             ], 400);
         }
-        
+
         // Update status
         $order->update(['status' => 'processing']);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Order berhasil dimulai.',
-            'order' => $order->fresh()
+            'order' => $order->fresh(),
         ]);
     }
 
     /**
      * Mark order as completed
-     * 
+     *
      * Actions:
      * - Update order status to 'completed'
      * - Save to kitchen_reports for persistence
      * - Return order data for realtime update
-     * 
+     *
      * Authorization:
      * - Only complete orders from the user's own shift
      */
@@ -828,24 +832,24 @@ class OrderController extends Controller
     {
         try {
             $user = Auth::user();
-            
-            if (!$user) {
+
+            if (! $user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User tidak terautentikasi'
+                    'message' => 'User tidak terautentikasi',
                 ], 401);
             }
-            
+
             // Eager load orderItems for data manipulation (optimized)
             $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
                 ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                 ->findOrFail($id);
-            
+
             // Authorization: Check if order belongs to user's shift or super_admin
-            if (!$user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
+            if (! $user->hasRole('super_admin') && $order->shift_id !== $user->shift_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda tidak memiliki akses ke order ini.'
+                    'message' => 'Anda tidak memiliki akses ke order ini.',
                 ], 403);
             }
 
@@ -856,15 +860,15 @@ class OrderController extends Controller
             try {
                 // Check if already saved (prevent duplicates)
                 $existingReport = KitchenReport::where('order_id', $order->id)->first();
-                
-                if (!$existingReport) {
+
+                if (! $existingReport) {
                     // Prepare order items data
-                    $orderItems = $order->orderItems->map(function($item) {
+                    $orderItems = $order->orderItems->map(function ($item) {
                         return [
                             'menu_name' => $item->menu_name,
                             'price' => $item->price,
                             'quantity' => $item->quantity,
-                            'image' => $item->image
+                            'image' => $item->image,
                         ];
                     })->toArray();
 
@@ -878,14 +882,14 @@ class OrderController extends Controller
                         'payment_method' => $order->payment_method,
                         'order_items' => json_encode($orderItems),
                         'order_date' => $order->created_at->format('Y-m-d'),
-                        'completed_at' => Carbon::now('Asia/Jakarta')
+                        'completed_at' => Carbon::now('Asia/Jakarta'),
                     ]);
                 }
             } catch (\Exception $e) {
                 // Log error but don't fail the operation
                 Log::error('Error saving to kitchen_reports', [
                     'order_id' => $order->id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
 
@@ -900,28 +904,28 @@ class OrderController extends Controller
                     'room' => $order->room,
                     'total_price' => $order->total_price,
                     'payment_method' => $order->payment_method,
-                    'created_at' => $order->created_at->format('d M Y H:i') . ' WIB',
-                    'updated_at' => $order->updated_at->format('d M Y H:i') . ' WIB',
-                    'order_items' => $order->orderItems->map(function($item) {
+                    'created_at' => $order->created_at->format('d M Y H:i').' WIB',
+                    'updated_at' => $order->updated_at->format('d M Y H:i').' WIB',
+                    'order_items' => $order->orderItems->map(function ($item) {
                         return [
                             'menu_name' => $item->menu_name,
                             'price' => $item->price,
                             'quantity' => $item->quantity,
                         ];
-                    })
-                ]
+                    }),
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error: '.$e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Get active (processing) orders for live refresh on kitchen page
-     * 
+     *
      * Optimization:
      * - Eager load orderItems to prevent N+1 queries
      * - Filter by user's shift and status = 'processing'
@@ -931,18 +935,18 @@ class OrderController extends Controller
     public function activeOrders()
     {
         $user = Auth::user();
-        
+
         // Validation: User must be assigned to a shift or be super_admin
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return response()->json(['orders' => []]);
         }
-        
+
         // Eager load orderItems with specific columns to prevent N+1
         $query = orders::select('id', 'customer_name', 'table_number', 'room', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('status', 'processing')
             ->orderBy('created_at', 'desc');
-        
+
         // Apply shift filter
         $orders = $this->applyShiftFilter($query, $user)->get();
 
@@ -962,11 +966,11 @@ class OrderController extends Controller
                             'menu_name' => $item->menu_name,
                             'price' => $item->price,
                             'quantity' => $item->quantity,
-                            'image' => $item->image
+                            'image' => $item->image,
                         ];
-                    })
+                    }),
                 ];
-            })
+            }),
         ]);
     }
 
@@ -976,13 +980,13 @@ class OrderController extends Controller
     public function ordersStream()
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-        
+
         // Validation: User must be assigned to a shift or be super_admin
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return response()->json(['error' => 'User tidak memiliki shift yang aktif'], 403);
         }
 
@@ -991,7 +995,7 @@ class OrderController extends Controller
             try {
                 $lastOrderId = 0;
                 $checkInterval = 0.5; // Check every 500ms for faster response
-                
+
                 while (true) {
                     // Check if client is still connected
                     if (connection_aborted()) {
@@ -1004,9 +1008,9 @@ class OrderController extends Controller
                         ->whereIn('status', ['pending', 'processing'])
                         ->where('id', '>', $lastOrderId)
                         ->orderBy('created_at', 'asc');
-                    
+
                     $orders = $this->applyShiftFilter($query, $user)->get();
-                    
+
                     // If there are new orders, send them
                     if ($orders->count() > 0) {
                         $ordersData = $orders->map(function ($order) {
@@ -1025,21 +1029,21 @@ class OrderController extends Controller
                                         'menu_name' => $item->menu_name,
                                         'price' => $item->price,
                                         'quantity' => $item->quantity,
-                                        'image' => $item->image
+                                        'image' => $item->image,
                                     ];
-                                })
+                                }),
                             ];
                         });
-                        
+
                         // Update last order ID
                         $lastOrderId = $orders->max('id');
-                        
+
                         // Send SSE event
-                        echo "data: " . json_encode([
+                        echo 'data: '.json_encode([
                             'type' => 'new_orders',
-                            'orders' => $ordersData
-                        ]) . "\n\n";
-                        
+                            'orders' => $ordersData,
+                        ])."\n\n";
+
                         // Flush output immediately
                         if (ob_get_level() > 0) {
                             ob_flush();
@@ -1053,17 +1057,17 @@ class OrderController extends Controller
                         }
                         flush();
                     }
-                    
+
                     // Sleep before next check
                     usleep((int) ($checkInterval * 1000000)); // Convert to microseconds
                 }
             } catch (\Exception $e) {
                 // Send error message via SSE
-                echo "data: " . json_encode([
+                echo 'data: '.json_encode([
                     'type' => 'error',
-                    'message' => 'Error: ' . $e->getMessage()
-                ]) . "\n\n";
-                
+                    'message' => 'Error: '.$e->getMessage(),
+                ])."\n\n";
+
                 if (ob_get_level() > 0) {
                     ob_flush();
                 }
@@ -1092,24 +1096,24 @@ class OrderController extends Controller
 
         // Get current user
         $user = Auth::user();
-        
+
         // Super admin or user with shift_id
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.',
                 'orders' => [],
                 'total_revenue' => 0,
-                'total_orders' => 0
+                'total_orders' => 0,
             ], 400);
         }
 
         // Ambil dari kitchen_reports (data yang sudah tersimpan permanen)
         $kitchenReportsQuery = KitchenReport::query();
-        
+
         // Filter by shift - apply based on user role
-        if (!$user->hasRole('super_admin') && $user->shift_id) {
-            $kitchenReportsQuery->whereHas('order', function($q) use ($user) {
+        if (! $user->hasRole('super_admin') && $user->shift_id) {
+            $kitchenReportsQuery->whereHas('order', function ($q) use ($user) {
                 $q->where('shift_id', $user->shift_id);
             });
         }
@@ -1118,17 +1122,17 @@ class OrderController extends Controller
             $kitchenReportsQuery->whereDate('order_date', $date);
         } elseif ($type === 'monthly') {
             $kitchenReportsQuery->whereYear('order_date', Carbon::parse($month)->year)
-                  ->whereMonth('order_date', Carbon::parse($month)->month);
+                ->whereMonth('order_date', Carbon::parse($month)->month);
         } elseif ($type === 'yearly') {
             $kitchenReportsQuery->whereYear('order_date', $year);
         }
 
         $kitchenReports = $kitchenReportsQuery->orderBy('completed_at', 'desc')->get();
-        
+
         // Also filter kitchen reports by shift_id if specified
-        if (!$user->hasRole('super_admin') && $user->shift_id) {
+        if (! $user->hasRole('super_admin') && $user->shift_id) {
             $kitchenReportOrderIds = orders::where('shift_id', $user->shift_id)->pluck('id')->toArray();
-            $kitchenReports = $kitchenReports->filter(function($report) use ($kitchenReportOrderIds) {
+            $kitchenReports = $kitchenReports->filter(function ($report) use ($kitchenReportOrderIds) {
                 return in_array($report->order_id, $kitchenReportOrderIds);
             });
         }
@@ -1137,9 +1141,9 @@ class OrderController extends Controller
         $ordersQuery = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
             ->with('orderItems:id,order_id,menu_name,price,quantity,image')
             ->where('status', 'completed');
-        
+
         // Filter by shift if not super_admin
-        if (!$user->hasRole('super_admin') && $user->shift_id) {
+        if (! $user->hasRole('super_admin') && $user->shift_id) {
             $ordersQuery->where('shift_id', $user->shift_id);
         }
 
@@ -1147,7 +1151,7 @@ class OrderController extends Controller
             $ordersQuery->whereDate('updated_at', $date);
         } elseif ($type === 'monthly') {
             $ordersQuery->whereYear('updated_at', Carbon::parse($month)->year)
-                  ->whereMonth('updated_at', Carbon::parse($month)->month);
+                ->whereMonth('updated_at', Carbon::parse($month)->month);
         } elseif ($type === 'yearly') {
             $ordersQuery->whereYear('updated_at', $year);
         }
@@ -1157,9 +1161,9 @@ class OrderController extends Controller
         // Gabungkan data dari kitchen_reports dan orders
         // Gunakan kitchen_reports sebagai sumber utama, lalu tambahkan dari orders yang belum ada
         $kitchenReportOrderIds = $kitchenReports->pluck('order_id')->toArray();
-        
+
         $allOrders = collect();
-        
+
         // Tambahkan dari kitchen_reports
         foreach ($kitchenReports as $report) {
             $allOrders->push([
@@ -1171,13 +1175,13 @@ class OrderController extends Controller
                 'payment_method' => $report->payment_method,
                 'created_at' => $report->completed_at->toISOString(),
                 'updated_at' => $report->completed_at->toISOString(),
-                'order_items' => $report->order_items
+                'order_items' => $report->order_items,
             ]);
         }
-        
+
         // Tambahkan dari orders yang belum ada di kitchen_reports
         foreach ($orders as $order) {
-            if (!in_array($order->id, $kitchenReportOrderIds)) {
+            if (! in_array($order->id, $kitchenReportOrderIds)) {
                 $allOrders->push([
                     'id' => $order->id,
                     'customer_name' => $order->customer_name,
@@ -1187,20 +1191,20 @@ class OrderController extends Controller
                     'payment_method' => $order->payment_method,
                     'created_at' => $order->created_at->toISOString(),
                     'updated_at' => $order->updated_at->toISOString(),
-                    'order_items' => $order->orderItems->map(function($item) {
+                    'order_items' => $order->orderItems->map(function ($item) {
                         return [
                             'menu_name' => $item->menu_name,
                             'price' => $item->price,
                             'quantity' => $item->quantity,
-                            'image' => $item->image
+                            'image' => $item->image,
                         ];
-                    })
+                    }),
                 ]);
             }
         }
 
         // Urutkan berdasarkan updated_at/completed_at terbaru
-        $allOrders = $allOrders->sortByDesc(function($order) {
+        $allOrders = $allOrders->sortByDesc(function ($order) {
             return $order['updated_at'];
         })->values();
 
@@ -1213,7 +1217,7 @@ class OrderController extends Controller
             'total_revenue' => $totalRevenue,
             'total_orders' => $totalOrders,
             'type' => $type,
-            'shift_id' => $user->shift_id ?? null
+            'shift_id' => $user->shift_id ?? null,
         ]);
     }
 
@@ -1223,11 +1227,11 @@ class OrderController extends Controller
     public function getCategoryStats(Request $request)
     {
         $user = Auth::user();
-        if (!$user->shift_id) {
+        if (! $user->shift_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda belum di-assign ke shift.',
-                'data' => []
+                'data' => [],
             ], 400);
         }
 
@@ -1248,7 +1252,7 @@ class OrderController extends Controller
             $ordersQuery->whereDate('updated_at', $date);
         } elseif ($type === 'monthly') {
             $ordersQuery->whereYear('updated_at', Carbon::parse($month)->year)
-                  ->whereMonth('updated_at', Carbon::parse($month)->month);
+                ->whereMonth('updated_at', Carbon::parse($month)->month);
         } elseif ($type === 'yearly') {
             $ordersQuery->whereYear('updated_at', $year);
         }
@@ -1257,7 +1261,7 @@ class OrderController extends Controller
 
         // Get all categories
         $categories = CategoryMenu::all();
-        
+
         // Initialize stats
         $categoryStats = [];
         foreach ($categories as $category) {
@@ -1267,25 +1271,25 @@ class OrderController extends Controller
                 'total_quantity' => 0,
                 'total_revenue' => 0,
                 'order_count' => 0,
-                'items' => [] // Store item details: ['name' => 'nasi goreng', 'quantity' => 3]
+                'items' => [], // Store item details: ['name' => 'nasi goreng', 'quantity' => 3]
             ];
         }
 
         // Process each order
         foreach ($orders as $order) {
             $orderCategories = []; // Track which categories this order belongs to
-            
+
             foreach ($order->orderItems as $item) {
                 // Find menu by name to get category
                 $menu = Menu::where('name', $item->menu_name)->first();
-                
+
                 if ($menu && $menu->categoryMenu) {
                     $categorySlug = $menu->categoryMenu->slug;
-                    
+
                     if (isset($categoryStats[$categorySlug])) {
                         $categoryStats[$categorySlug]['total_quantity'] += $item->quantity;
                         $categoryStats[$categorySlug]['total_revenue'] += ($item->price * $item->quantity);
-                        
+
                         // Add item detail
                         $itemName = $item->menu_name;
                         if (isset($categoryStats[$categorySlug]['items'][$itemName])) {
@@ -1293,15 +1297,15 @@ class OrderController extends Controller
                         } else {
                             $categoryStats[$categorySlug]['items'][$itemName] = $item->quantity;
                         }
-                        
+
                         // Track this category for this order
-                        if (!in_array($categorySlug, $orderCategories)) {
+                        if (! in_array($categorySlug, $orderCategories)) {
                             $orderCategories[] = $categorySlug;
                         }
                     }
                 }
             }
-            
+
             // Count order once per category
             foreach ($orderCategories as $categorySlug) {
                 if (isset($categoryStats[$categorySlug])) {
@@ -1318,7 +1322,7 @@ class OrderController extends Controller
             foreach ($stats['items'] as $itemName => $quantity) {
                 $itemsList[] = [
                     'name' => $itemName,
-                    'quantity' => $quantity
+                    'quantity' => $quantity,
                 ];
             }
             $stats['items'] = $itemsList;
@@ -1327,7 +1331,7 @@ class OrderController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $formattedStats
+            'data' => $formattedStats,
         ]);
     }
 
@@ -1340,11 +1344,11 @@ class OrderController extends Controller
 
         $filename = 'Laporan_';
         if ($type === 'daily') {
-            $filename .= 'Harian_' . Carbon::parse($date)->format('Y-m-d');
+            $filename .= 'Harian_'.Carbon::parse($date)->format('Y-m-d');
         } elseif ($type === 'monthly') {
-            $filename .= 'Bulanan_' . Carbon::parse($month)->format('Y-m');
+            $filename .= 'Bulanan_'.Carbon::parse($month)->format('Y-m');
         } elseif ($type === 'yearly') {
-            $filename .= 'Tahunan_' . $year;
+            $filename .= 'Tahunan_'.$year;
         }
         $filename .= '.xlsx';
 
@@ -1370,38 +1374,38 @@ class OrderController extends Controller
         $filename = 'Laporan_';
         $reportType = 'Harian';
         if ($type === 'daily') {
-            $filename .= 'Harian_' . Carbon::parse($date)->format('Y-m-d');
-            $reportType = 'Harian ' . Carbon::parse($date)->format('d M Y');
+            $filename .= 'Harian_'.Carbon::parse($date)->format('Y-m-d');
+            $reportType = 'Harian '.Carbon::parse($date)->format('d M Y');
         } elseif ($type === 'monthly') {
-            $filename .= 'Bulanan_' . Carbon::parse($month)->format('Y-m');
-            $reportType = 'Bulanan ' . Carbon::parse($month)->format('F Y');
+            $filename .= 'Bulanan_'.Carbon::parse($month)->format('Y-m');
+            $reportType = 'Bulanan '.Carbon::parse($month)->format('F Y');
         } elseif ($type === 'yearly') {
-            $filename .= 'Tahunan_' . $year;
-            $reportType = 'Tahunan ' . $year;
+            $filename .= 'Tahunan_'.$year;
+            $reportType = 'Tahunan '.$year;
         }
         $filename .= '.xlsx';
 
         try {
             // Check email configuration
             if (config('mail.default') === 'log') {
-                Log::info('Email akan dikirim ke: ' . $request->email);
+                Log::info('Email akan dikirim ke: '.$request->email);
             }
 
             // Ensure temp directory exists
             $tempDir = storage_path('app/temp');
-            if (!file_exists($tempDir)) {
+            if (! file_exists($tempDir)) {
                 mkdir($tempDir, 0755, true);
             }
 
             // Store Excel file temporarily
-            $filePath = 'temp/' . $filename;
+            $filePath = 'temp/'.$filename;
             Excel::store(new OrdersExport($type, $date, $month, $year), $filePath, 'local');
 
             // Get full path for attachment
             $fullPath = Storage::path($filePath);
 
             // Check if file exists
-            if (!file_exists($fullPath)) {
+            if (! file_exists($fullPath)) {
                 throw new \Exception('File Excel tidak berhasil dibuat');
             }
 
@@ -1427,7 +1431,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Laporan Excel berhasil dikirim ke ' . $request->email . '. Silakan cek kotak masuk dan folder Spam Anda.'
+                'message' => 'Laporan Excel berhasil dikirim ke '.$request->email.'. Silakan cek kotak masuk dan folder Spam Anda.',
             ]);
         } catch (\Exception $e) {
             // Delete temporary file if exists
@@ -1435,12 +1439,12 @@ class OrderController extends Controller
                 Storage::delete($filePath);
             }
 
-            Log::error('Email Error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('Email Error: '.$e->getMessage());
+            Log::error('Stack trace: '.$e->getTraceAsString());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengirim email: ' . $e->getMessage()
+                'message' => 'Gagal mengirim email: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1448,7 +1452,7 @@ class OrderController extends Controller
     public function testEmail(Request $request)
     {
         $email = $request->get('email', 'test@example.com');
-        
+
         // Get email config
         $mailConfig = [
             'mailer' => config('mail.default'),
@@ -1461,7 +1465,7 @@ class OrderController extends Controller
         ];
 
         Log::info('Test email configuration', $mailConfig);
-        
+
         try {
             // Check if using log driver
             if (config('mail.default') === 'log') {
@@ -1469,7 +1473,7 @@ class OrderController extends Controller
                     'success' => false,
                     'message' => 'Email menggunakan log driver. Ubah MAIL_MAILER=smtp di .env',
                     'config' => $mailConfig,
-                    'help' => 'Tambahkan di .env: MAIL_MAILER=smtp, MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_USERNAME=your-email@gmail.com, MAIL_PASSWORD=your-app-password, MAIL_ENCRYPTION=tls'
+                    'help' => 'Tambahkan di .env: MAIL_MAILER=smtp, MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_USERNAME=your-email@gmail.com, MAIL_PASSWORD=your-app-password, MAIL_ENCRYPTION=tls',
                 ], 400);
             }
 
@@ -1479,33 +1483,33 @@ class OrderController extends Controller
                     'success' => false,
                     'message' => 'Konfigurasi email belum di-setup. Pastikan .env sudah dikonfigurasi dengan benar.',
                     'config' => $mailConfig,
-                    'help' => 'Tambahkan di .env: MAIL_MAILER=smtp, MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_USERNAME=your-email@gmail.com, MAIL_PASSWORD=your-app-password, MAIL_ENCRYPTION=tls'
+                    'help' => 'Tambahkan di .env: MAIL_MAILER=smtp, MAIL_HOST=smtp.gmail.com, MAIL_PORT=587, MAIL_USERNAME=your-email@gmail.com, MAIL_PASSWORD=your-app-password, MAIL_ENCRYPTION=tls',
                 ], 400);
             }
 
             Mail::raw('Ini adalah test email dari Billiard Class. Jika Anda menerima email ini, konfigurasi email sudah benar.', function ($message) use ($email) {
                 $message->to($email)
-                        ->subject('Test Email - Billiard Class');
+                    ->subject('Test Email - Billiard Class');
             });
 
             Log::info('Test email sent successfully', ['to' => $email]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Test email berhasil dikirim ke ' . $email . '. Silakan cek kotak masuk dan folder Spam.',
+                'message' => 'Test email berhasil dikirim ke '.$email.'. Silakan cek kotak masuk dan folder Spam.',
                 'config' => $mailConfig,
                 'tips' => [
                     '1. Cek folder Spam/Promosi di Gmail',
                     '2. Email mungkin memerlukan beberapa menit untuk sampai',
                     '3. Pastikan menggunakan App Password, bukan password Gmail biasa',
-                    '4. Pastikan 2-Step Verification sudah aktif di Gmail'
-                ]
+                    '4. Pastikan 2-Step Verification sudah aktif di Gmail',
+                ],
             ]);
         } catch (\Exception $e) {
             Log::error('Test email failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'config' => $mailConfig
+                'config' => $mailConfig,
             ]);
 
             $errorMessage = $e->getMessage();
@@ -1521,9 +1525,9 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengirim test email: ' . $errorMessage,
+                'message' => 'Gagal mengirim test email: '.$errorMessage,
                 'config' => $mailConfig,
-                'help' => $helpMessage ?: 'Cek konfigurasi email di .env dan pastikan sudah benar'
+                'help' => $helpMessage ?: 'Cek konfigurasi email di .env dan pastikan sudah benar',
             ], 500);
         }
     }
@@ -1534,12 +1538,12 @@ class OrderController extends Controller
     public function rekapOrder($id)
     {
         $user = Auth::user();
-        
+
         // Super admin bisa rekap tanpa harus punya shift_id, tapi regular admin harus punya shift_id
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
+                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.',
             ], 400);
         }
 
@@ -1549,26 +1553,26 @@ class OrderController extends Controller
             $order = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
                 ->with('orderItems:id,order_id,menu_name,price,quantity,image')
                 ->findOrFail($id);
-            
+
             // Pastikan order sudah completed
             if ($order->status !== 'completed') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Order harus berstatus completed untuk bisa di-rekap.'
+                    'message' => 'Order harus berstatus completed untuk bisa di-rekap.',
                 ], 400);
             }
 
             // Pastikan order dari shift yang sama (atau super admin dapat akses semua)
-            if (!$user->hasRole('super_admin') && $order->shift_id != $user->shift_id) {
+            if (! $user->hasRole('super_admin') && $order->shift_id != $user->shift_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda tidak memiliki akses ke order ini.'
+                    'message' => 'Anda tidak memiliki akses ke order ini.',
                 ], 403);
             }
 
             // Cek apakah sudah ada tutup hari untuk hari ini
             $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
-            
+
             // Super admin: cek tanpa filter shift_id
             // Regular admin: cek dengan filter shift_id mereka
             if ($user->hasRole('super_admin')) {
@@ -1597,18 +1601,18 @@ class OrderController extends Controller
                         'price' => $item->price,
                         'quantity' => $item->quantity,
                     ];
-                })
+                }),
             ];
 
             if ($report) {
                 // Update tutup hari yang sudah ada
                 $existingOrderIds = collect($report->order_summary)->pluck('id')->toArray();
-                
+
                 // Cek apakah order sudah ada di tutup hari
                 if (in_array($order->id, $existingOrderIds)) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Order ini sudah di-rekap sebelumnya.'
+                        'message' => 'Order ini sudah di-rekap sebelumnya.',
                     ], 400);
                 }
 
@@ -1646,7 +1650,7 @@ class OrderController extends Controller
                     'transfer_revenue' => $order->payment_method === 'transfer' ? $order->total_price : 0,
                     'order_summary' => [$orderSummary],
                     'created_by' => $user->name ?? 'System',
-                    'shift_id' => $user->hasRole('super_admin') ? null : $user->shift_id
+                    'shift_id' => $user->hasRole('super_admin') ? null : $user->shift_id,
                 ]);
             }
 
@@ -1659,16 +1663,16 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Order berhasil di-rekap ke tutup hari.',
-                'report_id' => $report->id
+                'report_id' => $report->id,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error rekap order: ' . $e->getMessage());
-            
+            Log::error('Error rekap order: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal rekap order: ' . $e->getMessage()
+                'message' => 'Gagal rekap order: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1685,12 +1689,12 @@ class OrderController extends Controller
         ]);
 
         $user = Auth::user();
-        
+
         // Super admin bisa recap tanpa harus punya shift_id, tapi regular admin harus punya shift_id
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
+                'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.',
             ], 400);
         }
 
@@ -1702,30 +1706,26 @@ class OrderController extends Controller
             // Regular admin: hanya orders dari shift mereka sendiri
             $startDate = Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta')->startOfDay();
             $endDate = Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta')->endOfDay();
-            
-<<<<<<< HEAD
-            $orders = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
+
+            $query = orders::select('id', 'customer_name', 'table_number', 'room', 'status', 'total_price', 'payment_method', 'created_at', 'updated_at', 'shift_id')
                 ->with('orderItems:id,order_id,menu_name,price,quantity,image')
-=======
-            $query = orders::with('orderItems')
->>>>>>> fe2e747cdcd613454a340a63776c89bc456e2e35
                 ->where('status', 'completed')
                 ->whereBetween('created_at', [
                     $startDate->utc(),
-                    $endDate->utc()
+                    $endDate->utc(),
                 ]);
-            
+
             // Filter berdasarkan shift jika bukan super_admin
-            if (!$user->hasRole('super_admin')) {
+            if (! $user->hasRole('super_admin')) {
                 $query->where('shift_id', $user->shift_id);
             }
-            
+
             $orders = $query->get();
 
             if ($orders->isEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada order yang bisa di-rekap untuk periode ini. Pastikan ada order dengan status completed untuk periode yang dipilih.'
+                    'message' => 'Tidak ada order yang bisa di-rekap untuk periode ini. Pastikan ada order dengan status completed untuk periode yang dipilih.',
                 ], 400);
             }
 
@@ -1765,7 +1765,7 @@ class OrderController extends Controller
                             'price' => $item->price,
                             'quantity' => $item->quantity,
                         ];
-                    })
+                    }),
                 ];
             })->toArray();
 
@@ -1773,22 +1773,22 @@ class OrderController extends Controller
                 // Jika sudah ada tutup hari dengan periode yang sama, gabungkan
                 $existingOrderIds = collect($existingReport->order_summary)->pluck('id')->toArray();
                 $existingOrders = collect($existingReport->order_summary);
-                
+
                 // Filter order baru yang belum ada di tutup hari
                 $newOrders = collect($orderSummary)->reject(function ($order) use ($existingOrderIds) {
                     return in_array($order['id'], $existingOrderIds);
                 })->toArray();
-                
+
                 // Gabungkan order yang sudah ada dengan order baru
                 $mergedOrderSummary = array_merge($existingOrders->toArray(), $newOrders);
-                
+
                 // Hitung ulang statistik
                 $mergedTotalOrders = count($mergedOrderSummary);
                 $mergedTotalRevenue = collect($mergedOrderSummary)->sum('total_price');
                 $mergedCashRevenue = collect($mergedOrderSummary)->where('payment_method', 'cash')->sum('total_price');
                 $mergedQrisRevenue = collect($mergedOrderSummary)->where('payment_method', 'qris')->sum('total_price');
                 $mergedTransferRevenue = collect($mergedOrderSummary)->where('payment_method', 'transfer')->sum('total_price');
-                
+
                 // Update tutup hari yang sudah ada
                 $existingReport->update([
                     'total_orders' => $mergedTotalOrders,
@@ -1798,9 +1798,9 @@ class OrderController extends Controller
                     'transfer_revenue' => $mergedTransferRevenue,
                     'order_summary' => $mergedOrderSummary,
                 ]);
-                
+
                 $report = $existingReport;
-                $message = 'Tutup hari berhasil digabung dengan tutup hari yang sudah ada. ' . count($newOrders) . ' order baru ditambahkan.';
+                $message = 'Tutup hari berhasil digabung dengan tutup hari yang sudah ada. '.count($newOrders).' order baru ditambahkan.';
             } else {
                 // Buat tutup hari baru
                 // Super admin: shift_id = null (all shifts)
@@ -1816,9 +1816,9 @@ class OrderController extends Controller
                     'transfer_revenue' => $transferRevenue,
                     'order_summary' => $orderSummary,
                     'created_by' => Auth::user()->name ?? 'System',
-                    'shift_id' => $user->hasRole('super_admin') ? null : $user->shift_id
+                    'shift_id' => $user->hasRole('super_admin') ? null : $user->shift_id,
                 ]);
-                $message = 'Tutup hari berhasil dibuat. ' . $orders->count() . ' order telah di-tutup hari.';
+                $message = 'Tutup hari berhasil dibuat. '.$orders->count().' order telah di-tutup hari.';
             }
 
             // Hapus order yang sudah di-rekap beserta order items-nya
@@ -1831,16 +1831,16 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'report' => $report
+                'report' => $report,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error creating recap: ' . $e->getMessage());
-            
+            Log::error('Error creating recap: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membuat tutup hari: ' . $e->getMessage()
+                'message' => 'Gagal membuat tutup hari: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1851,12 +1851,12 @@ class OrderController extends Controller
     public function recapIndex(Request $request)
     {
         $user = Auth::user();
-        
+
         // Super admin bisa lihat semua recap tanpa harus punya shift_id
         // Regular admin harus punya shift_id
-        if (!$user->hasRole('super_admin') && !$user->shift_id) {
+        if (! $user->hasRole('super_admin') && ! $user->shift_id) {
             return view('admin.orders.recap', [
-                'reports' => new \Illuminate\Pagination\Paginator([], 20)
+                'reports' => new \Illuminate\Pagination\Paginator([], 20),
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
         }
 
@@ -1865,17 +1865,17 @@ class OrderController extends Controller
         if ($user->hasRole('super_admin')) {
             $query = Report::query();
         } else {
-            $query = Report::where(function($q) use ($user) {
-                    $q->where('shift_id', $user->shift_id)
-                      ->orWhereNull('shift_id'); // Tampilkan juga rekap lama yang belum punya shift_id
-                });
+            $query = Report::where(function ($q) use ($user) {
+                $q->where('shift_id', $user->shift_id)
+                    ->orWhereNull('shift_id'); // Tampilkan juga rekap lama yang belum punya shift_id
+            });
         }
 
         // Filter berdasarkan tanggal - default ke tanggal hari ini jika tidak ada filter
-        $filterDate = $request->has('filter_date') && $request->filter_date 
+        $filterDate = $request->has('filter_date') && $request->filter_date
             ? Carbon::parse($request->filter_date)->setTimezone('Asia/Jakarta')->format('Y-m-d')
             : Carbon::now('Asia/Jakarta')->format('Y-m-d');
-        
+
         $query->whereDate('report_date', $filterDate);
 
         // Order dan paginate
@@ -1894,21 +1894,21 @@ class OrderController extends Controller
     {
         $user = Auth::user();
         $report = Report::findOrFail($id);
-        
+
         // Super admin bisa akses semua recap
         // Regular admin hanya bisa akses recap shift mereka atau rekap lama yang shift_id-nya null
-        if (!$user->hasRole('super_admin')) {
+        if (! $user->hasRole('super_admin')) {
             if ($report->shift_id !== null && $report->shift_id != $user->shift_id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda tidak memiliki akses ke tutup hari ini.'
+                    'message' => 'Anda tidak memiliki akses ke tutup hari ini.',
                 ], 403);
             }
         }
-        
+
         return response()->json([
             'success' => true,
-            'order_summary' => $report->order_summary
+            'order_summary' => $report->order_summary,
         ]);
     }
 
@@ -1928,14 +1928,14 @@ class OrderController extends Controller
             DB::beginTransaction();
 
             $report = Report::findOrFail($id);
-            
+
             // Super admin bisa update semua recap
             // Regular admin hanya bisa update recap shift mereka
-            if (!$user->hasRole('super_admin')) {
+            if (! $user->hasRole('super_admin')) {
                 if ($report->shift_id !== null && $report->shift_id != $user->shift_id) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Anda tidak memiliki akses untuk mengubah tutup hari ini.'
+                        'message' => 'Anda tidak memiliki akses untuk mengubah tutup hari ini.',
                     ], 403);
                 }
             }
@@ -1954,24 +1954,24 @@ class OrderController extends Controller
                 ->where('status', 'completed')
                 ->whereBetween('created_at', [
                     Carbon::parse($request->start_date)->startOfDay(),
-                    Carbon::parse($request->end_date)->endOfDay()
+                    Carbon::parse($request->end_date)->endOfDay(),
                 ])
                 ->get();
 
             // Gabungkan dengan order yang sudah ada di tutup hari sebelumnya
             $existingOrderIds = collect($report->order_summary)->pluck('id')->toArray();
             $existingOrders = collect($report->order_summary);
-            
+
             // Jika ada tutup hari lain dengan periode yang sama, gabungkan juga
             if ($existingReportWithSamePeriod) {
                 $otherReportOrderIds = collect($existingReportWithSamePeriod->order_summary)->pluck('id')->toArray();
                 $otherReportOrders = collect($existingReportWithSamePeriod->order_summary);
-                
+
                 // Gabungkan order dari tutup hari lain (yang belum ada di tutup hari ini)
                 $otherOrdersToMerge = $otherReportOrders->reject(function ($order) use ($existingOrderIds) {
                     return in_array($order['id'], $existingOrderIds);
                 });
-                
+
                 // Tambahkan ke existing orders
                 $existingOrders = $existingOrders->merge($otherOrdersToMerge);
                 $existingOrderIds = $existingOrders->pluck('id')->toArray();
@@ -1992,10 +1992,10 @@ class OrderController extends Controller
                     'total_price' => $order['total_price'],
                     'payment_method' => $order['payment_method'],
                     'created_at' => $order['created_at'],
-                    'items' => $order['items']
+                    'items' => $order['items'],
                 ];
             })->toArray();
-            
+
             // Jika ada tutup hari lain dengan periode yang sama, hapus tutup hari tersebut setelah digabung
             if ($existingReportWithSamePeriod) {
                 $existingReportWithSamePeriod->delete();
@@ -2017,16 +2017,17 @@ class OrderController extends Controller
                             'price' => $item->price,
                             'quantity' => $item->quantity,
                         ];
-                    })
+                    }),
                 ];
             }
 
             // Jika tidak ada order sama sekali (baik yang lama maupun yang baru)
             if (empty($newOrderSummary)) {
                 DB::rollBack();
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak ada order yang bisa di-rekap untuk periode ini. Pastikan ada order dengan status completed untuk periode yang dipilih.'
+                    'message' => 'Tidak ada order yang bisa di-rekap untuk periode ini. Pastikan ada order dengan status completed untuk periode yang dipilih.',
                 ], 400);
             }
 
@@ -2060,7 +2061,7 @@ class OrderController extends Controller
 
             $message = 'Tutup hari berhasil diperbarui.';
             if ($newOrders->count() > 0) {
-                $message .= ' ' . $newOrders->count() . ' order baru ditambahkan.';
+                $message .= ' '.$newOrders->count().' order baru ditambahkan.';
             } else {
                 $message .= ' Periode tutup hari telah diupdate.';
             }
@@ -2068,16 +2069,16 @@ class OrderController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'report' => $report->fresh()
+                'report' => $report->fresh(),
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error updating recap: ' . $e->getMessage());
-            
+            Log::error('Error updating recap: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui tutup hari: ' . $e->getMessage()
+                'message' => 'Gagal memperbarui tutup hari: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -2089,15 +2090,15 @@ class OrderController extends Controller
     {
         $user = Auth::user();
         $report = Report::findOrFail($id);
-        
+
         // Pastikan user hanya bisa export tutup hari shift mereka sendiri
         if ($report->shift_id != $user->shift_id) {
             return back()->with('error', 'Anda tidak memiliki akses ke tutup hari ini.');
         }
-        
+
         $startDate = Carbon::parse($report->start_date)->format('Y-m-d');
         $endDate = Carbon::parse($report->end_date)->format('Y-m-d');
-        $filename = 'Tutup_Hari_' . $startDate . '_s_d_' . $endDate . '.xlsx';
+        $filename = 'Tutup_Hari_'.$startDate.'_s_d_'.$endDate.'.xlsx';
 
         return Excel::download(new RecapExport($report), $filename);
     }
@@ -2113,42 +2114,42 @@ class OrderController extends Controller
 
         $user = Auth::user();
         $report = Report::findOrFail($id);
-        
+
         // Pastikan user hanya bisa kirim tutup hari shift mereka sendiri
         if ($report->shift_id != $user->shift_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki akses ke tutup hari ini.'
+                'message' => 'Anda tidak memiliki akses ke tutup hari ini.',
             ], 403);
         }
-        
+
         $startDate = Carbon::parse($report->start_date)->format('d M Y');
         $endDate = Carbon::parse($report->end_date)->format('d M Y');
-        $reportPeriod = $startDate . ' - ' . $endDate;
-        
-        $filename = 'Tutup_Hari_' . Carbon::parse($report->start_date)->format('Y-m-d') . '_s_d_' . Carbon::parse($report->end_date)->format('Y-m-d') . '.xlsx';
+        $reportPeriod = $startDate.' - '.$endDate;
+
+        $filename = 'Tutup_Hari_'.Carbon::parse($report->start_date)->format('Y-m-d').'_s_d_'.Carbon::parse($report->end_date)->format('Y-m-d').'.xlsx';
 
         try {
             // Check email configuration
             if (config('mail.default') === 'log') {
-                Log::info('Email tutup hari akan dikirim ke: ' . $request->email);
+                Log::info('Email tutup hari akan dikirim ke: '.$request->email);
             }
 
             // Ensure temp directory exists
             $tempDir = storage_path('app/temp');
-            if (!file_exists($tempDir)) {
+            if (! file_exists($tempDir)) {
                 mkdir($tempDir, 0755, true);
             }
 
             // Store Excel file temporarily
-            $filePath = 'temp/' . $filename;
+            $filePath = 'temp/'.$filename;
             Excel::store(new RecapExport($report), $filePath, 'local');
 
             // Get full path for attachment
             $fullPath = Storage::path($filePath);
 
             // Check if file exists
-            if (!file_exists($fullPath)) {
+            if (! file_exists($fullPath)) {
                 throw new \Exception('File Excel tidak berhasil dibuat');
             }
 
@@ -2173,7 +2174,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Tutup hari berhasil dikirim ke ' . $request->email . '. Silakan cek kotak masuk dan folder Spam Anda.'
+                'message' => 'Tutup hari berhasil dikirim ke '.$request->email.'. Silakan cek kotak masuk dan folder Spam Anda.',
             ]);
         } catch (\Exception $e) {
             // Delete temporary file if exists
@@ -2181,14 +2182,13 @@ class OrderController extends Controller
                 Storage::delete($filePath);
             }
 
-            Log::error('Recap Email Error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('Recap Email Error: '.$e->getMessage());
+            Log::error('Stack trace: '.$e->getTraceAsString());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengirim email: ' . $e->getMessage()
+                'message' => 'Gagal mengirim email: '.$e->getMessage(),
             ], 500);
         }
     }
-
 }

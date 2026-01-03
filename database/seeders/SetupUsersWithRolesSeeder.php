@@ -13,7 +13,7 @@ class SetupUsersWithRolesSeeder extends Seeder
     public function run(): void
     {
         // Setup 3 demo users dengan role berbeda
-        
+
         // User 1: Super Admin
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@gmail.com'],

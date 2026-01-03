@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('reorder_level')->default(10)->comment('Level minimum sebelum perlu reorder');
             $table->timestamp('last_restocked_at')->nullable();
             $table->timestamps();
-            
+
             $table->unique('menu_id');
             $table->index('quantity');
         });

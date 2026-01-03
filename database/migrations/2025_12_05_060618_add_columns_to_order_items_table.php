@@ -13,19 +13,19 @@ return new class extends Migration
     {
         Schema::table('order_items', function (Blueprint $table) {
             // Check if columns exist before adding
-            if (!Schema::hasColumn('order_items', 'order_id')) {
+            if (! Schema::hasColumn('order_items', 'order_id')) {
                 $table->foreignId('order_id')->after('id')->constrained('orders')->onDelete('cascade');
             }
-            if (!Schema::hasColumn('order_items', 'menu_name')) {
+            if (! Schema::hasColumn('order_items', 'menu_name')) {
                 $table->string('menu_name')->after('order_id');
             }
-            if (!Schema::hasColumn('order_items', 'price')) {
+            if (! Schema::hasColumn('order_items', 'price')) {
                 $table->decimal('price', 10, 2)->after('menu_name');
             }
-            if (!Schema::hasColumn('order_items', 'quantity')) {
+            if (! Schema::hasColumn('order_items', 'quantity')) {
                 $table->integer('quantity')->after('price');
             }
-            if (!Schema::hasColumn('order_items', 'image')) {
+            if (! Schema::hasColumn('order_items', 'image')) {
                 $table->string('image')->nullable()->after('quantity');
             }
         });

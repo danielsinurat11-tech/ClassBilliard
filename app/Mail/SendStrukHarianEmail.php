@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -14,6 +13,7 @@ class SendStrukHarianEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $strukData;
+
     public $tanggal;
 
     /**
@@ -32,10 +32,11 @@ class SendStrukHarianEmail extends Mailable
     {
         $shiftInfo = '';
         if (isset($this->strukData['shift']) && $this->strukData['shift']) {
-            $shiftInfo = ' - ' . $this->strukData['shift']->name;
+            $shiftInfo = ' - '.$this->strukData['shift']->name;
         }
+
         return new Envelope(
-            subject: 'Struk Tutup Hari - ' . $this->tanggal->format('d M Y') . $shiftInfo . ' - Billiard Class',
+            subject: 'Struk Tutup Hari - '.$this->tanggal->format('d M Y').$shiftInfo.' - Billiard Class',
         );
     }
 
@@ -53,4 +54,3 @@ class SendStrukHarianEmail extends Mailable
         );
     }
 }
-

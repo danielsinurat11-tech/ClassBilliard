@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\NotificationSound;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 
 class NotificationSoundSeeder extends Seeder
 {

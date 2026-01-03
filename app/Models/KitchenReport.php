@@ -15,14 +15,14 @@ class KitchenReport extends Model
         'payment_method',
         'order_items',
         'order_date',
-        'completed_at'
+        'completed_at',
     ];
 
     protected $casts = [
         'order_items' => 'array',
         'order_date' => 'date',
         'completed_at' => 'datetime',
-        'total_price' => 'decimal:2'
+        'total_price' => 'decimal:2',
     ];
 
     /**

@@ -2,14 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\HeroSection;
-use App\Models\TentangKami;
 use App\Models\AboutFounder;
 use App\Models\Event;
 use App\Models\Footer;
-use App\Models\TimKami;
-use App\Models\TestimoniPelanggan;
+use App\Models\HeroSection;
 use App\Models\PortfolioAchievement;
+use App\Models\TentangKami;
+use App\Models\TestimoniPelanggan;
+use App\Models\TimKami;
 use Illuminate\Database\Seeder;
 
 class PopulateCMSContentSeeder extends Seeder

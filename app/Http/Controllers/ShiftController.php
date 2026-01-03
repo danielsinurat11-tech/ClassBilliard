@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Shift;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class ShiftController extends Controller
 {
@@ -20,6 +20,7 @@ class ShiftController extends Controller
             ->with('users:id,name,email,shift_id')
             ->orderBy('start_time')
             ->get();
+
         return view('admin.shifts.index', compact('shifts'));
     }
 
@@ -52,7 +53,7 @@ class ShiftController extends Controller
         $shift = Shift::findOrFail($id);
 
         $request->validate([
-            'name' => 'required|string|max:255|unique:shifts,name,' . $id,
+            'name' => 'required|string|max:255|unique:shifts,name,'.$id,
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
         ]);
@@ -77,16 +78,16 @@ class ShiftController extends Controller
         ]);
 
         $user = User::findOrFail($request->user_id);
-        
+
         // Only allow admin, kitchen, and super_admin roles (check spatie roles)
         $allowedRoles = ['admin', 'kitchen', 'super_admin'];
         $userRole = $user->getRoleNames()->first();
-        if (!in_array($userRole, $allowedRoles)) {
+        if (! in_array($userRole, $allowedRoles)) {
             return back()->with('error', 'Hanya user dengan role admin, kitchen, atau super admin yang bisa di-assign ke shift.');
         }
 
         $user->update([
-            'shift_id' => $shiftId
+            'shift_id' => $shiftId,
         ]);
 
         return back()->with('success', 'User berhasil di-assign ke shift.');
@@ -110,14 +111,14 @@ class ShiftController extends Controller
     {
         try {
             $user = Auth::user();
-            
-            if (!$user) {
+
+            if (! $user) {
                 return response()->json([
                     'shift_active' => false,
-                    'message' => 'User tidak terautentikasi'
+                    'message' => 'User tidak terautentikasi',
                 ], 401);
             }
-            
+
             // Super admin always has access
             if ($user->hasRole('super_admin')) {
                 return response()->json([
@@ -125,48 +126,48 @@ class ShiftController extends Controller
                     'shift_name' => 'Super Admin',
                     'start_time' => '00:00',
                     'end_time' => '23:59',
-                    'current_time' => Carbon::now()->format('H:i:s')
+                    'current_time' => Carbon::now()->format('H:i:s'),
                 ]);
             }
-            
-            if (!$user->shift_id) {
+
+            if (! $user->shift_id) {
                 return response()->json([
                     'shift_active' => false,
-                    'message' => 'User tidak memiliki shift yang aktif'
+                    'message' => 'User tidak memiliki shift yang aktif',
                 ]);
             }
 
             // Load shift with relationship (optimized)
             $shift = Shift::select('id', 'name', 'start_time', 'end_time', 'is_active')
                 ->find($user->shift_id);
-            
-            if (!$shift) {
+
+            if (! $shift) {
                 return response()->json([
                     'shift_active' => false,
-                    'message' => 'Shift tidak ditemukan'
+                    'message' => 'Shift tidak ditemukan',
                 ]);
             }
-            
-            if (!$shift->is_active) {
+
+            if (! $shift->is_active) {
                 return response()->json([
                     'shift_active' => false,
-                    'message' => 'Shift tidak aktif'
+                    'message' => 'Shift tidak aktif',
                 ]);
             }
 
             $now = Carbon::now('Asia/Jakarta');
-            
+
             // Parse shift times - handle both string and Carbon formats
             $startTimeStr = $shift->start_time instanceof Carbon ? $shift->start_time->format('H:i') : $shift->start_time;
             $endTimeStr = $shift->end_time instanceof Carbon ? $shift->end_time->format('H:i') : $shift->end_time;
-            
+
             $shiftStart = Carbon::createFromFormat('H:i', $startTimeStr, 'Asia/Jakarta');
             $shiftEnd = Carbon::createFromFormat('H:i', $endTimeStr, 'Asia/Jakarta');
-            
+
             // Set to today
             $shiftStart->setDate($now->year, $now->month, $now->day);
             $shiftEnd->setDate($now->year, $now->month, $now->day);
-            
+
             // Adjust for shifts that cross midnight
             if ($shiftEnd->lt($shiftStart)) {
                 if ($now->lt($shiftStart)) {
@@ -183,14 +184,13 @@ class ShiftController extends Controller
                 'shift_name' => $shift->name,
                 'start_time' => $shift->start_time,
                 'end_time' => $shift->end_time,
-                'current_time' => $now->format('H:i:s')
+                'current_time' => $now->format('H:i:s'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'shift_active' => false,
-                'message' => 'Error: ' . $e->getMessage()
+                'message' => 'Error: '.$e->getMessage(),
             ], 500);
         }
     }
-
 }

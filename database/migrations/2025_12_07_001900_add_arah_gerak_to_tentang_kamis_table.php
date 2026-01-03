@@ -10,7 +10,7 @@ return new class extends Migration
     {
         if (Schema::hasTable('tentang_kamis')) {
             Schema::table('tentang_kamis', function (Blueprint $table) {
-                if (!Schema::hasColumn('tentang_kamis', 'arah_gerak')) {
+                if (! Schema::hasColumn('tentang_kamis', 'arah_gerak')) {
                     $table->text('arah_gerak')->nullable()->after('misi');
                 }
             });
@@ -28,4 +28,3 @@ return new class extends Migration
         }
     }
 };
-

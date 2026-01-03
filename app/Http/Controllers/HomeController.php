@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HeroSection;
-use App\Models\TentangKami;
 use App\Models\AboutFounder;
-use App\Models\PortfolioAchievement;
-use App\Models\TimKami;
-use App\Models\TestimoniPelanggan;
+use App\Models\Contact;
 use App\Models\Event;
 use App\Models\Footer;
-use App\Models\Contact;
+use App\Models\HeroSection;
+use App\Models\PortfolioAchievement;
+use App\Models\TentangKami;
+use App\Models\TestimoniPelanggan;
+use App\Models\TimKami;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class HomeController extends Controller
@@ -103,7 +102,7 @@ class HomeController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return redirect()->to(route('home') . '#testimonials')
+            return redirect()->to(route('home').'#testimonials')
                 ->withErrors($validator)
                 ->withInput();
         }
@@ -121,7 +120,7 @@ class HomeController extends Controller
 
         TestimoniPelanggan::create($data);
 
-        return redirect()->to(route('home') . '#testimonials')
+        return redirect()->to(route('home').'#testimonials')
             ->with('testimonial_success', 'Terima kasih! Testimoni Anda telah berhasil dikirim dan akan ditampilkan di website.');
     }
 }

@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * PaymentPolicy
- * 
+ *
  * Model-level authorization untuk Payment
  * Digunakan untuk: $user->can('confirm', $payment)
  */
@@ -34,7 +34,7 @@ class PaymentPolicy
      */
     public function confirm(User $user, payments $payment): bool
     {
-        if (!$user->can('payment.confirm')) {
+        if (! $user->can('payment.confirm')) {
             return false;
         }
 
@@ -56,7 +56,7 @@ class PaymentPolicy
      */
     public function refund(User $user, payments $payment): bool
     {
-        if (!$user->can('payment.refund')) {
+        if (! $user->can('payment.refund')) {
             return false;
         }
 

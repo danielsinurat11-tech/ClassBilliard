@@ -3,11 +3,10 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
 
 class SendRecapEmail extends Mailable
@@ -15,8 +14,11 @@ class SendRecapEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $filePath;
+
     public $fileName;
+
     public $reportPeriod;
+
     public $report;
 
     /**
@@ -36,7 +38,7 @@ class SendRecapEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tutup Hari - ' . $this->reportPeriod . ' - Billiard Class',
+            subject: 'Tutup Hari - '.$this->reportPeriod.' - Billiard Class',
         );
     }
 

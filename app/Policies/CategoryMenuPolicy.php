@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * CategoryMenuPolicy
- * 
+ *
  * Handles authorization for CategoryMenu model operations
  * Only admin and super_admin can manage categories
  */

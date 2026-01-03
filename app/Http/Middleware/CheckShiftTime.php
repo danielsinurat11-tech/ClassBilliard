@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,14 +20,14 @@ class CheckShiftTime
         $user = Auth::user();
 
         // Check if user is authenticated
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
         // Allow API routes to pass through FIRST (they handle their own validation)
         // This must be checked before any shift time validation
         $path = $request->path();
-        if (str_starts_with($path, 'dapur/orders/') || 
+        if (str_starts_with($path, 'dapur/orders/') ||
             str_starts_with($path, 'shift/check')) {
             return $next($request);
         }
@@ -37,16 +37,16 @@ class CheckShiftTime
             return $next($request);
         }
 
-        // If user doesn't have a shift assigned, allow access 
+        // If user doesn't have a shift assigned, allow access
         // (for users without shift restrictions)
-        if (!$user->shift_id) {
+        if (! $user->shift_id) {
             return $next($request);
         }
 
         $shift = $user->shift;
 
         // If shift doesn't exist or not active, allow access
-        if (!$shift || !$shift->is_active) {
+        if (! $shift || ! $shift->is_active) {
             return $next($request);
         }
 
@@ -73,19 +73,19 @@ class CheckShiftTime
         $toleranceEnd = $endTime->copy()->addMinutes(30);
 
         // Update shift_end di session jika belum ada atau perlu update
-        if (!session('shift_end') || !session('shift_end_datetime')) {
+        if (! session('shift_end') || ! session('shift_end_datetime')) {
             session(['shift_end' => $endTime->timestamp]);
             session(['shift_end_datetime' => $endTime->toIso8601String()]);
         }
-        
+
         // Transfer order dari shift sebelumnya yang belum selesai ke shift aktif saat ini
         $shouldAttemptTransfer = $request->routeIs('dapur') || $request->routeIs('reports') || $request->routeIs('pengaturan-audio') || $request->is('admin*');
         $activeShift = cache()->remember('active_shift', 60, function () {
             return \App\Models\Shift::getActiveShift();
         });
-        
+
         if ($shouldAttemptTransfer && $activeShift) {
-            $cacheKey = 'shift_transfer_done_' . $today->format('Y-m-d') . '_' . $activeShift->id;
+            $cacheKey = 'shift_transfer_done_'.$today->format('Y-m-d').'_'.$activeShift->id;
             if (! cache()->has($cacheKey)) {
                 $previousShiftIds = \App\Models\Shift::query()
                     ->where('is_active', true)
@@ -103,7 +103,7 @@ class CheckShiftTime
                 cache()->put($cacheKey, true, 86400);
             }
         }
-        
+
         // Check if current time is within tolerance range
         if ($now < $toleranceStart || $now > $toleranceEnd) {
             // Outside working hours - FORCE LOGOUT
@@ -127,11 +127,11 @@ class CheckShiftTime
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
-                
+
                 return response()->json([
                     'error' => true,
                     'message' => "Anda hanya bisa login saat jam shift aktif. Shift: {$shiftName} ({$startTimeFormatted} - {$endTimeFormatted} WIB).",
-                    'redirect' => '/'
+                    'redirect' => '/',
                 ], 403);
             }
 

@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Menu;
 use App\Models\CategoryMenu;
+use App\Models\Menu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class MenuAdminController extends Controller
 {
     /**
      * Display paginated list of menus
-     * 
+     *
      * Optimization:
      * - Eager load categoryMenu to prevent N+1
      * - Select specific columns
@@ -21,7 +20,7 @@ class MenuAdminController extends Controller
     public function index()
     {
         $this->authorize('viewAny', Menu::class);
-        
+
         // Eager load category to prevent N+1 queries
         $menus = Menu::select('id', 'category_menu_id', 'name', 'slug', 'price', 'image_path', 'labels', 'short_description', 'created_at')
             ->with('categoryMenu:id,name')
@@ -41,18 +40,18 @@ class MenuAdminController extends Controller
     public function create()
     {
         $this->authorize('create', Menu::class);
-        
+
         // Get categories for dropdown
         $categories = CategoryMenu::select('id', 'name')
             ->orderBy('name', 'asc')
             ->get();
-            
+
         return view('admin.menus.create', compact('categories'));
     }
 
     /**
      * Store new menu
-     * 
+     *
      * Validation:
      * - Category must exist
      * - Name is required
@@ -63,7 +62,7 @@ class MenuAdminController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Menu::class);
-        
+
         // Validation with custom messages
         $validated = $request->validate([
             'category_menu_id' => 'required|exists:category_menus,id',
@@ -71,7 +70,7 @@ class MenuAdminController extends Controller
             'price' => 'required|numeric|min:0',
             'description' => 'required|string|min:10',
             'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'labels' => 'nullable|string'
+            'labels' => 'nullable|string',
         ], [
             'category_menu_id.required' => 'Kategori harus dipilih.',
             'category_menu_id.exists' => 'Kategori tidak valid.',
@@ -85,11 +84,11 @@ class MenuAdminController extends Controller
         ]);
 
         // Store image
-        $imageName = time() . '-' . Str::slug($validated['name']) . '.' . $request->image->extension();
+        $imageName = time().'-'.Str::slug($validated['name']).'.'.$request->image->extension();
         $request->image->move(public_path('uploads/menus'), $imageName);
 
         // Parse labels from comma-separated string
-        $labels = $validated['labels'] 
+        $labels = $validated['labels']
             ? array_filter(array_map('trim', explode(',', $validated['labels'])))
             : [];
 
@@ -101,8 +100,8 @@ class MenuAdminController extends Controller
             'price' => $validated['price'],
             'short_description' => Str::limit(strip_tags($validated['description']), 120),
             'description' => $validated['description'],
-            'image_path' => 'uploads/menus/' . $imageName,
-            'labels' => !empty($labels) ? $labels : null,
+            'image_path' => 'uploads/menus/'.$imageName,
+            'labels' => ! empty($labels) ? $labels : null,
         ]);
 
         return redirect()->route('admin.menus.index')
@@ -115,7 +114,7 @@ class MenuAdminController extends Controller
     public function edit(Menu $menu)
     {
         $this->authorize('update', $menu);
-        
+
         // Get categories for dropdown
         $categories = CategoryMenu::select('id', 'name')
             ->orderBy('name', 'asc')
@@ -126,14 +125,14 @@ class MenuAdminController extends Controller
 
     /**
      * Update menu
-     * 
+     *
      * Validation:
      * - Category must exist
      * - Name is required
      * - Price must be numeric
      * - Description is required
      * - Image is optional (if provided, must be valid image)
-     * 
+     *
      * Actions:
      * - Update menu data
      * - Delete old image if new one provided
@@ -141,7 +140,7 @@ class MenuAdminController extends Controller
     public function update(Request $request, Menu $menu)
     {
         $this->authorize('update', $menu);
-        
+
         // Validation with custom messages
         $validated = $request->validate([
             'category_menu_id' => 'required|exists:category_menus,id',
@@ -149,7 +148,7 @@ class MenuAdminController extends Controller
             'price' => 'required|numeric|min:0',
             'description' => 'required|string|min:10',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'labels' => 'nullable|string'
+            'labels' => 'nullable|string',
         ], [
             'category_menu_id.required' => 'Kategori harus dipilih.',
             'category_menu_id.exists' => 'Kategori tidak valid.',
@@ -174,7 +173,7 @@ class MenuAdminController extends Controller
         // Parse and update labels
         if ($validated['labels']) {
             $labels = array_filter(array_map('trim', explode(',', $validated['labels'])));
-            $updateData['labels'] = !empty($labels) ? $labels : null;
+            $updateData['labels'] = ! empty($labels) ? $labels : null;
         }
 
         // Handle new image upload
@@ -185,9 +184,9 @@ class MenuAdminController extends Controller
             }
 
             // Store new image
-            $imageName = time() . '-' . $updateData['slug'] . '.' . $request->image->extension();
+            $imageName = time().'-'.$updateData['slug'].'.'.$request->image->extension();
             $request->image->move(public_path('uploads/menus'), $imageName);
-            $updateData['image_path'] = 'uploads/menus/' . $imageName;
+            $updateData['image_path'] = 'uploads/menus/'.$imageName;
         }
 
         // Update menu
@@ -199,7 +198,7 @@ class MenuAdminController extends Controller
 
     /**
      * Delete menu
-     * 
+     *
      * Actions:
      * - Delete image file from storage
      * - Delete menu record
@@ -207,15 +206,15 @@ class MenuAdminController extends Controller
     public function destroy(Menu $menu)
     {
         $this->authorize('delete', $menu);
-        
+
         // Delete image file if exists
         if ($menu->image_path && file_exists(public_path($menu->image_path))) {
             @unlink(public_path($menu->image_path));
         }
-        
+
         // Delete menu record
         $menu->delete();
-        
+
         return back()->with('success', 'Menu berhasil dihapus.');
     }
 }

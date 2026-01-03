@@ -13,22 +13,22 @@ return new class extends Migration
     {
         Schema::table('orders', function (Blueprint $table) {
             // Check if columns exist before adding
-            if (!Schema::hasColumn('orders', 'customer_name')) {
+            if (! Schema::hasColumn('orders', 'customer_name')) {
                 $table->string('customer_name')->after('id');
             }
-            if (!Schema::hasColumn('orders', 'table_number')) {
+            if (! Schema::hasColumn('orders', 'table_number')) {
                 $table->string('table_number')->after('customer_name');
             }
-            if (!Schema::hasColumn('orders', 'room')) {
+            if (! Schema::hasColumn('orders', 'room')) {
                 $table->string('room')->after('table_number');
             }
-            if (!Schema::hasColumn('orders', 'total_price')) {
+            if (! Schema::hasColumn('orders', 'total_price')) {
                 $table->decimal('total_price', 10, 2)->after('room');
             }
-            if (!Schema::hasColumn('orders', 'payment_method')) {
+            if (! Schema::hasColumn('orders', 'payment_method')) {
                 $table->string('payment_method')->default('cash')->after('total_price');
             }
-            if (!Schema::hasColumn('orders', 'status')) {
+            if (! Schema::hasColumn('orders', 'status')) {
                 $table->string('status')->default('pending')->after('payment_method');
             }
         });

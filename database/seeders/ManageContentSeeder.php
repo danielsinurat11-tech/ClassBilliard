@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\HeroSection;
-use App\Models\TentangKami;
 use App\Models\AboutFounder;
-use App\Models\PortfolioAchievement;
-use App\Models\TimKami;
-use App\Models\TestimoniPelanggan;
 use App\Models\Event;
 use App\Models\Footer;
-use Illuminate\Database\Seeder;
+use App\Models\HeroSection;
+use App\Models\PortfolioAchievement;
+use App\Models\TentangKami;
+use App\Models\TestimoniPelanggan;
+use App\Models\TimKami;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class ManageContentSeeder extends Seeder
 {
@@ -246,4 +246,3 @@ class ManageContentSeeder extends Seeder
         $this->command->info('   - Footer: 1 data');
     }
 }
-

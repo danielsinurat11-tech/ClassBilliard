@@ -10,7 +10,7 @@ class PermissionController extends Controller
 {
     /**
      * Show list of users for selecting which one to manage permissions
-     * 
+     *
      * Only displays:
      * - Admin users
      * - Excludes: super_admin, kitchen, and currently logged-in user
@@ -18,14 +18,14 @@ class PermissionController extends Controller
     public function selectUser()
     {
         // Check role.view permission to manage permissions
-        if (!auth()->user()->hasPermissionTo('role.view')) {
+        if (! auth()->user()->hasPermissionTo('role.view')) {
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengakses fitur ini.');
         }
 
         // Get users with 'admin' role only (exclude super_admin, kitchen, and current user)
-        $users = User::whereHas('roles', function($query) {
-                $query->where('name', 'admin');
-            })
+        $users = User::whereHas('roles', function ($query) {
+            $query->where('name', 'admin');
+        })
             ->where('id', '!=', auth()->id())
             ->orderBy('name')
             ->paginate(15);
@@ -39,7 +39,7 @@ class PermissionController extends Controller
     public function managePermissions($userId)
     {
         // Check role.view permission to manage permissions
-        if (!auth()->user()->hasPermissionTo('role.view')) {
+        if (! auth()->user()->hasPermissionTo('role.view')) {
             return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengakses fitur ini.');
         }
 
@@ -54,17 +54,17 @@ class PermissionController extends Controller
 
         // Get all permissions grouped by category (prefix sebelum dot) - optimized
         $allPermissions = Permission::select('id', 'name', 'guard_name')->get();
-        
+
         // Group permissions by prefix (order, payment, kitchen, etc)
         $groupedPermissions = [];
         foreach ($allPermissions as $permission) {
             $parts = explode('.', $permission->name);
             $category = $parts[0] ?? 'other';
-            
-            if (!isset($groupedPermissions[$category])) {
+
+            if (! isset($groupedPermissions[$category])) {
                 $groupedPermissions[$category] = [];
             }
-            
+
             $groupedPermissions[$category][] = $permission;
         }
 
@@ -74,7 +74,7 @@ class PermissionController extends Controller
         return view('admin.manage-permissions.manage', [
             'user' => $user,
             'groupedPermissions' => $groupedPermissions,
-            'userPermissions' => $userPermissions
+            'userPermissions' => $userPermissions,
         ]);
     }
 
@@ -84,10 +84,10 @@ class PermissionController extends Controller
     public function updatePermissions(Request $request, $userId)
     {
         // Check role.assign permission to assign permissions
-        if (!auth()->user()->hasPermissionTo('role.assign')) {
+        if (! auth()->user()->hasPermissionTo('role.assign')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki izin untuk mengakses fitur ini.'
+                'message' => 'Anda tidak memiliki izin untuk mengakses fitur ini.',
             ], 403);
         }
 
@@ -97,7 +97,7 @@ class PermissionController extends Controller
         if ($user->hasRole('super_admin')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak bisa mengelola permissions super admin.'
+                'message' => 'Tidak bisa mengelola permissions super admin.',
             ], 403);
         }
 
@@ -114,25 +114,25 @@ class PermissionController extends Controller
             // CRITICAL: Clear all cache layers
             // 1. Clear Spatie permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-            
+
             // 2. Clear Laravel cache
             \Illuminate\Support\Facades\Cache::flush();
-            
+
             // 3. Refresh the user instance to reload permissions
             $user->refresh();
 
             // Set flash message untuk session
-            session()->flash('success', 'Permissions berhasil diupdate untuk user ' . $user->name . '.');
+            session()->flash('success', 'Permissions berhasil diupdate untuk user '.$user->name.'.');
 
             return response()->json([
                 'success' => true,
-                'message' => 'Permissions berhasil diupdate untuk user ' . $user->name . '.',
-                'redirect_url' => route('admin.permissions.select-user')
+                'message' => 'Permissions berhasil diupdate untuk user '.$user->name.'.',
+                'redirect_url' => route('admin.permissions.select-user'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -143,15 +143,15 @@ class PermissionController extends Controller
     public function togglePermission(Request $request, $userId)
     {
         // Check role.assign permission to assign permissions
-        if (!auth()->user()->hasPermissionTo('role.assign')) {
+        if (! auth()->user()->hasPermissionTo('role.assign')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak memiliki izin untuk mengakses fitur ini.'
+                'message' => 'Anda tidak memiliki izin untuk mengakses fitur ini.',
             ], 403);
         }
 
         $request->validate([
-            'permission' => 'required|string|exists:permissions,name'
+            'permission' => 'required|string|exists:permissions,name',
         ]);
 
         $user = User::findOrFail($userId);
@@ -160,7 +160,7 @@ class PermissionController extends Controller
         if ($user->hasRole('super_admin')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak bisa mengelola permissions super admin.'
+                'message' => 'Tidak bisa mengelola permissions super admin.',
             ], 403);
         }
 
@@ -171,33 +171,33 @@ class PermissionController extends Controller
                 // Revoke permission
                 $user->revokePermissionTo($permission);
                 $status = 'revoked';
-                $message = 'Permission "' . $permission . '" berhasil dicabut.';
+                $message = 'Permission "'.$permission.'" berhasil dicabut.';
             } else {
                 // Give permission
                 $user->givePermissionTo($permission);
                 $status = 'granted';
-                $message = 'Permission "' . $permission . '" berhasil diberikan.';
+                $message = 'Permission "'.$permission.'" berhasil diberikan.';
             }
 
             // CRITICAL: Clear all cache layers
             // 1. Clear Spatie permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-            
+
             // 2. Clear Laravel cache
             \Illuminate\Support\Facades\Cache::flush();
-            
+
             // 3. Refresh the user instance
             $user->refresh();
 
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'status' => $status
+                'status' => $status,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }

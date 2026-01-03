@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * OrderPolicy
- * 
+ *
  * Model-level authorization untuk Order
  * Digunakan untuk: $user->can('view', $order)
  */
@@ -43,12 +43,12 @@ class OrderPolicy
     public function update(User $user, orders $order): bool
     {
         // User harus punya permission
-        if (!$user->can('order.update')) {
+        if (! $user->can('order.update')) {
             return false;
         }
 
         // Order harus unpaid atau pending
-        if (!in_array($order->status, ['pending', 'pending_unpaid'])) {
+        if (! in_array($order->status, ['pending', 'pending_unpaid'])) {
             return false;
         }
 
@@ -61,12 +61,12 @@ class OrderPolicy
     public function delete(User $user, orders $order): bool
     {
         // Only super_admin can delete
-        if (!$user->can('order.delete')) {
+        if (! $user->can('order.delete')) {
             return false;
         }
 
         // Only pending orders can be deleted
-        if (!$order->canBeDeleted()) {
+        if (! $order->canBeDeleted()) {
             return false;
         }
 
@@ -78,7 +78,7 @@ class OrderPolicy
      */
     public function markReady(User $user, orders $order): bool
     {
-        if (!$user->can('order.mark_ready')) {
+        if (! $user->can('order.mark_ready')) {
             return false;
         }
 
@@ -95,12 +95,12 @@ class OrderPolicy
      */
     public function complete(User $user, orders $order): bool
     {
-        if (!$user->can('order.complete')) {
+        if (! $user->can('order.complete')) {
             return false;
         }
 
         // Order harus ready atau processing
-        if (!in_array($order->status, ['ready', 'processing'])) {
+        if (! in_array($order->status, ['ready', 'processing'])) {
             return false;
         }
 
@@ -112,7 +112,7 @@ class OrderPolicy
      */
     public function cancel(User $user, orders $order): bool
     {
-        if (!$user->can('order.cancel')) {
+        if (! $user->can('order.cancel')) {
             return false;
         }
 

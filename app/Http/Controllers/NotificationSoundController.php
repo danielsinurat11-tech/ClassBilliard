@@ -20,7 +20,7 @@ class NotificationSoundController extends Controller
         $sounds = NotificationSound::select('id', 'name', 'filename', 'file_path', 'created_at')
             ->orderBy('name', 'asc')
             ->get();
-        
+
         return response()->json($sounds);
     }
 
@@ -32,7 +32,7 @@ class NotificationSoundController extends Controller
     {
         // Get active sound from cache (set by admin)
         $activeSoundId = cache()->get('active_notification_sound_id');
-        
+
         if ($activeSoundId) {
             $sound = NotificationSound::select('id', 'name', 'filename', 'file_path')->find($activeSoundId);
             if ($sound) {
@@ -40,48 +40,48 @@ class NotificationSoundController extends Controller
                 if (str_starts_with($filePath, 'sounds/')) {
                     $url = url("/notification-sounds/{$sound->id}/file");
                 } else {
-                    $url = asset('assets/sounds/' . $sound->filename);
+                    $url = asset('assets/sounds/'.$sound->filename);
                 }
-                
+
                 return response()->json([
                     'success' => true,
                     'sound' => [
                         'id' => $sound->id,
                         'name' => $sound->name,
                         'filename' => $sound->filename,
-                        'url' => $url
-                    ]
+                        'url' => $url,
+                    ],
                 ]);
             }
         }
-        
+
         // Fallback: get the most recently created sound (optimized)
         $sound = NotificationSound::select('id', 'name', 'filename', 'file_path')
             ->orderBy('created_at', 'desc')
             ->first();
-        
+
         if ($sound) {
             $filePath = $sound->file_path;
             if (str_starts_with($filePath, 'sounds/')) {
                 $url = url("/notification-sounds/{$sound->id}/file");
             } else {
-                $url = asset('assets/sounds/' . $sound->filename);
+                $url = asset('assets/sounds/'.$sound->filename);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'sound' => [
                     'id' => $sound->id,
                     'name' => $sound->name,
                     'filename' => $sound->filename,
-                    'url' => $url
-                ]
+                    'url' => $url,
+                ],
             ]);
         }
-        
+
         return response()->json([
             'success' => false,
-            'sound' => null
+            'sound' => null,
         ]);
     }
 
@@ -92,20 +92,20 @@ class NotificationSoundController extends Controller
     {
         try {
             $sound = NotificationSound::findOrFail($id);
-            
+
             // Store active sound ID in session or cache
             // For now, we'll use cache with a key
             cache()->put('active_notification_sound_id', $id, now()->addDays(30));
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Audio aktif berhasil diubah',
-                'sound' => $sound
+                'sound' => $sound,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengubah audio aktif: ' . $e->getMessage()
+                'message' => 'Gagal mengubah audio aktif: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -118,21 +118,21 @@ class NotificationSoundController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             // Allow common audio formats including m4a
-            'audio' => 'required|file|mimes:mp3,wav,ogg,m4a|max:2048' // Max 2MB
+            'audio' => 'required|file|mimes:mp3,wav,ogg,m4a|max:2048', // Max 2MB
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         try {
             $file = $request->file('audio');
             $extension = strtolower($file->getClientOriginalExtension() ?: 'mp3');
-            $filename = time() . '_' . Str::uuid()->toString() . '.' . $extension;
+            $filename = time().'_'.Str::uuid()->toString().'.'.$extension;
             $path = $file->storeAs('sounds', $filename, 'public');
 
             $sound = DB::transaction(function () use ($request, $path, $filename) {
@@ -163,12 +163,12 @@ class NotificationSoundController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Audio berhasil diupload',
-                'sound' => $sound
+                'sound' => $sound,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal upload audio: ' . $e->getMessage()
+                'message' => 'Gagal upload audio: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -177,15 +177,15 @@ class NotificationSoundController extends Controller
     {
         $sound = NotificationSound::find($id);
 
-        if (!$sound) {
+        if (! $sound) {
             abort(404);
         }
 
-        if (!str_starts_with($sound->file_path, 'sounds/')) {
+        if (! str_starts_with($sound->file_path, 'sounds/')) {
             abort(404);
         }
 
-        if (!Storage::disk('public')->exists($sound->file_path)) {
+        if (! Storage::disk('public')->exists($sound->file_path)) {
             abort(404);
         }
 
@@ -204,11 +204,11 @@ class NotificationSoundController extends Controller
     {
         try {
             $sound = NotificationSound::find($id);
-            
-            if (!$sound) {
+
+            if (! $sound) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Audio tidak ditemukan atau sudah dihapus'
+                    'message' => 'Audio tidak ditemukan atau sudah dihapus',
                 ], 404);
             }
 
@@ -221,14 +221,13 @@ class NotificationSoundController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Audio berhasil dihapus'
+                'message' => 'Audio berhasil dihapus',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus audio: ' . $e->getMessage()
+                'message' => 'Gagal menghapus audio: '.$e->getMessage(),
             ], 500);
         }
     }
-
 }

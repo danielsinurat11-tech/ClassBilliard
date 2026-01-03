@@ -14,10 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::table('contacts', function (Blueprint $table) {
-            if (!Schema::hasColumn('contacts', 'navbar_label')) {
+            if (! Schema::hasColumn('contacts', 'navbar_label')) {
                 $table->string('navbar_label')->nullable()->after('whatsapp');
             }
-            if (!Schema::hasColumn('contacts', 'navbar_link')) {
+            if (! Schema::hasColumn('contacts', 'navbar_link')) {
                 $table->string('navbar_link')->nullable()->after('navbar_label');
             }
         });

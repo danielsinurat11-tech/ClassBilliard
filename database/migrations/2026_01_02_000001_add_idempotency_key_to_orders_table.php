@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('orders', 'idempotency_key')) {
+            if (! Schema::hasColumn('orders', 'idempotency_key')) {
                 $table->string('idempotency_key', 100)->nullable()->after('shift_id');
                 $table->unique('idempotency_key');
             }
@@ -26,4 +26,3 @@ return new class extends Migration
         });
     }
 };
-

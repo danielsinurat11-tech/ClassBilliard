@@ -2,22 +2,22 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Auth;
-use App\Models\orders;
-use App\Models\payments;
-use App\Models\Menu;
-use App\Models\User;
 use App\Models\CategoryMenu;
 use App\Models\meja_billiard;
+use App\Models\Menu;
+use App\Models\orders;
+use App\Models\payments;
+use App\Models\User;
+use App\Policies\CategoryMenuPolicy;
+use App\Policies\MenuPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\PaymentPolicy;
-use App\Policies\MenuPolicy;
-use App\Policies\UserPolicy;
-use App\Policies\CategoryMenuPolicy;
 use App\Policies\TablePolicy;
+use App\Policies\UserPolicy;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {

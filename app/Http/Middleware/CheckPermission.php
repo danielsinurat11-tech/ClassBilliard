@@ -8,16 +8,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * CheckPermission Middleware
- * 
+ *
  * Enforce permission checks di route level
- * 
+ *
  * Usage:
  *   Route::get('/admin/orders', [OrderController::class, 'index'])
  *       ->middleware('permission:order.view');
- * 
+ *
  * Multiple permissions (OR logic):
  *   ->middleware('permission:order.view|order.create');
- * 
+ *
  * Multiple permissions (AND logic):
  *   ->middleware('permission:order.view,order.create');
  */
@@ -29,7 +29,7 @@ class CheckPermission
     public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
         // User harus authenticated
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('login');
         }
 
@@ -45,7 +45,7 @@ class CheckPermission
                 }
             }
             // Handle single permission
-            else if ($user->can($permission)) {
+            elseif ($user->can($permission)) {
                 return $next($request);
             }
         }

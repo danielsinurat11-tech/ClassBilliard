@@ -16,7 +16,7 @@ class EnsureUserIsAuthenticated
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
@@ -30,4 +30,3 @@ class EnsureUserIsAuthenticated
         return $next($request);
     }
 }
-

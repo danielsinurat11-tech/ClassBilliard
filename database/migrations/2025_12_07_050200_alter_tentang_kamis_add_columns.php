@@ -13,25 +13,25 @@ return new class extends Migration
     {
         if (Schema::hasTable('tentang_kamis')) {
             Schema::table('tentang_kamis', function (Blueprint $table) {
-                if (!Schema::hasColumn('tentang_kamis', 'title')) {
+                if (! Schema::hasColumn('tentang_kamis', 'title')) {
                     $table->string('title')->default('Tentang Kami');
                 }
-                if (!Schema::hasColumn('tentang_kamis', 'subtitle')) {
+                if (! Schema::hasColumn('tentang_kamis', 'subtitle')) {
                     $table->text('subtitle')->nullable();
                 }
-                if (!Schema::hasColumn('tentang_kamis', 'visi')) {
+                if (! Schema::hasColumn('tentang_kamis', 'visi')) {
                     $table->text('visi')->nullable();
                 }
-                if (!Schema::hasColumn('tentang_kamis', 'misi')) {
+                if (! Schema::hasColumn('tentang_kamis', 'misi')) {
                     $table->text('misi')->nullable();
                 }
-                if (!Schema::hasColumn('tentang_kamis', 'arah_gerak')) {
+                if (! Schema::hasColumn('tentang_kamis', 'arah_gerak')) {
                     $table->text('arah_gerak')->nullable();
                 }
-                if (!Schema::hasColumn('tentang_kamis', 'video_url')) {
+                if (! Schema::hasColumn('tentang_kamis', 'video_url')) {
                     $table->string('video_url')->nullable();
                 }
-                if (!Schema::hasColumn('tentang_kamis', 'is_active')) {
+                if (! Schema::hasColumn('tentang_kamis', 'is_active')) {
                     $table->boolean('is_active')->default(true);
                 }
             });
@@ -70,4 +70,3 @@ return new class extends Migration
         }
     }
 };
-

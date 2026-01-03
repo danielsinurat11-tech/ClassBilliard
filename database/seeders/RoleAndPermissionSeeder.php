@@ -3,19 +3,19 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleAndPermissionSeeder extends Seeder
 {
     /**
      * Role-Based Access Control (RBAC) Seeder
-     * 
+     *
      * Defines 50 permissions across 11 domains and assigns them to 3 roles:
      * - super_admin: Full system access (50 permissions)
      * - admin: CMS, menus, categories, reports (22 permissions)
      * - kitchen: Kitchen operations only (12 permissions)
-     * 
+     *
      * Permission domains:
      * 1. ORDER (9) - Order creation, management, completion
      * 2. PAYMENT (6) - Payment confirmation, reports, refunds
@@ -40,7 +40,7 @@ class RoleAndPermissionSeeder extends Seeder
         // ================================================================
         // STEP 1: CREATE 47 PERMISSIONS ACROSS 8 DOMAINS
         // ================================================================
-        
+
         $this->createOrderPermissions();
         $this->createPaymentPermissions();
         $this->createKitchenPermissions();
@@ -110,7 +110,7 @@ class RoleAndPermissionSeeder extends Seeder
         $permissions = [
             'payment.view',        // View payment data
             'payment.confirm',     // Confirm payment received
-            'payment.view_reports',// View payment reports
+            'payment.view_reports', // View payment reports
             'payment.refund',      // Process refund
             'payment.export',      // Export payment data
             'payment.audit_log',   // View audit trail
@@ -156,7 +156,7 @@ class RoleAndPermissionSeeder extends Seeder
             'menu.update',             // Update menu item
             'menu.delete',             // Delete menu item
             'menu.update_price',       // Update pricing
-            'menu.toggle_availability',// Enable/disable items
+            'menu.toggle_availability', // Enable/disable items
             'menu.view_categories',    // View menu categories
         ];
 
@@ -315,7 +315,7 @@ class RoleAndPermissionSeeder extends Seeder
 
     /**
      * Assign permissions to admin role (3 permissions)
-     * 
+     *
      * Admin can:
      * - Handle incoming orders ONLY (view, show, cancel)
      * - Website CMS access (via role-based check)
@@ -335,7 +335,7 @@ class RoleAndPermissionSeeder extends Seeder
 
     /**
      * Assign permissions to kitchen role (12 permissions)
-     * 
+     *
      * Kitchen staff can:
      * - View and complete orders
      * - Manage kitchen operations (status, ready, queue)
@@ -384,17 +384,17 @@ class RoleAndPermissionSeeder extends Seeder
         $this->command->info('🔓 ROLE SUMMARY:');
         $this->command->line('');
         $this->command->line('  📍 super_admin');
-        $this->command->line('     Permissions: ' . $superAdmin->permissions->count() . '/47');
+        $this->command->line('     Permissions: '.$superAdmin->permissions->count().'/47');
         $this->command->line('     Access: FULL SYSTEM ACCESS');
         $this->command->line('');
 
         $this->command->line('  📍 admin');
-        $this->command->line('     Permissions: ' . $admin->permissions->count() . '/47');
+        $this->command->line('     Permissions: '.$admin->permissions->count().'/47');
         $this->command->line('     Access: Menu, Category, Table, Order (read), Payment (read), Reports');
         $this->command->line('');
 
         $this->command->line('  📍 kitchen');
-        $this->command->line('     Permissions: ' . $kitchen->permissions->count() . '/47');
+        $this->command->line('     Permissions: '.$kitchen->permissions->count().'/47');
         $this->command->line('     Access: Kitchen operations, Order completion, View menus/tables');
         $this->command->line('');
 
@@ -403,4 +403,3 @@ class RoleAndPermissionSeeder extends Seeder
         $this->command->info('═══════════════════════════════════════════════════════');
     }
 }
-

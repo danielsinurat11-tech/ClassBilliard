@@ -23,10 +23,10 @@ return new class extends Migration
             $table->date('order_date'); // Tanggal order untuk filtering harian
             $table->dateTime('completed_at'); // Waktu order diselesaikan
             $table->timestamps();
-            
+
             // Foreign key ke orders table
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
-            
+
             // Index untuk pencarian berdasarkan tanggal
             $table->index('order_date');
             $table->index('completed_at');

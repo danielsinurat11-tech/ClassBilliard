@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\CategoryMenu;
 use App\Models\Menu;
-use Illuminate\Http\Request;
 
 class MenuDisplayController extends Controller
 {

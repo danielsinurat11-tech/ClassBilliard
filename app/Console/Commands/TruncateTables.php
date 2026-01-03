@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class TruncateTables extends Command
 {
@@ -68,32 +67,32 @@ class TruncateTables extends Command
             if (in_array($tableName, $protectedTables)) {
                 $this->line("⏭️  Skip: {$tableName} (dilindungi)");
                 $skippedCount++;
+
                 continue;
             }
 
             try {
                 // Disable foreign key checks sementara
                 DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-                
+
                 // Truncate tabel
                 DB::table($tableName)->truncate();
-                
+
                 // Enable kembali foreign key checks
                 DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
                 $this->info("✅ Dikosongkan: {$tableName}");
                 $truncatedCount++;
             } catch (\Exception $e) {
-                $this->error("❌ Error pada {$tableName}: " . $e->getMessage());
+                $this->error("❌ Error pada {$tableName}: ".$e->getMessage());
             }
         }
 
         $this->newLine();
-        $this->info("Selesai!");
+        $this->info('Selesai!');
         $this->line("Tabel yang dikosongkan: {$truncatedCount}");
         $this->line("Tabel yang dilindungi: {$skippedCount}");
 
         return Command::SUCCESS;
     }
 }
-

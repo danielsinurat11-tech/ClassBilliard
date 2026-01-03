@@ -3,25 +3,26 @@
 namespace App\Exports;
 
 use App\Models\orders;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithTitle, WithColumnWidths
+class OrdersExport implements FromCollection, WithColumnWidths, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     protected $type;
+
     protected $date;
+
     protected $month;
+
     protected $year;
 
     public function __construct($type = 'daily', $date = null, $month = null, $year = null)
@@ -41,7 +42,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             $query->whereDate('updated_at', $this->date);
         } elseif ($this->type === 'monthly') {
             $query->whereYear('updated_at', Carbon::parse($this->month)->year)
-                  ->whereMonth('updated_at', Carbon::parse($this->month)->month);
+                ->whereMonth('updated_at', Carbon::parse($this->month)->month);
         } elseif ($this->type === 'yearly') {
             $query->whereYear('updated_at', $this->year);
         }
@@ -61,7 +62,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             'Jumlah Item',
             'Total Harga',
             'Metode Pembayaran',
-            'Status'
+            'Status',
         ];
     }
 
@@ -69,7 +70,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
     {
         static $no = 0;
         $no++;
-        
+
         $items = $order->orderItems->pluck('menu_name')->implode(', ');
         $totalItems = $order->orderItems->sum('quantity');
 
@@ -77,7 +78,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
         $paymentMethods = [
             'cash' => 'Tunai',
             'qris' => 'QRIS',
-            'transfer' => 'Transfer'
+            'transfer' => 'Transfer',
         ];
         $paymentMethod = $paymentMethods[strtolower($order->payment_method)] ?? strtoupper($order->payment_method);
 
@@ -89,9 +90,9 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             $order->room,
             $items,
             $totalItems,
-            'Rp' . number_format($order->total_price, 0, ',', '.'),
+            'Rp'.number_format($order->total_price, 0, ',', '.'),
             $paymentMethod,
-            'Selesai'
+            'Selesai',
         ];
     }
 
@@ -102,23 +103,23 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             'font' => [
                 'bold' => true,
                 'size' => 11,
-                'color' => ['rgb' => 'FFFFFF']
+                'color' => ['rgb' => 'FFFFFF'],
             ],
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'FA9A08']
-                ],
-                'alignment' => [
-                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'FA9A08'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
-                'wrapText' => true
+                'wrapText' => true,
             ],
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000']
-                ]
-            ]
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
         ];
 
         // Style untuk data rows
@@ -126,13 +127,13 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => 'CCCCCC']
-                ]
+                    'color' => ['rgb' => 'CCCCCC'],
+                ],
             ],
             'alignment' => [
                 'vertical' => Alignment::VERTICAL_CENTER,
-                'wrapText' => true
-            ]
+                'wrapText' => true,
+            ],
         ];
 
         // Apply header style
@@ -141,7 +142,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
         // Apply data style to all data rows
         $highestRow = $sheet->getHighestRow();
         if ($highestRow > 1) {
-            $sheet->getStyle('A2:J' . $highestRow)->applyFromArray($dataStyle);
+            $sheet->getStyle('A2:J'.$highestRow)->applyFromArray($dataStyle);
         }
 
         // Set alignment for specific columns
@@ -179,11 +180,11 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, WithSty
     public function title(): string
     {
         if ($this->type === 'daily') {
-            return 'Laporan Harian ' . Carbon::parse($this->date)->format('d-m-Y');
+            return 'Laporan Harian '.Carbon::parse($this->date)->format('d-m-Y');
         } elseif ($this->type === 'monthly') {
-            return 'Laporan Bulanan ' . Carbon::parse($this->month)->format('F Y');
+            return 'Laporan Bulanan '.Carbon::parse($this->month)->format('F Y');
         } else {
-            return 'Laporan Tahunan ' . $this->year;
+            return 'Laporan Tahunan '.$this->year;
         }
     }
 }

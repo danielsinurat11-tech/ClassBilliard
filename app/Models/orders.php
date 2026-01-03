@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model Order
- * 
+ *
  * PENTING: Order dengan status completed, processing, atau rejected TIDAK BOLEH DIHAPUS
  * untuk mencegah kecurangan saat tutup buku akhir bulan/tahun.
  * Data penjualan harus tersimpan permanen untuk keperluan audit dan laporan keuangan.
@@ -21,7 +21,7 @@ class orders extends Model
         'payment_method',
         'status',
         'shift_id',
-        'idempotency_key'
+        'idempotency_key',
     ];
 
     public function orderItems()

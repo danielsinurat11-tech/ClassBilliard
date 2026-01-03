@@ -13,7 +13,7 @@ return new class extends Migration
     {
         if (Schema::hasTable('tentang_kamis')) {
             Schema::table('tentang_kamis', function (Blueprint $table) {
-                if (!Schema::hasColumn('tentang_kamis', 'video_description')) {
+                if (! Schema::hasColumn('tentang_kamis', 'video_description')) {
                     $table->text('video_description')->nullable()->after('video_url');
                 }
             });
@@ -34,4 +34,3 @@ return new class extends Migration
         }
     }
 };
-

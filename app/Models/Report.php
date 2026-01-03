@@ -17,7 +17,7 @@ class Report extends Model
         'transfer_revenue',
         'order_summary',
         'created_by',
-        'shift_id'
+        'shift_id',
     ];
 
     public function shift()
@@ -33,6 +33,6 @@ class Report extends Model
         'cash_revenue' => 'decimal:2',
         'qris_revenue' => 'decimal:2',
         'transfer_revenue' => 'decimal:2',
-        'order_summary' => 'array'
+        'order_summary' => 'array',
     ];
 }

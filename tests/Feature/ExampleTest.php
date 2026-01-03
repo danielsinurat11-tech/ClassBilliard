@@ -22,7 +22,7 @@ class ExampleTest extends TestCase
                 str_contains($message, 'no such table') ||
                 str_contains($message, 'Base table or view not found')
             ) {
-                $this->markTestSkipped('Test membutuhkan database siap: ' . $message);
+                $this->markTestSkipped('Test membutuhkan database siap: '.$message);
             }
 
             throw $e;

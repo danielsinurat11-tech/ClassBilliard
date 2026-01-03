@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('order_summary')->nullable(); // Ringkasan order (JSON)
             $table->string('created_by')->nullable(); // User yang membuat rekapan
             $table->timestamps();
-            
+
             // Index untuk pencarian berdasarkan tanggal
             $table->index('report_date');
             $table->index(['start_date', 'end_date']);

@@ -2,17 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use App\Models\HeroSection;
-use App\Models\TentangKami;
 use App\Models\AboutFounder;
-use App\Models\KeunggulanFasilitas;
-use App\Models\PortfolioAchievement;
-use App\Models\TimKami;
-use App\Models\TestimoniPelanggan;
 use App\Models\Event;
 use App\Models\Footer;
+use App\Models\HeroSection;
+use App\Models\KeunggulanFasilitas;
+use App\Models\PortfolioAchievement;
+use App\Models\TentangKami;
+use App\Models\TestimoniPelanggan;
+use App\Models\TimKami;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
 class ClearManageContentSeeder extends Seeder

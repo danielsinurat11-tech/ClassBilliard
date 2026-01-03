@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 
 class ShiftClosing extends Model
 {
@@ -33,7 +33,7 @@ class ShiftClosing extends Model
         'order_summary' => 'array',
         'closed_at' => 'datetime',
     ];
-    
+
     /**
      * Get start_time as string
      */
@@ -46,9 +46,10 @@ class ShiftClosing extends Model
         if (is_string($value)) {
             return $value;
         }
+
         return Carbon::parse($value)->format('H:i:s');
     }
-    
+
     /**
      * Get end_time as string
      */
@@ -61,9 +62,10 @@ class ShiftClosing extends Model
         if (is_string($value)) {
             return $value;
         }
+
         return Carbon::parse($value)->format('H:i:s');
     }
-    
+
     /**
      * Set start_time - ensure it's stored as time string
      */
@@ -75,12 +77,12 @@ class ShiftClosing extends Model
             // Ensure format is H:i:s
             $timeParts = explode(':', $value);
             if (count($timeParts) == 2) {
-                $value = $value . ':00';
+                $value = $value.':00';
             }
             $this->attributes['start_time'] = $value;
         }
     }
-    
+
     /**
      * Set end_time - ensure it's stored as time string
      */
@@ -92,7 +94,7 @@ class ShiftClosing extends Model
             // Ensure format is H:i:s
             $timeParts = explode(':', $value);
             if (count($timeParts) == 2) {
-                $value = $value . ':00';
+                $value = $value.':00';
             }
             $this->attributes['end_time'] = $value;
         }
