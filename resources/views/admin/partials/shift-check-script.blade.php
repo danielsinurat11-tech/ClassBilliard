@@ -83,8 +83,11 @@
                 csrfInput.value = csrfToken.getAttribute('content');
                 form.appendChild(csrfInput);
             }
-            document.body.appendChild(form);
-            form.submit();
+            const body = document.body;
+            if (body) {
+                body.appendChild(form);
+                form.submit();
+            }
         }
     }
     

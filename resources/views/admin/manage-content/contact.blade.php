@@ -127,6 +127,12 @@
     const previewText = document.getElementById('whatsappPreviewText');
     const previewFallback = document.getElementById('whatsappPreviewFallback');
 
+    // Safety check: if any critical element is missing, abort script
+    if (!previewLink || !previewText || !previewFallback) {
+        console.error('Required DOM elements for contact preview not found');
+        return;
+    }
+
         function normalizeWhatsApp(inputVal) {
             if (!inputVal) return null;
             let v = inputVal.trim();

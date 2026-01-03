@@ -236,7 +236,14 @@
     <script>
         document.addEventListener('alpine:init', () => {
             const form = document.querySelector('[x-data*="showModal"]');
-            if (form) {
+            
+            // Safety check: if form element is missing, abort script
+            if (!form) {
+                console.error('Form element not found for keunggulan-fasilitas');
+                return;
+            }
+            
+            if (form.__x) {
                 form.__x.submitForm = async function() {
                     try {
                         const url = this.isEditing
@@ -255,7 +262,10 @@
                         if (this.isEditing) {
                             formData.append('_method', 'POST');
                         }
-                        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                        if (csrfToken) {
+                            formData.append('_token', csrfToken.content || '');
+                        }
 
                         const response = await fetch(url, {
                             method: 'POST',

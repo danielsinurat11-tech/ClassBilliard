@@ -231,11 +231,16 @@
 
     <script>
         // Simple Preview Handler
-        document.getElementById('photoInput').onchange = evt => {
-            const [file] = evt.target.files
-            if (file) {
-                const preview = document.getElementById('preview');
-                preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover animate-in fade-in duration-500">`;
+        const photoInput = document.getElementById('photoInput');
+        if (photoInput) {
+            photoInput.onchange = evt => {
+                const [file] = evt.target.files
+                if (file) {
+                    const preview = document.getElementById('preview');
+                    if (preview) {
+                        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover animate-in fade-in duration-500">`;
+                    }
+                }
             }
         }
     </script>

@@ -185,8 +185,17 @@
             function openEditModal(id, name, priority) {
                 const modal = document.getElementById('editModal');
                 const form = document.getElementById('editForm');
-                document.getElementById('editName').value = name;
-                document.getElementById('editPriority').value = priority;
+                const editName = document.getElementById('editName');
+                const editPriority = document.getElementById('editPriority');
+                
+                // Safety check: if critical elements are missing, abort function
+                if (!modal || !form || !editName || !editPriority) {
+                    console.error('Required modal elements not found');
+                    return;
+                }
+                
+                editName.value = name;
+                editPriority.value = priority;
                 form.action = `/admin/categories/${id}`;
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
@@ -194,6 +203,13 @@
 
             function closeModal() {
                 const modal = document.getElementById('editModal');
+                
+                // Safety check: if modal element is missing, abort function
+                if (!modal) {
+                    console.error('Edit modal element not found');
+                    return;
+                }
+                
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }

@@ -181,31 +181,39 @@
         const priceDisplay = document.getElementById('price_display');
         const priceReal = document.getElementById('price_real');
 
-        priceDisplay.addEventListener('keyup', function (e) {
-            let value = this.value.replace(/[^,\d]/g, '').toString();
-            let split = value.split(',');
-            let sisa = split[0].length % 3;
-            let rupiah = split[0].substr(0, sisa);
-            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+        // Safety check: if price elements are missing, abort script
+        if (priceDisplay && priceReal) {
+            priceDisplay.addEventListener('keyup', function (e) {
+                let value = this.value.replace(/[^,\d]/g, '').toString();
+                let split = value.split(',');
+                let sisa = split[0].length % 3;
+                let rupiah = split[0].substr(0, sisa);
+                let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
 
-            if (ribuan) {
-                let separator = sisa ? '.' : '';
-                rupiah += separator + ribuan.join('.');
-            }
+                if (ribuan) {
+                    let separator = sisa ? '.' : '';
+                    rupiah += separator + ribuan.join('.');
+                }
 
-            this.value = rupiah;
-            priceReal.value = value.replace(/\./g, '');
-        });
+                this.value = rupiah;
+                priceReal.value = value.replace(/\./g, '');
+            });
+        }
 
-        document.getElementById('imgInput').onchange = evt => {
-            const [file] = evt.target.files
-            if (file) {
-                const preview = document.getElementById('preview');
-                preview.style.opacity = '0';
-                setTimeout(() => {
-                    preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover">`;
-                    preview.style.opacity = '100';
-                }, 300);
+        const imgInput = document.getElementById('imgInput');
+        if (imgInput) {
+            imgInput.onchange = evt => {
+                const [file] = evt.target.files
+                if (file) {
+                    const preview = document.getElementById('preview');
+                    if (preview) {
+                        preview.style.opacity = '0';
+                        setTimeout(() => {
+                            preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover">`;
+                            preview.style.opacity = '100';
+                        }, 300);
+                    }
+                }
             }
         }
     </script>

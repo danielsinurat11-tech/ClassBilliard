@@ -263,60 +263,74 @@
         }
 
         // Form submit functionality
-        document.getElementById('permissionsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const successMsg = document.getElementById('successMessage');
-            const errorMsg = document.getElementById('errorMessage');
-            const originalBtnHTML = submitBtn.innerHTML;
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Menyimpan...';
-            successMsg.classList.add('hidden');
-            errorMsg.classList.add('hidden');
-            
-            try {
-                const formData = new FormData(this);
-                const permissions = formData.getAll('permissions[]');
+        const permissionsForm = document.getElementById('permissionsForm');
+        if (permissionsForm) {
+            permissionsForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
                 
-                const response = await fetch('{{ route("admin.permissions.update", $user->id) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    },
-                    body: JSON.stringify({
-                        permissions: permissions
-                    })
-                });
+                const submitBtn = document.getElementById('submitBtn');
+                const successMsg = document.getElementById('successMessage');
+                const errorMsg = document.getElementById('errorMessage');
+                const successText = document.getElementById('successText');
+                const errorText = document.getElementById('errorText');
                 
-                const result = await response.json();
+                // Safety check: if critical elements are missing, abort function
+                if (!submitBtn || !successMsg || !errorMsg || !successText || !errorText) {
+                    console.error('Required permission form elements not found');
+                    return;
+                }
                 
-                if (result.success) {
-                    document.getElementById('successText').textContent = result.message;
-                    successMsg.classList.remove('hidden');
-                    successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const originalBtnHTML = submitBtn.innerHTML;
+                
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Menyimpan...';
+                successMsg.classList.add('hidden');
+                errorMsg.classList.add('hidden');
+                
+                try {
+                    const formData = new FormData(this);
+                    const permissions = formData.getAll('permissions[]');
                     
-                    // Redirect to permissions select-user page after 2 seconds
-                    setTimeout(() => {
-                        window.location.href = result.redirect_url;
-                    }, 2000);
-                } else {
-                    document.getElementById('errorText').textContent = result.message;
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    const response = await fetch('{{ route("admin.permissions.update", $user->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : ''
+                        },
+                        body: JSON.stringify({
+                            permissions: permissions
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        successText.textContent = result.message;
+                        successMsg.classList.remove('hidden');
+                        successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        
+                        // Redirect to permissions select-user page after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = result.redirect_url;
+                        }, 2000);
+                    } else {
+                        errorText.textContent = result.message;
+                        errorMsg.classList.remove('hidden');
+                        errorMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                } catch (error) {
+                    errorText.textContent = 'Terjadi kesalahan: ' + error.message;
                     errorMsg.classList.remove('hidden');
                     errorMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHTML;
                 }
-            } catch (error) {
-                document.getElementById('errorText').textContent = 'Terjadi kesalahan: ' + error.message;
-                errorMsg.classList.remove('hidden');
-                errorMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnHTML;
-            }
-        });
+            });
+        }
+
     });
 </script>
 @endpush

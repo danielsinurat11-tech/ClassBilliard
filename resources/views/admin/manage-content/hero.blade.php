@@ -175,28 +175,38 @@
 
 <script>
     // Preview Handler for Logo
-    document.getElementById('logoInput').onchange = evt => {
-        const [file] = evt.target.files
-        if (file) {
-            const preview = document.getElementById('preview');
-            preview.style.opacity = '0';
-            setTimeout(() => {
-                preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-contain animate-in zoom-in-95 duration-500">`;
-                preview.style.opacity = '1';
-            }, 300);
+    const logoInput = document.getElementById('logoInput');
+    if (logoInput) {
+        logoInput.onchange = evt => {
+            const [file] = evt.target.files
+            if (file) {
+                const preview = document.getElementById('preview');
+                if (preview) {
+                    preview.style.opacity = '0';
+                    setTimeout(() => {
+                        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-contain animate-in zoom-in-95 duration-500">`;
+                        preview.style.opacity = '1';
+                    }, 300);
+                }
+            }
         }
     }
 
     // Preview Handler for Background
-    document.getElementById('backgroundInput').onchange = evt => {
-        const [file] = evt.target.files
-        if (file) {
-            const preview = document.getElementById('backgroundPreview');
-            preview.style.opacity = '0';
-            setTimeout(() => {
-                preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-700 rounded-lg">`;
-                preview.style.opacity = '1';
-            }, 300);
+    const backgroundInput = document.getElementById('backgroundInput');
+    if (backgroundInput) {
+        backgroundInput.onchange = evt => {
+            const [file] = evt.target.files
+            if (file) {
+                const preview = document.getElementById('backgroundPreview');
+                if (preview) {
+                    preview.style.opacity = '0';
+                    setTimeout(() => {
+                        preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-700 rounded-lg">`;
+                        preview.style.opacity = '1';
+                    }, 300);
+                }
+            }
         }
     }
 </script>

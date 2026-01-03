@@ -326,31 +326,52 @@
 
     <script>
         function showAddModal() {
-            document.getElementById('addModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+            const addModal = document.getElementById('addModal');
+            if (addModal) {
+                addModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
         }
 
         function closeAddModal() {
-            document.getElementById('addModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
+            const addModal = document.getElementById('addModal');
+            if (addModal) {
+                addModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
         }
 
         function showEditModal(inventoryId, menuId, quantity, reorderLevel) {
             const menu = @json($menus);
             const menuName = menu.find(m => m.id === menuId)?.name || 'Unknown';
             
-            document.getElementById('editMenuName').value = menuName;
-            document.getElementById('editQuantity').value = quantity;
-            document.getElementById('editReorderLevel').value = reorderLevel;
-            document.getElementById('editForm').action = `/admin/inventory/${inventoryId}`;
+            const editMenuName = document.getElementById('editMenuName');
+            const editQuantity = document.getElementById('editQuantity');
+            const editReorderLevel = document.getElementById('editReorderLevel');
+            const editForm = document.getElementById('editForm');
+            const editModal = document.getElementById('editModal');
             
-            document.getElementById('editModal').classList.remove('hidden');
+            // Safety check: if critical elements are missing, abort function
+            if (!editMenuName || !editQuantity || !editReorderLevel || !editForm || !editModal) {
+                console.error('Required edit modal elements not found');
+                return;
+            }
+            
+            editMenuName.value = menuName;
+            editQuantity.value = quantity;
+            editReorderLevel.value = reorderLevel;
+            editForm.action = `/admin/inventory/${inventoryId}`;
+            
+            editModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
 
         function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
+            const editModal = document.getElementById('editModal');
+            if (editModal) {
+                editModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
         }
 
         // Close modal on escape key
@@ -362,12 +383,18 @@
         });
 
         // Close modal on outside click
-        document.getElementById('addModal')?.addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) closeAddModal();
-        });
+        const addModal = document.getElementById('addModal');
+        if (addModal) {
+            addModal.addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeAddModal();
+            });
+        }
 
-        document.getElementById('editModal')?.addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) closeEditModal();
-        });
+        const editModal = document.getElementById('editModal');
+        if (editModal) {
+            editModal.addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeEditModal();
+            });
+        }
     </script>
 @endsection

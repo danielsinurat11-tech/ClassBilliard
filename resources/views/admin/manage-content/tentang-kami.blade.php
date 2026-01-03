@@ -182,15 +182,20 @@
 
     <script>
         // Preview Handler for Image
-        document.getElementById('imageInput').onchange = evt => {
-            const [file] = evt.target.files
-            if (file) {
-                const preview = document.getElementById('imagePreview');
-                preview.style.opacity = '0';
-                setTimeout(() => {
-                    preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-700 rounded-lg">`;
-                    preview.style.opacity = '1';
-                }, 300);
+        const imageInput = document.getElementById('imageInput');
+        if (imageInput) {
+            imageInput.onchange = evt => {
+                const [file] = evt.target.files
+                if (file) {
+                    const preview = document.getElementById('imagePreview');
+                    if (preview) {
+                        preview.style.opacity = '0';
+                        setTimeout(() => {
+                            preview.innerHTML = `<img src="${URL.createObjectURL(file)}" class="max-w-full max-h-full object-cover group-hover:scale-105 transition-transform duration-700 rounded-lg">`;
+                            preview.style.opacity = '1';
+                        }, 300);
+                    }
+                }
             }
         }
     </script>

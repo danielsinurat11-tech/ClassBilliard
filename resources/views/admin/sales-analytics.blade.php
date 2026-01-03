@@ -376,9 +376,13 @@
 
         // Function to update summary stats
         function updateSummary(data) {
-            document.getElementById('totalMenuCount').textContent = data.menu_count || 0;
-            document.getElementById('totalQuantity').textContent = (data.total_items || 0).toLocaleString('id-ID');
-            document.getElementById('totalRevenue').textContent = 'Rp ' + parseInt(data.total_revenue || 0).toLocaleString('id-ID');
+            const menuCountEl = document.getElementById('totalMenuCount');
+            const quantityEl = document.getElementById('totalQuantity');
+            const revenueEl = document.getElementById('totalRevenue');
+
+            if (menuCountEl) menuCountEl.textContent = data.menu_count || 0;
+            if (quantityEl) quantityEl.textContent = (data.total_items || 0).toLocaleString('id-ID');
+            if (revenueEl) revenueEl.textContent = 'Rp ' + parseInt(data.total_revenue || 0).toLocaleString('id-ID');
         }
 
         // Function to update menu details

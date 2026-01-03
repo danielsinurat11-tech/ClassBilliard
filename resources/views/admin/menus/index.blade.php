@@ -168,7 +168,18 @@
     <script>
         function confirmDelete(button) {
             const form = button.closest('.delete-form');
-            const menuNameElement = form.closest('[data-menu-category]').querySelector('h3');
+            if (!form) {
+                console.error('Delete form not found');
+                return;
+            }
+            
+            const categoryElement = form.closest('[data-menu-category]');
+            if (!categoryElement) {
+                console.error('Category element not found');
+                return;
+            }
+            
+            const menuNameElement = categoryElement.querySelector('h3');
             const menuName = menuNameElement ? menuNameElement.textContent.trim() : 'Menu';
 
             Swal.fire({

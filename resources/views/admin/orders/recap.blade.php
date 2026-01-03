@@ -577,6 +577,12 @@
             .then(data => {
                 const modal = document.getElementById('reportDetailModal');
                 
+                // Safety check: if modal element is missing, abort function
+                if (!modal) {
+                    console.error('Report detail modal element not found');
+                    return;
+                }
+                
                 // Simpan semua order data untuk filtering
                 allOrdersData = data.order_summary || [];
                 
@@ -605,6 +611,12 @@
     function populateFilters(orders) {
         const tableSelect = document.getElementById('filterTable');
         const roomSelect = document.getElementById('filterRoom');
+        
+        // Safety check: if critical elements are missing, abort function
+        if (!tableSelect || !roomSelect) {
+            console.error('Filter dropdown elements not found');
+            return;
+        }
         
         // Get unique tables and rooms
         const tables = [...new Set(orders.map(o => o.table_number))].sort();
@@ -637,8 +649,17 @@
 
     // Apply filters
     function applyFilters() {
-        const selectedTable = document.getElementById('filterTable').value;
-        const selectedRoom = document.getElementById('filterRoom').value;
+        const tableSelect = document.getElementById('filterTable');
+        const roomSelect = document.getElementById('filterRoom');
+        
+        // Safety check: if critical elements are missing, abort function
+        if (!tableSelect || !roomSelect) {
+            console.error('Filter dropdown elements not found');
+            return;
+        }
+        
+        const selectedTable = tableSelect.value;
+        const selectedRoom = roomSelect.value;
         
         let filteredOrders = allOrdersData;
         
@@ -656,8 +677,17 @@
 
     // Reset filter
     function resetFilter() {
-        document.getElementById('filterTable').value = '';
-        document.getElementById('filterRoom').value = '';
+        const tableSelect = document.getElementById('filterTable');
+        const roomSelect = document.getElementById('filterRoom');
+        
+        // Safety check: if critical elements are missing, abort function
+        if (!tableSelect || !roomSelect) {
+            console.error('Filter dropdown elements not found');
+            return;
+        }
+        
+        tableSelect.value = '';
+        roomSelect.value = '';
         renderOrders(allOrdersData);
         updateFilterStats(allOrdersData);
     }
@@ -665,6 +695,12 @@
     // Render orders
     function renderOrders(orders) {
         const content = document.getElementById('reportDetailContent');
+        
+        // Safety check: if content element is missing, abort function
+        if (!content) {
+            console.error('Report detail content element not found');
+            return;
+        }
         
         if (!orders || orders.length === 0) {
             content.innerHTML = '<div class="text-center py-12"><p class="text-gray-400">Tidak ada order yang sesuai dengan filter.</p></div>';
@@ -707,6 +743,12 @@
     function updateFilterStats(orders) {
         const statsDiv = document.getElementById('filterStats');
         
+        // Safety check: if stats element is missing, abort function
+        if (!statsDiv) {
+            console.error('Filter stats element not found');
+            return;
+        }
+        
         if (!orders || orders.length === 0) {
             statsDiv.innerHTML = '<span class="text-gray-500">Tidak ada order yang sesuai dengan filter.</span>';
             return;
@@ -726,6 +768,13 @@
     // Close report detail
     function closeReportDetail() {
         const modal = document.getElementById('reportDetailModal');
+        
+        // Safety check: if modal element is missing, abort function
+        if (!modal) {
+            console.error('Report detail modal element not found');
+            return;
+        }
+        
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         // Reset filters
