@@ -519,8 +519,8 @@ class OrderController extends Controller
         $lastOrderId = $request->get('last_order_id', 0);
         $lastCheckTime = $request->get('last_check_time');
         
-        // Filter berdasarkan shift user yang login
-        if (!$user->shift_id) {
+        // Super admin bisa cek orders dari semua shift, regular admin harus punya shift_id
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
             return response()->json([
                 'has_changes' => false,
                 'has_new_orders' => false,
@@ -535,33 +535,47 @@ class OrderController extends Controller
         }
         
         // Check for new orders (order baru langsung processing, jadi tidak perlu check pending)
-        $newOrdersCount = orders::where('shift_id', $user->shift_id)
-            ->where('id', '>', $lastOrderId)
-            ->where('status', 'processing')
-            ->count();
+        $query = orders::where('id', '>', $lastOrderId)
+            ->where('status', 'processing');
+        
+        if (!$user->hasRole('super_admin')) {
+            $query->where('shift_id', $user->shift_id);
+        }
+        
+        $newOrdersCount = $query->count();
         
         // Check for status changes (orders that were updated after last check)
         $statusChangedCount = 0;
         if ($lastCheckTime) {
-            $statusChangedCount = orders::where('shift_id', $user->shift_id)
-                ->where('updated_at', '>', $lastCheckTime)
+            $statusQuery = orders::where('updated_at', '>', $lastCheckTime)
                 ->where(function($query) {
                     $query->where('status', 'completed')
                           ->orWhere('status', 'rejected')
                           ->orWhere('status', 'processing');
-                })
-                ->count();
+                });
+            
+            if (!$user->hasRole('super_admin')) {
+                $statusQuery->where('shift_id', $user->shift_id);
+            }
+            
+            $statusChangedCount = $statusQuery->count();
         }
         
-        $latestOrder = orders::where('shift_id', $user->shift_id)
-            ->orderBy('id', 'desc')
-            ->first();
+        $latestQuery = orders::orderBy('id', 'desc');
+        if (!$user->hasRole('super_admin')) {
+            $latestQuery->where('shift_id', $user->shift_id);
+        }
+        
+        $latestOrder = $latestQuery->first();
         $latestOrderId = $latestOrder ? $latestOrder->id : 0;
         
         // Check if there are any active orders (pending or processing)
-        $activeOrdersCount = orders::where('shift_id', $user->shift_id)
-            ->whereIn('status', ['pending', 'processing'])
-            ->count();
+        $activeQuery = orders::whereIn('status', ['pending', 'processing']);
+        if (!$user->hasRole('super_admin')) {
+            $activeQuery->where('shift_id', $user->shift_id);
+        }
+        
+        $activeOrdersCount = $activeQuery->count();
         
         // Check if there are any changes (new orders or status changes)
         $hasChanges = $newOrdersCount > 0 || $statusChangedCount > 0;
@@ -1498,7 +1512,8 @@ class OrderController extends Controller
     {
         $user = Auth::user();
         
-        if (!$user->shift_id) {
+        // Super admin bisa rekap tanpa harus punya shift_id, tapi regular admin harus punya shift_id
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
@@ -1518,8 +1533,8 @@ class OrderController extends Controller
                 ], 400);
             }
 
-            // Pastikan order dari shift yang sama
-            if ($order->shift_id != $user->shift_id) {
+            // Pastikan order dari shift yang sama (atau super admin dapat akses semua)
+            if (!$user->hasRole('super_admin') && $order->shift_id != $user->shift_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki akses ke order ini.'
@@ -1528,10 +1543,19 @@ class OrderController extends Controller
 
             // Cek apakah sudah ada tutup hari untuk hari ini
             $today = Carbon::now('Asia/Jakarta')->format('Y-m-d');
-            $report = Report::where('shift_id', $user->shift_id)
-                ->where('start_date', $today)
-                ->where('end_date', $today)
-                ->first();
+            
+            // Super admin: cek tanpa filter shift_id
+            // Regular admin: cek dengan filter shift_id mereka
+            if ($user->hasRole('super_admin')) {
+                $report = Report::where('start_date', $today)
+                    ->where('end_date', $today)
+                    ->first();
+            } else {
+                $report = Report::where('shift_id', $user->shift_id)
+                    ->where('start_date', $today)
+                    ->where('end_date', $today)
+                    ->first();
+            }
 
             // Buat order summary
             $orderSummary = [
@@ -1584,6 +1608,8 @@ class OrderController extends Controller
                 ]);
             } else {
                 // Buat tutup hari baru untuk hari ini
+                // Super admin: shift_id = null (all shifts)
+                // Regular admin: shift_id = user->shift_id
                 $report = Report::create([
                     'report_date' => Carbon::now('Asia/Jakarta'),
                     'start_date' => $today,
@@ -1595,7 +1621,7 @@ class OrderController extends Controller
                     'transfer_revenue' => $order->payment_method === 'transfer' ? $order->total_price : 0,
                     'order_summary' => [$orderSummary],
                     'created_by' => $user->name ?? 'System',
-                    'shift_id' => $user->shift_id
+                    'shift_id' => $user->hasRole('super_admin') ? null : $user->shift_id
                 ]);
             }
 
@@ -1635,7 +1661,8 @@ class OrderController extends Controller
 
         $user = Auth::user();
         
-        if (!$user->shift_id) {
+        // Super admin bisa recap tanpa harus punya shift_id, tapi regular admin harus punya shift_id
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda belum di-assign ke shift. Silakan hubungi administrator.'
@@ -1645,18 +1672,25 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            // Ambil semua order yang sudah completed dalam periode tertentu DAN sesuai shift user
+            // Ambil semua order yang sudah completed dalam periode tertentu
+            // Super admin: lihat semua orders dari semua shifts
+            // Regular admin: hanya orders dari shift mereka sendiri
             $startDate = Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta')->startOfDay();
             $endDate = Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta')->endOfDay();
             
-            $orders = orders::with('orderItems')
+            $query = orders::with('orderItems')
                 ->where('status', 'completed')
-                ->where('shift_id', $user->shift_id) // Filter berdasarkan shift user
                 ->whereBetween('created_at', [
                     $startDate->utc(),
                     $endDate->utc()
-                ])
-                ->get();
+                ]);
+            
+            // Filter berdasarkan shift jika bukan super_admin
+            if (!$user->hasRole('super_admin')) {
+                $query->where('shift_id', $user->shift_id);
+            }
+            
+            $orders = $query->get();
 
             if ($orders->isEmpty()) {
                 return response()->json([
@@ -1671,11 +1705,19 @@ class OrderController extends Controller
             $qrisRevenue = $orders->where('payment_method', 'qris')->sum('total_price');
             $transferRevenue = $orders->where('payment_method', 'transfer')->sum('total_price');
 
-            // Cek apakah sudah ada tutup hari dengan periode yang sama DAN shift yang sama
-            $existingReport = Report::where('shift_id', $user->shift_id)
-                ->where('start_date', Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta')->format('Y-m-d'))
-                ->where('end_date', Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta')->format('Y-m-d'))
-                ->first();
+            // Cek apakah sudah ada tutup hari dengan periode yang sama
+            // Super admin: cek tanpa filter shift_id
+            // Regular admin: cek dengan filter shift_id mereka
+            if ($user->hasRole('super_admin')) {
+                $existingReport = Report::where('start_date', Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta')->format('Y-m-d'))
+                    ->where('end_date', Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta')->format('Y-m-d'))
+                    ->first();
+            } else {
+                $existingReport = Report::where('shift_id', $user->shift_id)
+                    ->where('start_date', Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta')->format('Y-m-d'))
+                    ->where('end_date', Carbon::parse($request->end_date)->setTimezone('Asia/Jakarta')->format('Y-m-d'))
+                    ->first();
+            }
 
             // Buat ringkasan order (simpan detail order sebagai JSON)
             $orderSummary = $orders->map(function ($order) {
@@ -1731,6 +1773,8 @@ class OrderController extends Controller
                 $message = 'Tutup hari berhasil digabung dengan tutup hari yang sudah ada. ' . count($newOrders) . ' order baru ditambahkan.';
             } else {
                 // Buat tutup hari baru
+                // Super admin: shift_id = null (all shifts)
+                // Regular admin: shift_id = user->shift_id
                 $report = Report::create([
                     'report_date' => Carbon::now('Asia/Jakarta'),
                     'start_date' => Carbon::parse($request->start_date)->setTimezone('Asia/Jakarta'),
@@ -1742,7 +1786,7 @@ class OrderController extends Controller
                     'transfer_revenue' => $transferRevenue,
                     'order_summary' => $orderSummary,
                     'created_by' => Auth::user()->name ?? 'System',
-                    'shift_id' => $user->shift_id
+                    'shift_id' => $user->hasRole('super_admin') ? null : $user->shift_id
                 ]);
                 $message = 'Tutup hari berhasil dibuat. ' . $orders->count() . ' order telah di-tutup hari.';
             }
@@ -1778,7 +1822,9 @@ class OrderController extends Controller
     {
         $user = Auth::user();
         
-        if (!$user->shift_id) {
+        // Super admin bisa lihat semua recap tanpa harus punya shift_id
+        // Regular admin harus punya shift_id
+        if (!$user->hasRole('super_admin') && !$user->shift_id) {
             return view('admin.orders.recap', [
                 'reports' => new \Illuminate\Pagination\Paginator([], 20)
             ])->with('error', 'Anda belum di-assign ke shift. Silakan hubungi administrator.');
@@ -1819,12 +1865,15 @@ class OrderController extends Controller
         $user = Auth::user();
         $report = Report::findOrFail($id);
         
-        // Pastikan user hanya bisa melihat tutup hari shift mereka sendiri (atau super_admin)
-        if (!$user->hasRole('super_admin') && $report->shift_id != $user->shift_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak memiliki akses ke tutup hari ini.'
-            ], 403);
+        // Super admin bisa akses semua recap
+        // Regular admin hanya bisa akses recap shift mereka atau rekap lama yang shift_id-nya null
+        if (!$user->hasRole('super_admin')) {
+            if ($report->shift_id !== null && $report->shift_id != $user->shift_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke tutup hari ini.'
+                ], 403);
+            }
         }
         
         return response()->json([
@@ -1843,10 +1892,23 @@ class OrderController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
+        $user = Auth::user();
+
         try {
             DB::beginTransaction();
 
             $report = Report::findOrFail($id);
+            
+            // Super admin bisa update semua recap
+            // Regular admin hanya bisa update recap shift mereka
+            if (!$user->hasRole('super_admin')) {
+                if ($report->shift_id !== null && $report->shift_id != $user->shift_id) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki akses untuk mengubah tutup hari ini.'
+                    ], 403);
+                }
+            }
 
             // Cek apakah periode baru sama dengan tutup hari lain (selain yang sedang diupdate)
             $existingReportWithSamePeriod = Report::where('id', '!=', $id)

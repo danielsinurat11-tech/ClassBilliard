@@ -168,18 +168,18 @@
                                             class="w-full text-black text-[10px] font-black uppercase tracking-widest py-3 rounded-md transition-all active:scale-95 btn-primary"
                                             style="background-color: var(--primary-color);">Approve</button>
                                     </form>
-                                    <form action="{{ route('admin.orders.reject', $order->id) }}" method="POST">
+                                    <form action="{{ route('admin.orders.reject', $order->id) }}" method="POST" class="reject-form">
                                         @csrf
-                                        <button type="submit"
+                                        <button type="button"
                                             class="w-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest py-3 rounded-md transition-all active:scale-95"
-                                            onclick="return confirm('Reject order?')">Void</button>
+                                            onclick="confirmReject(this.closest('form'))">Void</button>
                                     </form>
                                 </div>
-                                <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="mt-2"
-                                    onsubmit="return confirm('Delete order permanently?')">
+                                <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="mt-2 delete-form">
                                     @csrf @method('DELETE')
-                                    <button type="submit"
-                                        class="w-full text-red-500 text-[9px] font-black uppercase tracking-[0.2em] py-2 hover:bg-red-500/5 rounded-md transition-all">Delete
+                                    <button type="button"
+                                        class="w-full text-red-500 text-[9px] font-black uppercase tracking-[0.2em] py-2 hover:bg-red-500/5 rounded-md transition-all"
+                                        onclick="confirmDelete(this.closest('form'))">Delete
                                         Permanent</button>
                                 </form>
                             @endif
@@ -233,6 +233,7 @@
     </style>
 
     @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
             function filterByTable(table) {
                 const orderCards = document.querySelectorAll('.order-card-base');
@@ -300,24 +301,91 @@
             setTimeout(checkForChanges, 1000);
 
             async function rekapOrder(orderId) {
-                if (!confirm('Rekap order ini ke laporan harian?')) return;
-                try {
-                    const response = await fetch(`/admin/orders/${orderId}/rekap`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                Swal.fire({
+                    title: 'Rekap Order?',
+                    text: 'Yakin ingin merekap order ini ke laporan harian?',
+                    icon: 'question',
+                    background: '#0A0A0A',
+                    color: '#FFFFFF',
+                    showCancelButton: true,
+                    confirmButtonColor: 'var(--primary-color)',
+                    cancelButtonColor: '#6B7280',
+                    confirmButtonText: 'Ya, Rekap',
+                    cancelButtonText: 'Batal'
+                }).then(async (result) => {
+                    if (!result.isConfirmed) return;
+                    try {
+                        const response = await fetch(`/admin/orders/${orderId}/rekap`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            }
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            Swal.fire({
+                                title: 'Berhasil!',
+                                text: 'Order berhasil di-rekap ke laporan harian',
+                                icon: 'success',
+                                background: '#0A0A0A',
+                                color: '#FFFFFF',
+                                timer: 1500
+                            }).then(() => location.reload());
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: result.message,
+                                icon: 'error',
+                                background: '#0A0A0A',
+                                color: '#FFFFFF'
+                            });
                         }
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        location.reload();
-                    } else {
-                        alert('Recap failed: ' + result.message);
+                    } catch (error) {
+                        console.error('Error rekap order:', error);
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Terjadi kesalahan saat rekap order',
+                            icon: 'error',
+                            background: '#0A0A0A',
+                            color: '#FFFFFF'
+                        });
                     }
-                } catch (error) {
-                    console.error('Error rekap order:', error);
-                }
+                });
+            }
+
+            function confirmReject(form) {
+                Swal.fire({
+                    title: 'Void Order?',
+                    text: 'Yakin ingin membatalkan order ini?',
+                    icon: 'warning',
+                    background: '#0A0A0A',
+                    color: '#FFFFFF',
+                    showCancelButton: true,
+                    confirmButtonColor: '#EF4444',
+                    cancelButtonColor: '#6B7280',
+                    confirmButtonText: 'Ya, Void',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) form.submit();
+                });
+            }
+
+            function confirmDelete(form) {
+                Swal.fire({
+                    title: 'Delete Permanent?',
+                    text: 'Anda tidak bisa membatalkan aksi ini. Order akan dihapus selamanya.',
+                    icon: 'error',
+                    background: '#0A0A0A',
+                    color: '#FFFFFF',
+                    showCancelButton: true,
+                    confirmButtonColor: '#DC2626',
+                    cancelButtonColor: '#6B7280',
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) form.submit();
+                });
             }
         </script>
     @endpush
