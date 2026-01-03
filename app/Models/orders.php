@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Model Order
@@ -26,7 +27,7 @@ class orders extends Model
 
     public function orderItems()
     {
-        return $this->hasMany(order_items::class, 'order_id');
+        return $this->hasMany(order_items::class, 'order_id')->cascadeOnDelete();
     }
 
     public function shift()
@@ -41,5 +42,21 @@ class orders extends Model
     public function canBeDeleted(): bool
     {
         return $this->status === 'pending';
+    }
+
+    /**
+     * Auto-delete order items files when order is deleted
+     * Cascade delete akan handle penghapusan order_items di database
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function ($model) {
+            // Clean up order items images before cascade delete
+            $model->orderItems()->get()->each(function ($item) {
+                if ($item->image && Storage::disk('public')->exists($item->image)) {
+                    Storage::disk('public')->delete($item->image);
+                }
+            });
+        });
     }
 }

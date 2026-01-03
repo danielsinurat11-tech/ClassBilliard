@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class TestimoniPelanggan extends Model
 {
@@ -29,4 +30,19 @@ class TestimoniPelanggan extends Model
         'rating' => 'integer',
         'order' => 'integer',
     ];
+
+    /**
+     * Auto-delete images when deleted
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function ($testimoni) {
+            if ($testimoni->photo && Storage::disk('public')->exists($testimoni->photo)) {
+                Storage::disk('public')->delete($testimoni->photo);
+            }
+            if ($testimoni->image && Storage::disk('public')->exists($testimoni->image)) {
+                Storage::disk('public')->delete($testimoni->image);
+            }
+        });
+    }
 }

@@ -6,6 +6,7 @@ use App\Models\CategoryMenu;
 use App\Models\Menu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class MenuAdminController extends Controller
 {
@@ -83,9 +84,9 @@ class MenuAdminController extends Controller
             'image.mimes' => 'Gambar harus format JPEG atau PNG.',
         ]);
 
-        // Store image
+        // Store image using Storage facade
         $imageName = time().'-'.Str::slug($validated['name']).'.'.$request->image->extension();
-        $request->image->move(public_path('uploads/menus'), $imageName);
+        $imagePath = $request->image->storeAs('menus', $imageName, 'public');
 
         // Parse labels from comma-separated string
         $labels = $validated['labels']
@@ -100,7 +101,7 @@ class MenuAdminController extends Controller
             'price' => $validated['price'],
             'short_description' => Str::limit(strip_tags($validated['description']), 120),
             'description' => $validated['description'],
-            'image_path' => 'uploads/menus/'.$imageName,
+            'image_path' => $imagePath,
             'labels' => ! empty($labels) ? $labels : null,
         ]);
 
@@ -179,14 +180,14 @@ class MenuAdminController extends Controller
         // Handle new image upload
         if ($request->hasFile('image')) {
             // Delete old image if exists
-            if ($menu->image_path && file_exists(public_path($menu->image_path))) {
-                @unlink(public_path($menu->image_path));
+            if ($menu->image_path && Storage::disk('public')->exists($menu->image_path)) {
+                Storage::disk('public')->delete($menu->image_path);
             }
 
             // Store new image
             $imageName = time().'-'.$updateData['slug'].'.'.$request->image->extension();
-            $request->image->move(public_path('uploads/menus'), $imageName);
-            $updateData['image_path'] = 'uploads/menus/'.$imageName;
+            $imagePath = $request->image->storeAs('menus', $imageName, 'public');
+            $updateData['image_path'] = $imagePath;
         }
 
         // Update menu
@@ -208,8 +209,8 @@ class MenuAdminController extends Controller
         $this->authorize('delete', $menu);
 
         // Delete image file if exists
-        if ($menu->image_path && file_exists(public_path($menu->image_path))) {
-            @unlink(public_path($menu->image_path));
+        if ($menu->image_path && Storage::disk('public')->exists($menu->image_path)) {
+            Storage::disk('public')->delete($menu->image_path);
         }
 
         // Delete menu record

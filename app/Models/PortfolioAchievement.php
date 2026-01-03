@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class PortfolioAchievement extends Model
 {
@@ -26,4 +27,13 @@ class PortfolioAchievement extends Model
         'is_active' => 'boolean',
         'order' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function ($model) {
+            if ($model->image && Storage::disk('public')->exists($model->image)) {
+                Storage::disk('public')->delete($model->image);
+            }
+        });
+    }
 }

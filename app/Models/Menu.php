@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Menu extends Model
 {
@@ -27,6 +28,18 @@ class Menu extends Model
     public function inventory()
     {
         return $this->hasOne(FoodInventory::class, 'menu_id');
+    }
+
+    /**
+     * Auto-delete image when menu is deleted
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function ($menu) {
+            if ($menu->image_path && Storage::disk('public')->exists($menu->image_path)) {
+                Storage::disk('public')->delete($menu->image_path);
+            }
+        });
     }
 
     /**

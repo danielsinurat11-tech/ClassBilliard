@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class AboutFounder extends Model
 {
@@ -29,4 +30,19 @@ class AboutFounder extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Auto-delete images when deleted
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function ($founder) {
+            if ($founder->photo && Storage::disk('public')->exists($founder->photo)) {
+                Storage::disk('public')->delete($founder->photo);
+            }
+            if ($founder->image && Storage::disk('public')->exists($founder->image)) {
+                Storage::disk('public')->delete($founder->image);
+            }
+        });
+    }
 }

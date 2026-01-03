@@ -6,20 +6,32 @@
             ->where('is_active', true)
             ->first();
     });
+    
     // Tidak ada fallback values - hanya menampilkan data dari database
-    $logoImage = $hero && $hero->logo_image ? asset('storage/' . $hero->logo_image) : '';
-    $backgroundImage = $hero && $hero->background_image ? asset('storage/' . $hero->background_image) : '';
-    $title = $hero && $hero->title && trim($hero->title) !== '' ? trim($hero->title) : '';
-    $subtitle = $hero && $hero->subtitle && trim($hero->subtitle) !== '' ? trim($hero->subtitle) : '';
-    $tagline = $hero && $hero->tagline && trim($hero->tagline) !== '' ? trim($hero->tagline) : '';
-    $ctaText1 = $hero && $hero->cta_text_1 && trim($hero->cta_text_1) !== '' ? trim($hero->cta_text_1) : '';
-    $ctaText2 = $hero && $hero->cta_text_2 && trim($hero->cta_text_2) !== '' ? trim($hero->cta_text_2) : '';
-    $ctaLink1 = $hero && isset($hero->cta_link_1) && $hero->cta_link_1 && trim($hero->cta_link_1) !== '' ? trim($hero->cta_link_1) : null;
-    $ctaLink1IsExternal = $ctaLink1 && preg_match('#^https?://#i', $ctaLink1);
-    $isActive = $hero ? $hero->is_active : false;
+    if ($hero) {
+        $logoImage = $hero->logo_image ? asset('storage/' . $hero->logo_image) : '';
+        $backgroundImage = $hero->background_image ? asset('storage/' . $hero->background_image) : '';
+        $title = $hero->title && trim($hero->title) !== '' ? trim($hero->title) : '';
+        $subtitle = $hero->subtitle && trim($hero->subtitle) !== '' ? trim($hero->subtitle) : '';
+        $tagline = $hero->tagline && trim($hero->tagline) !== '' ? trim($hero->tagline) : '';
+        $ctaText1 = $hero->cta_text_1 && trim($hero->cta_text_1) !== '' ? trim($hero->cta_text_1) : '';
+        $ctaText2 = $hero->cta_text_2 && trim($hero->cta_text_2) !== '' ? trim($hero->cta_text_2) : '';
+        $ctaLink1 = (isset($hero->cta_link_1) && $hero->cta_link_1 && trim($hero->cta_link_1) !== '') ? trim($hero->cta_link_1) : null;
+        $ctaLink1IsExternal = $ctaLink1 && preg_match('#^https?://#i', $ctaLink1);
+    } else {
+        $logoImage = '';
+        $backgroundImage = '';
+        $title = '';
+        $subtitle = '';
+        $tagline = '';
+        $ctaText1 = '';
+        $ctaText2 = '';
+        $ctaLink1 = null;
+        $ctaLink1IsExternal = false;
+    }
 @endphp
 
-@if($isActive && ($backgroundImage || $logoImage || $title || $subtitle))
+@if($hero && ($backgroundImage || $logoImage || $title || $subtitle))
 <header class="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
     <!-- Background Image with Parallax Feel -->
     <div class="absolute inset-0 z-0" id="heroParallaxBg">

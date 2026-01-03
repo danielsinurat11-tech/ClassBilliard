@@ -11,11 +11,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Add security headers to all responses
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'auth.custom' => \App\Http\Middleware\EnsureUserIsAuthenticated::class,
             'check.shift.time' => \App\Http\Middleware\CheckShiftTime::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'rate_limit' => \App\Http\Middleware\RateLimitRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
