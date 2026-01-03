@@ -27,6 +27,22 @@ class HeroSection extends Model
     ];
 
     /**
+     * Get background image URL with storage path
+     */
+    public function getBackgroundImageUrlAttribute(): string
+    {
+        return $this->background_image ? asset('storage/' . $this->background_image) : '';
+    }
+
+    /**
+     * Get logo image URL with storage path
+     */
+    public function getLogoImageUrlAttribute(): string
+    {
+        return $this->logo_image ? asset('storage/' . $this->logo_image) : '';
+    }
+
+    /**
      * Auto-delete images when hero section is deleted
      */
     protected static function booted(): void

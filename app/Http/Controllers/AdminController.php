@@ -221,24 +221,30 @@ class AdminController extends Controller
             'cta_link_1' => ['nullable', 'string', 'max:255'],
         ]);
 
+        // Only update logo_image if new file uploaded
         if ($request->hasFile('logo_image')) {
-            if ($hero->logo_image) {
+            // Delete old image if exists
+            if ($hero->logo_image && Storage::disk('public')->exists($hero->logo_image)) {
                 Storage::disk('public')->delete($hero->logo_image);
             }
             $hero->logo_image = $request->file('logo_image')->store('hero', 'public');
         }
 
+        // Only update background_image if new file uploaded
         if ($request->hasFile('background_image')) {
-            if ($hero->background_image) {
+            // Delete old image if exists
+            if ($hero->background_image && Storage::disk('public')->exists($hero->background_image)) {
                 Storage::disk('public')->delete($hero->background_image);
             }
             $hero->background_image = $request->file('background_image')->store('hero', 'public');
         }
 
+        // Update text fields
         $hero->title = $request->title ?? 'The Art of';
         $hero->subtitle = $request->subtitle ?? 'Precision';
         $hero->tagline = $request->tagline ?? 'Premium Billiard Lounge & Bar';
         $hero->cta_text_1 = $request->cta_text_1 ?? 'BOOK A TABLE';
+        
         // Normalize CTA link 1 if provided (allow plain numbers -> wa.me)
         $ctaLinkInput = $request->input('cta_link_1');
         if ($ctaLinkInput && trim($ctaLinkInput) !== '') {
@@ -261,8 +267,9 @@ class AdminController extends Controller
                 $hero->cta_link_1 = null;
             }
         }
+        
         $hero->cta_text_2 = $request->cta_text_2 ?? 'EXPLORE';
-        $hero->is_active = $request->has('is_active');
+        $hero->is_active = $request->has('is_active') && $request->input('is_active') ? true : false;
         $hero->save();
 
         return redirect()->route('admin.cms.hero')->with('success', 'Hero section updated successfully');

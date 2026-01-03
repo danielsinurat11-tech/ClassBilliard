@@ -9,8 +9,8 @@
     
     // Tidak ada fallback values - hanya menampilkan data dari database
     if ($hero) {
-        $logoImage = $hero->logo_image ? asset('storage/' . $hero->logo_image) : '';
-        $backgroundImage = $hero->background_image ? asset('storage/' . $hero->background_image) : '';
+        $logoImage = $hero->logo_image_url;
+        $backgroundImage = $hero->background_image_url;
         $title = $hero->title && trim($hero->title) !== '' ? trim($hero->title) : '';
         $subtitle = $hero->subtitle && trim($hero->subtitle) !== '' ? trim($hero->subtitle) : '';
         $tagline = $hero->tagline && trim($hero->tagline) !== '' ? trim($hero->tagline) : '';
