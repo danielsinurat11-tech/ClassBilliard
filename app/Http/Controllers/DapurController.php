@@ -127,10 +127,21 @@ class DapurController extends Controller
                 $initialQuery->where('shift_id', $user->shift_id);
             }
             $lastOrderId = (int) $initialQuery->max('id');
-            $checkInterval = 0.5; // Check every 500ms
+            $isLocal = app()->environment('local');
+            $checkInterval = $isLocal ? 2.0 : 1.5;
+            $startedAt = microtime(true);
+            $maxConnectionSeconds = $isLocal ? 5 : 30;
 
             while (true) {
                 if (connection_aborted()) {
+                    break;
+                }
+                if ((microtime(true) - $startedAt) >= $maxConnectionSeconds) {
+                    echo ": close\n\n";
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
+                    flush();
                     break;
                 }
 
@@ -192,7 +203,7 @@ class DapurController extends Controller
                     flush();
                 }
 
-                usleep($checkInterval * 1000000);
+                usleep((int) ($checkInterval * 1000000));
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',

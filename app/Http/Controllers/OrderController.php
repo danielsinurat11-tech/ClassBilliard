@@ -994,11 +994,22 @@ class OrderController extends Controller
         return response()->stream(function () use ($user) {
             try {
                 $lastOrderId = 0;
-                $checkInterval = 0.5; // Check every 500ms for faster response
+                $isLocal = app()->environment('local');
+                $checkInterval = $isLocal ? 2.0 : 1.5;
+                $startedAt = microtime(true);
+                $maxConnectionSeconds = $isLocal ? 5 : 30;
 
                 while (true) {
                     // Check if client is still connected
                     if (connection_aborted()) {
+                        break;
+                    }
+                    if ((microtime(true) - $startedAt) >= $maxConnectionSeconds) {
+                        echo ": close\n\n";
+                        if (ob_get_level() > 0) {
+                            ob_flush();
+                        }
+                        flush();
                         break;
                     }
 
@@ -1059,7 +1070,7 @@ class OrderController extends Controller
                     }
 
                     // Sleep before next check
-                    usleep((int) ($checkInterval * 1000000)); // Convert to microseconds
+                    usleep((int) ($checkInterval * 1000000));
                 }
             } catch (\Exception $e) {
                 // Send error message via SSE

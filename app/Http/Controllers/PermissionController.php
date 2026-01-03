@@ -115,10 +115,7 @@ class PermissionController extends Controller
             // 1. Clear Spatie permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-            // 2. Clear Laravel cache
-            \Illuminate\Support\Facades\Cache::flush();
-
-            // 3. Refresh the user instance to reload permissions
+            // 2. Refresh the user instance to reload permissions
             $user->refresh();
 
             // Set flash message untuk session
@@ -183,10 +180,7 @@ class PermissionController extends Controller
             // 1. Clear Spatie permission cache
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-            // 2. Clear Laravel cache
-            \Illuminate\Support\Facades\Cache::flush();
-
-            // 3. Refresh the user instance
+            // 2. Refresh the user instance
             $user->refresh();
 
             return response()->json([
