@@ -364,7 +364,7 @@
 
         // Function to update overlay visibility
         function updateNotificationOverlay() {
-            if (notificationOverlay) {
+            if (notificationOverlay && notificationContainer) {
                 // Check if there are any visible notifications
                 const visibleNotifications = notificationContainer.querySelectorAll('.notification:not(.hide)');
                 
@@ -405,7 +405,9 @@
                 </button>
             `;
             
-            notificationContainer.appendChild(notification);
+            if (notificationContainer) {
+                notificationContainer.appendChild(notification);
+            }
             activeNotifications.add(order.id);
             
             // Small delay to ensure DOM is updated
@@ -676,6 +678,9 @@
                 ordersSection.innerHTML = '<div class="grid grid-cols-[repeat(auto-fill,minmax(380px,1fr))] gap-6 max-md:grid-cols-1 max-md:gap-4"></div>';
                 ordersGrid = ordersSection.querySelector('.grid');
             }
+            
+            // Jika ordersGrid masih null setelah update, hentikan operasi
+            if (!ordersGrid) return;
             
             newOrders.forEach(order => {
                 // Skip if already tracked in memory
