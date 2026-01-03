@@ -725,6 +725,22 @@
             }
         }
 
+        // Function untuk fetch dan update orders (untuk refresh setelah action)
+        async function fetchAndUpdateOrders() {
+            try {
+                const response = await fetch('/orders/active');
+                const data = await response.json();
+                
+                if (response.ok && data.orders) {
+                    const orderIds = new Set(data.orders.map(o => o.id));
+                    currentOrderIds = orderIds;
+                    updateOrdersDisplay(data.orders);
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            }
+        }
+
         // Function untuk connect ke SSE
         function connectSSE() {
             // Close existing connection if any
@@ -947,26 +963,37 @@
                         // Remove order ID from tracking
                         currentOrderIds.delete(parseInt(orderId));
                         
-                        // Remove order from orders section
+                        // Remove order from orders section dengan animasi
                         const orderCard = button.closest('[data-order-id]');
                         if (orderCard) {
-                            orderCard.style.transition = 'opacity 0.3s, transform 0.3s';
+                            // Tambahkan animasi fade out dan slide
+                            orderCard.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out, margin 0.3s ease-out';
                             orderCard.style.opacity = '0';
-                            orderCard.style.transform = 'translateX(-20px)';
+                            orderCard.style.transform = 'translateX(-20px) scale(0.95)';
+                            orderCard.style.marginBottom = '0';
+                            
                             setTimeout(() => {
                                 orderCard.remove();
                                 
                                 // Check if no more orders
                                 const ordersSection = document.getElementById('ordersSection');
-                                const orderCards = ordersSection.querySelectorAll('[data-order-id]');
-                                if (orderCards.length === 0) {
-                                    ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-600 dark:text-gray-500 text-lg"><p>Belum ada pesanan</p></div>';
+                                if (ordersSection) {
+                                    const orderCards = ordersSection.querySelectorAll('[data-order-id]');
+                                    if (orderCards.length === 0) {
+                                        // Jika tidak ada orders lagi, tampilkan pesan kosong
+                                        const grid = ordersSection.querySelector('.grid');
+                                        if (grid) {
+                                            ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-600 dark:text-gray-500 text-lg"><p>Belum ada pesanan</p></div>';
+                                        } else {
+                                            ordersSection.innerHTML = '<div class="text-center py-16 px-8 text-gray-600 dark:text-gray-500 text-lg"><p>Belum ada pesanan</p></div>';
+                                        }
+                                    }
                                 }
                             }, 300);
+                        } else {
+                            // Jika orderCard tidak ditemukan, refresh dari server
+                            fetchAndUpdateOrders();
                         }
-
-                        // Fetch latest orders to check if there are still active orders
-                        fetchAndUpdateOrders();
                     } else {
                         alert(result.message || 'Gagal menyelesaikan pesanan');
                     }
