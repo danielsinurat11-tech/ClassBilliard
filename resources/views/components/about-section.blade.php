@@ -12,7 +12,6 @@
     $image = $about && $about->image ? asset('storage/' . $about->image) : '';
     $videoUrl = $about && $about->video_url && trim($about->video_url) !== '' ? trim($about->video_url) : '';
     $videoDescription = $about && $about->video_description && trim($about->video_description) !== '' ? trim($about->video_description) : '';
-    $isActive = $about ? $about->is_active : false;
 
     // Extract YouTube video ID from various URL formats
     $youtubeId = '';
@@ -27,7 +26,7 @@
     }
 @endphp
 
-@if($isActive && ($title || $content || $image))
+@if($about && ($title || $content || $image))
 <section id="about" class="relative py-24 bg-[#111111] overflow-hidden -mt-10">
     <!-- Background Elements -->
     <div
@@ -69,7 +68,7 @@
 @endif
 
 {{-- Video Section (Below About) --}}
-@if($isActive && $youtubeId)
+@if($about && $youtubeId)
 <section class="relative py-24 bg-[#0a0a0a] overflow-hidden">
     <!-- Background Elements -->
     <div class="absolute inset-0 opacity-5 pointer-events-none">

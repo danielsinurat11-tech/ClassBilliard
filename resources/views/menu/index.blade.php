@@ -165,13 +165,13 @@
                         <a href="{{ route('menu.detail', $menu->slug) }}" class="menu-card group relative bg-bg-sidebar rounded-xl pt-16 pb-4 px-4 text-center cursor-pointer transform-gpu transition-all duration-500 smooth-ease hover:translate-y-[-5px] hover:scale-105 hover:shadow-[0_35px_60px_rgba(0,0,0,0.45)] hover:border-2 no-underline text-white"
                             data-category="{{ $category->slug }}" data-name="{{ $menu->name }}"
                             data-price="{{ $menu->price }}"
-                            data-image="{{ $menu->image_path ? asset($menu->image_path) : '' }}"
+                            data-image="{{ $menu->image_url }}"
                             data-label="{{ $menu->labels ?? '' }}"
                             style="border: 1px solid transparent; transition: all 500ms cubic-bezier(.22, .61, .36, 1); overflow: visible;"
                             onmouseenter="this.style.borderColor = '#FFD700';"
                             onmouseleave="this.style.borderColor = 'transparent';">
                             <div class="sheen rounded-xl"></div>
-                            <img src="{{ $menu->image_path ? asset($menu->image_path) : 'https://via.placeholder.com/400' }}"
+                            <img src="{{ $menu->image_url ?: 'https://via.placeholder.com/400' }}"
                                 alt="{{ $menu->name }}"
                                 class="w-48 h-48 rounded-full mx-auto -mt-36 object-cover group-hover:scale-110 transition-transform duration-500">
                             <h3 class="text-[15px] font-medium mb-2 px-4 -mt-6 leading-snug line-clamp-2">{{ $menu->name }}</h3>

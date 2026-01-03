@@ -6,14 +6,11 @@
     // Tapi jika dikirim dari controller (meskipun is_active = false), gunakan yang dikirim
     if (!isset($footer)) {
         $footer = cache()->remember('component_footer', 3600, function () {
-            return \App\Models\Footer::select('id', 'about_text', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url', 'whatsapp', 'address', 'location_name', 'phone', 'email', 'google_maps_url', 'map_url', 'monday_friday_hours', 'saturday_sunday_hours', 'opening_hours', 'copyright')
+            return \App\Models\Footer::select('id', 'about_text', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url', 'whatsapp', 'address', 'location_name', 'phone', 'email', 'google_maps_url', 'map_url', 'monday_friday_hours', 'saturday_sunday_hours', 'opening_hours', 'copyright', 'is_active')
                 ->where('is_active', true)
                 ->first();
         });
     }
-    
-    // Footer hanya muncul jika ada data DAN is_active = true
-    $isActive = $footer && $footer->is_active ? true : false;
     
     // Tidak ada fallback values - hanya menampilkan data dari database
     // Trim dan cek apakah string kosong setelah trim
@@ -47,7 +44,7 @@
     $copyright = $footer && $footer->copyright && trim($footer->copyright) !== '' ? trim($footer->copyright) : '';
 @endphp
 
-@if($isActive && $footer)
+@if($footer)
 <footer class="bg-[#050505] text-white pt-24 pb-12 border-t border-white/5 relative overflow-hidden">
     <!-- Decorative Background Elements -->
     <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">

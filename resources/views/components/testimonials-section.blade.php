@@ -2,7 +2,7 @@
 @php
     // Optimized: Use cached data with select specific columns if not passed from controller
     $testimonials = $testimonials ?? cache()->remember('component_testimonials', 1800, function () {
-        return \App\Models\TestimoniPelanggan::select('id', 'title', 'subtitle', 'customer_name', 'name', 'customer_role', 'role', 'testimonial', 'rating', 'photo', 'image', 'order')
+        return \App\Models\TestimoniPelanggan::select('id', 'title', 'subtitle', 'customer_name', 'name', 'customer_role', 'role', 'testimonial', 'rating', 'photo', 'image', 'order', 'is_active')
             ->where('is_active', true)
             ->orderBy('order')
             ->limit(4)

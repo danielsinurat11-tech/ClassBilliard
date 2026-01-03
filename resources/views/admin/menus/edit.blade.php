@@ -48,7 +48,7 @@
                     <div id="preview" class="w-full h-full rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden transition-all duration-500"
                         @mouseenter="$el.style.borderColor = 'var(--primary-color)';"
                         @mouseleave="$el.style.borderColor = '';">
-                        <img src="{{ asset($menu->image_path) }}" class="w-full h-full object-cover group-hover:scale-105 group-hover:blur-[2px] transition-all duration-700" alt="{{ $menu->name }}">
+                        <img src="{{ $menu->image_url }}" class="w-full h-full object-cover group-hover:scale-105 group-hover:blur-[2px] transition-all duration-700" alt="{{ $menu->name }}">
                         <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
                             <i class="ri-camera-switch-line text-3xl text-white mb-2"></i>
                             <span class="text-[9px] font-black text-white uppercase tracking-[0.2em]">Ganti Foto</span>

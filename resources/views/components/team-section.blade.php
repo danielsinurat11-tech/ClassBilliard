@@ -2,7 +2,7 @@
 @php
     // Optimized: Use cached data with select specific columns if not passed from controller
     $teamMembers = $teamMembers ?? cache()->remember('component_team', 1800, function () {
-        return \App\Models\TimKami::select('id', 'title', 'subtitle', 'name', 'position', 'bio', 'photo', 'image', 'facebook_url', 'instagram_url', 'linkedin_url', 'order')
+        return \App\Models\TimKami::select('id', 'title', 'subtitle', 'name', 'position', 'bio', 'photo', 'image', 'facebook_url', 'instagram_url', 'linkedin_url', 'order', 'is_active')
             ->where('is_active', true)
             ->orderBy('order')
             ->get();

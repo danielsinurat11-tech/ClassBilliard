@@ -16,7 +16,6 @@ class MenuController extends Controller
         $categories = CategoryMenu::select('id', 'name', 'order_priority')
             ->with(['menus' => function ($query) {
                 $query->select('id', 'category_menu_id', 'name', 'slug', 'price', 'image_path', 'labels', 'short_description')
-                    ->where('is_active', true)
                     ->orderBy('name', 'asc');
             }])
             ->orderBy('order_priority', 'asc')
@@ -34,7 +33,6 @@ class MenuController extends Controller
         $categories = CategoryMenu::select('id', 'name', 'order_priority')
             ->with(['menus' => function ($query) {
                 $query->select('id', 'category_menu_id', 'name', 'slug', 'price', 'image_path', 'labels', 'short_description')
-                    ->where('is_active', true)
                     ->orderBy('name', 'asc');
             }])
             ->orderBy('order_priority', 'asc')

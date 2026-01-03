@@ -2,7 +2,7 @@
 @php
     // Optimized: Use cached data with select specific columns if not passed from controller
     $events = $events ?? cache()->remember('component_events', 1800, function () {
-        return \App\Models\Event::select('id', 'title', 'subtitle', 'event_title', 'event_description', 'description', 'category', 'event_date', 'image', 'link_url', 'order')
+        return \App\Models\Event::select('id', 'title', 'subtitle', 'event_title', 'event_description', 'description', 'category', 'event_date', 'image', 'link_url', 'order', 'is_active')
             ->where('is_active', true)
             ->orderBy('event_date')
             ->get();

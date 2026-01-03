@@ -107,9 +107,9 @@
                         <div class="menu-card bg-bg-sidebar rounded-xl pt-16 pb-4 px-4 text-center relative group cursor-pointer"
                             data-category="{{ $category->slug }}" data-name="{{ $menu->name }}"
                             data-price="{{ $menu->price }}"
-                            data-image="{{ $menu->image_path ? asset($menu->image_path) : '' }}"
+                            data-image="{{ $menu->image_url }}"
                             data-label="{{ $menu->labels ?? '' }}">
-                            <img src="{{ $menu->image_path ? asset($menu->image_path) : 'https://via.placeholder.com/400' }}"
+                            <img src="{{ $menu->image_url ?: 'https://via.placeholder.com/400' }}"
                                 alt="{{ $menu->name }}"
                                 class="w-48 h-48 rounded-full mx-auto -mt-36 object-cover group-hover:scale-105 transition-transform">
                             <h3 class="text-[15px] font-medium mb-2 px-4 -mt-6 leading-snug line-clamp-2">{{ $menu->name }}</h3>

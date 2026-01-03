@@ -17,7 +17,6 @@
     $facebookUrl = $founder && $founder->facebook_url && trim($founder->facebook_url) !== '' ? trim($founder->facebook_url) : '';
     $instagramUrl = $founder && $founder->instagram_url && trim($founder->instagram_url) !== '' ? trim($founder->instagram_url) : '';
     $linkedinUrl = $founder && $founder->linkedin_url && trim($founder->linkedin_url) !== '' ? trim($founder->linkedin_url) : '';
-    $isActive = $founder ? $founder->is_active : false;
 
     // Extract YouTube video ID from URL
     $youtubeId = '';
@@ -32,7 +31,7 @@
     }
 @endphp
 
-@if($isActive && ($name || $position || $subtitle || $quote || $image || $videoUrl))
+@if($founder && ($name || $position || $subtitle || $quote || $image || $videoUrl))
 <section id="founder" class="py-24 bg-[#0F0F0F] relative overflow-hidden">
     <!-- Background Typography (Watermark) -->
     <div class="absolute top-10 left-0 w-full select-none pointer-events-none overflow-hidden leading-none"

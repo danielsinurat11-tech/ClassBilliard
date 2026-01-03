@@ -69,7 +69,7 @@
                     <!-- Image Area: Precise Radius -->
                     <div
                         class="relative aspect-square overflow-hidden rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5">
-                        <img src="{{ asset($menu->image_path) }}"
+                        <img src="{{ $menu->image_url }}"
                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             alt="{{ $menu->name }}">
 

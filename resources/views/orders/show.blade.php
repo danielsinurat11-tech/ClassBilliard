@@ -381,8 +381,8 @@
             <h2>Order Items</h2>
             @forelse($order->orderItems as $item)
                 <div class="order-item">
-                    @if($item->menu && $item->menu->image_path)
-                        <img src="{{ asset($item->menu->image_path) }}" alt="{{ $item->menu_name }}" class="item-image">
+                    @if($item->menu && $item->menu->image_url)
+                        <img src="{{ $item->menu->image_url }}" alt="{{ $item->menu_name }}" class="item-image">
                     @else
                         <div class="item-image" style="display: flex; align-items: center; justify-content: center; background: rgba(139, 92, 246, 0.1);"><i class="ri-image-line" style="font-size: 2.5rem; color: #8B5CF6;"></i></div>
                     @endif

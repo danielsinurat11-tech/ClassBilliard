@@ -20,6 +20,14 @@ class Menu extends Model
         'price' => 'float',
     ];
 
+    /**
+     * Get full image URL with storage path prefix
+     */
+    public function getImageUrlAttribute(): string
+    {
+        return $this->image_path ? asset('storage/' . $this->image_path) : '';
+    }
+
     public function categoryMenu(): BelongsTo
     {
         return $this->belongsTo(CategoryMenu::class, 'category_menu_id');

@@ -2,7 +2,7 @@
 @php
     // Optimized: Use cached data with select specific columns if not passed from controller
     $achievements = $achievements ?? cache()->remember('component_achievements', 1800, function () {
-        return \App\Models\PortfolioAchievement::select('id', 'title', 'subtitle', 'type', 'icon', 'number', 'label', 'description', 'image', 'order')
+        return \App\Models\PortfolioAchievement::select('id', 'title', 'subtitle', 'type', 'icon', 'number', 'label', 'description', 'image', 'order', 'is_active')
             ->where('is_active', true)
             ->orderBy('order')
             ->get();
